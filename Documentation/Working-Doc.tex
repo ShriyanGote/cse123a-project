@@ -50,12 +50,12 @@ Living with roommates can sometimes mean your filtered water device is empty whe
 
     \item College Roommates
     \begin{itemize}
-        \item John Doe, 20 years old, Student at UCSC. John lives in a dorm with two other roommates, and they all rely on a shared water filter for drinking water. Occasionally, John comes out to get water only to find that the water is empty. This creates frustration and delays as John has to choose between missing the bus to refill water or get to class on time while being thirsty.
+        \item John Doe, 20 years old, Student at UCSC. John lives in a dorm with two other roommates, and they all rely on a shared water filter for drinking water. Occasionally, John comes out to get water only to find that the water is empty. This creates frustration and delays as John has to choose between missing the bus to refill water or getting to class on time while being thirsty.
     \end{itemize}
     
     \item Family
     \begin{itemize}
-        \item Jane Smith, 39 years old, working mother. Jane lives with her husband and two children. Jane gets home after a long day of work and is feeling thirsty from the drive home. She goes to the shared water filter to find that it is completely empty. Jane feels frustrated with her stay-at-home husband and two children for not refilling the water filter. This causes her to lash out and yell at them until they all cry, creating a hostile environment in the household.
+        \item Jane Smith, 39 years old, working mother. Jane lives with her husband and two children. Jane gets home after a long, exhausting day of work and is feeling thirsty from the drive home. She goes to the shared water filter to find that it is completely empty. Jane feels frustrated with her stay-at-home husband and two children for not refilling the water filter. This causes her to lash out and yell at them until they all cry, creating a hostile environment in the household.
     \end{itemize}
     
     \item Office
@@ -72,26 +72,91 @@ Living with roommates can sometimes mean your filtered water device is empty whe
 \begin{ganttchart}[
     hgrid,
     vgrid,
+    newline shortcut=true,
     x unit=1.2cm,
-    y unit chart=0.6cm,
+    y unit chart=1.2cm,
     bar height=0.5,
-    bar/.append style={fill=gray!35},
-    title/.append style={fill=gray!15},
-    title label font=\bfseries
-]{4}{10}
-\gantttitle{Weeks 4--10}{7} \\
-\gantttitlelist{4,...,10}{1} \\
+    bar/.append style={fill=gray!40},
+    title/.append style={fill=gray!20},
+    bar label font=\scriptsize,
+    title label font=\bfseries,
+    bar label node/.append style={
+        text width=3.5cm,  
+        align=left,
+        anchor=east     
+    }
+]{4}{11}
 
-\ganttbar{Goal 1}{4}{4} \\
-\ganttbar{Goal 2}{4}{5} \\
-\ganttbar{Goal 3}{5}{6} \\
-\ganttbar{Goal 4}{6}{7} \\
-\ganttbar{Goal 5}{7}{8} \\
-\ganttbar{Goal 6}{8}{9} \\
-\ganttbar{Goal 7}{9}{10} \\
-\ganttbar{Goal 8}{10}{10}
+\gantttitle{Weeks 4--11}{8} \\
+\gantttitlelist{4,...,11}{1} \\
 
-\end{ganttchart}%
+\ganttbar{Goal 1: Discuss Problem, Need, goal, Persona \& Users}{4}{4} \\
+\ganttbar{Goal 2: Decide how to implement the project}{4}{5} \\
+\ganttbar{Goal 3: Finalize what parts to use}{4}{6} \\
+\ganttbar{Goal 4: Email BELS and request parts}{5}{6} \\
+\ganttbar{Goal 4: Finalize how to implement the hardware and start building}{6}{7} \\
+\ganttbar{Goal 5: Continue developing and testing of prototype }{6}{9} \\
+\ganttbar{Goal 6: Get Data from the device }{8}{9} \\
+\ganttbar{Goal 7: Get a working prototype }{9}{10} \\
+\ganttbar{Goal 8: End-to-End testing + Demo }{10}{11}
+
+\end{ganttchart}
+
 }
+
+
+\section*{Decision Table}
+
+Items to decide on
+\begin{itemize}
+    \item Micro controller
+    \item Sensor
+    
+    \begin{itemize}
+        \item Ultrasonic: Pointed down from the lid onto a floating object
+        
+        \item Load Cell: Place the container on the load cell to measure the weight and calculate the water level
+
+        \item Laser: Shoots a laser into the water from the lid, and the distance is sent back to the sensor
+
+        \item Camera: Setup to watch the water filter and measure the water level based on computer vision
+
+        \item Non-Contact Sensor: Patch that sits on the side, when water level goes below sensor it can alert the device
+    \end{itemize}
+    
+    \item 
+\end{itemize}
+Server
+\begin{itemize}
+    \item HTTP
+    \item AWS
+    \item Vercel
+\end{itemize}
+Challenges
+\begin{itemize}
+    \item Signal in the fridge
+    \item Size limit
+    \item Contact Vs No Contact
+    \item Wifi connectivity
+    \item Power source (battery, usb, ...)
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Sensor Decision Table}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Criteria} & \textbf{Weight} & \textbf{Design A} & \textbf{Design B} & \textbf{Design C} \\
+\hline
+Cost        & 0.30 &  &  &  \\
+Performance & 0.40 &  &  &  \\
+Power       & 0.20 &  &  &  \\
+Complexity  & 0.10 &  &  &  \\
+\hline
+\textbf{Total Score} &  &  &  &  \\
+\hline
+\end{tabular}
+\end{table}
+
 
 \end{document}
