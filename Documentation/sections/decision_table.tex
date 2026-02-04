@@ -1,0 +1,46 @@
+\section*{Decision Table}
+
+Items to decide on:
+\begin{itemize}
+    \item Microcontroller
+    \begin{itemize}
+        \item Ultrasonic: Pointed down from the lid onto a floating object
+        \item Load Cell: Place the container on the load cell to measure the weight and calculate the water level
+        \item Laser: Shoots a laser into the water from the lid, and the distance is sent back to the sensor
+        \item Camera: Setup to watch the water filter and measure the water level based on computer vision
+        \item Non-Contact Sensor: Patch that sits on the side, when water level goes below sensor it can alert the device
+    \end{itemize}
+    
+    \item Server
+    \begin{itemize}
+        \item HTTP
+        \item AWS
+        \item Vercel
+    \end{itemize}
+    
+    \item Challenges
+    \begin{itemize}
+        \item Signal in the fridge
+        \item Size limit
+        \item Contact Vs No Contact
+        \item Wifi connectivity
+        \item Power source (battery, USB, etc.)
+    \end{itemize}
+\end{itemize}
+
+\begin{table}[h]
+\centering
+\caption{Sensor Decision Table}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Criteria} & \textbf{Weight} & \textbf{Design A} & \textbf{Design B} & \textbf{Design C} \\
+\hline
+Cost        & 0.30 &  &  &  \\
+Performance & 0.40 &  &  &  \\
+Power       & 0.20 &  &  &  \\
+Complexity  & 0.10 &  &  &  \\
+\hline
+\textbf{Total Score} &  &  &  &  \\
+\hline
+\end{tabular}
+\end{table}

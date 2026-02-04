@@ -1,0 +1,36 @@
+\section*{Timeline}
+
+\noindent\resizebox{\textwidth}{!}{%
+\begin{ganttchart}[
+    hgrid,
+    vgrid,
+    newline shortcut=true,
+    x unit=1.2cm,
+    y unit chart=1.2cm,
+    bar height=0.5,
+    bar/.append style={fill=gray!40},
+    title/.append style={fill=gray!20},
+    bar label font=\scriptsize,
+    title label font=\bfseries,
+    bar label node/.append style={
+        text width=3.5cm,  
+        align=left,
+        anchor=east     
+    }
+]{4}{11}
+
+\gantttitle{Weeks 4--11}{8} \\
+\gantttitlelist{4,...,11}{1} \\
+
+\ganttbar{Goal 1: Discuss Problem, Need, Goal, Persona \& Users}{4}{4} \\
+\ganttbar{Goal 2: Decide how to implement the project}{4}{5} \\
+\ganttbar{Goal 3: Finalize what parts to use}{4}{6} \\
+\ganttbar{Goal 4: Email BELS and request parts}{5}{6} \\
+\ganttbar{Goal 4: Finalize how to implement the hardware and start building}{6}{7} \\
+\ganttbar{Goal 5: Continue developing and testing of prototype}{6}{9} \\
+\ganttbar{Goal 6: Get Data from the device}{8}{9} \\
+\ganttbar{Goal 7: Get a working prototype}{9}{10} \\
+\ganttbar{Goal 8: End-to-End testing + Demo}{10}{11}
+
+\end{ganttchart}
+}
