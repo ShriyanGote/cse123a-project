@@ -1,0 +1,108 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{pgfgantt}
+\usepackage{url}
+\geometry{margin=1in}
+
+\title{Design Doc}
+\author{Group 8}
+\begin{document}
+\pagestyle{fancy}
+\section{Design Approach}
+\subsection{Contactless Capacitive Water Level Sensing}
+The strip will be placed vertically on the exterior side of the brita/pitcher to detect exact water level. 
+Works as long as plastic is not too thick which britas fit the description. 
+
+\subsubsection{Pros}
+    \begin{itemize}
+    \item Low-cost
+    \item No contact
+    \item Small mechanical approach
+    \item Customizable for future addons
+    \end{itemize}
+\subsubsection{Cons}
+    \begin{itemize}
+    \item Need a good environment for sensor, not humid so not great inside a fridge
+    \end{itemize}
+
+\subsection{Weight based, Load}
+The design places the pitcher unto a load cell to measure the weight. We will calibrate it to the changes in weight.
+\subsubsection{Pros}
+    \begin{itemize}
+    \item Highest accuracy of all designs
+    \item Fits to many pitcher dimensions
+    \end{itemize}
+\subsubsection{Cons}
+    \begin{itemize}
+    \item Need a good environment for sensor, not humid so not great inside a fridge
+    \end{itemize}
+
+\subsection{Ultrasonic}
+An ultrasonic sensor estimates the water level by measuring the echo time of sound waves reflected from the water surface.
+\subsubsection{Pros}
+    \begin{itemize}
+    \item Inexpensive
+    \item Easy implementation
+    \end{itemize}
+\subsubsection{Cons}
+    \begin{itemize}
+    \item Humidity problem
+    \end{itemize}
+
+\subsection{Laser}
+A laser or time-of-flight sensor measures the distance from the sensor to the water surface.
+The measured distance is converted into liquid height and volume.
+\subsubsection{Pros}
+    \begin{itemize}
+    \item Continous measurements
+    \item Non contact
+    \end{itemize}
+\subsubsection{Cons}
+    \begin{itemize}
+    \item Humidity problem
+    \item Clear line of sight
+    \end{itemize}
+
+    \section{Decision Matrix}
+
+Criteria will be scored on a scale from 1 (poor) to 5 (excellent). Weights were assigned according to relative importance. The final score for is calculated as:
+
+\[
+\textbf{Total Score} = sum(weight × score)
+\]
+
+\subsection{Evaluation Criteria}
+
+\begin{itemize}
+\item \textbf{Cost}: Estimated hardware and implementation expense
+\item \textbf{Power}: Power consumption and low-power operation
+\item \textbf{Complexity}: Mechanical, electrical, software integration difficulty
+\item \textbf{Measurement Data}: Quality of information provided (Continous water level, binary off or on, ability to track water usage)
+\end{itemize}
+
+\subsection{Weighted Decision Matrix}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\hline
+\textbf{Criteria (Weight)} & \textbf{Capacitive} & \textbf{Weight} & \textbf{Laser} & \textbf{Ultrasonic} \\
+\hline
+Cost (0.30) & 5 & 4 & 3 & 5 \\
+Power (0.20) & 5 & 4 & 3 & 4 \\
+Complexity (0.25) & 5 & 3 & 2 & 3 \\
+Measurement Data (0.25) & 3 & 5 & 3 & 3 \\
+\hline
+\textbf{Weighted Total} & \textbf{4.40} & \textbf{3.95} & \textbf{2.70} & \textbf{3.85} \\
+\hline
+\end{tabular}
+\caption{Decision matrix comparing feasible sensing approaches (1 = poor, 5 = excellent)}
+\end{table}
+
+
+
+
+\end{document}
