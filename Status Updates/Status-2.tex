@@ -1,0 +1,58 @@
+% mention collabrative tools that we use
+% format
+% - waht we did 
+% what we are currently working
+% what to do in the future
+% email bels about items we may neeed
+
+
+%todo:
+% morphologic table:
+   %% sensor/way of measuring
+   %% power source (batteries, rechargable, etc)
+   %% how to send/store status (http)
+   %% app (webapp, ios app)
+   %% app code language, hosting method, etc
+% decision table (weight, distance, outside sensor)
+% timeline
+% items list to bels soon
+% status report 2
+
+% put gitlab link in report and give access to prof and ta
+% https://git.ucsc.edu/pnauwela/123a-project/-/tree/d3ba4457ead67f81f786f53da5bf10631144b1ea/
+
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{url}
+\geometry{margin=1in}
+
+\title{CSE 123A - Week 2 Status}
+\author{Group 8}
+\date{}
+
+\begin{document}
+\pagestyle{fancy}
+\maketitle
+
+\fancyfoot{}
+\fancyhead{}
+\fancyfoot[R]{\thepage}
+
+% talk about what we did week
+This week, we focused on transition from initial setup into planning the project. We reviewed and refined our overall project timeline to better align the task and goals across the remaining weeks. We also began looking at potential hardware components by identify key parts and comparing possbile options using a decision table.
+
+
+% section timeline
+\section*{Timeline}
+The team finalized a detailed timeline outlining goals from intianl decisions through prototyping and testing. This timeline establishes clear goals for part selection, hardware/software development, and end-to-end testing, providing a structured plan for completing the project withitn the remaining weeks. By having these goals early on, we have clear expectation for what we need to deliver and reduce the chances of us falling behind during the build and testing phase.  
+
+%how does this look?
+
+% section decision table
+\section*{Decision Table}
+We came up with a few ideas for what hardware we could use. For the microcontroller, we decided on using the esp32 because we are familiar with it from CSE121. Our main discussion was on what sensor we should use to measure the water level in the container. We have the following sensors to decide from: ultrasonic, load cell/weight, laser, camera, and non-contact strip sensor. For the server, we decided on a basic HTTP server for now; there are also other options we could use, like AWS and Vercel. After discussing these resources, we identified some challenges such as wifi connectivity/signal in the fridge, size constraints, contact vs no-contact sensors, and what power source to use (battery, usb, etc).
+
+\end{document}
