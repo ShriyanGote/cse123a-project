@@ -1,0 +1,68 @@
+meeting notes 2/10
+	- need and goal statements should be opposites, not mention the method
+	- testing:
+		○ test w real ppl, scenarios like leaving it empty, getting notif, only 1 person at home, etc
+	- don’t need it all working together for functional prototype
+		○ could have esp and cloud servers still unconnected
+	- live notification is a stretch goal
+    - status report does not need to say who did what
+
+Design Tasks
+	- improved timeline - stuff each person will do
+	- drawing w filter, cloud, webapp
+	- better diagram of all the parts above in table
+	- components list?
+	- Test plan
+	- Test report
+	- Life cycle assessment
+	- ethics statement
+	- script for demo (when to lift jug, etc)
+    - instruction manual (qr code that links to online thing)    (due next quarter???)
+
+
+--------------------------------------------------------
+TODO (add these to issues board):
+
+ESP32
+
+    http get and post
+    - sends percent
+    - receives empty and full values
+
+    weight sensor readings
+    - output percent
+    - recognize when it isn't placed (weight=0) to avoid false readings
+
+    wakeup system (main file)
+        - attempt to send/receive every second(?)
+
+    using bluetooth to connect to wifi initially
+    - esp receives data over http (wifi), so must connect to it a different way initially to send wifi name and password to esp
+
+    detect nearby people w bluetooth?
+
+Cloud server
+
+    backend - host http server
+    - send data btwn webapp and esp32
+
+Webapp
+
+    aesthetic prototype 
+
+    display percent
+
+    calibration system
+    - send empty and full weights
+
+    join/leave a group/household
+
+    send notif based on percent
+
+Hardware
+
+    aesthetic prototype (CAD model) (not required this quarter but nice to have)
+
+    4 sensors btwn two plates
+
+    esp32 holding area (CAD model)
