@@ -13,9 +13,12 @@ There are multiple sections of our design that require testing individually, the
 
 \subsection*{ESP Data Reporting}
 
-The pressure sensors we use to build the base will output data to our ESP device. We want to be sure the ESP is capable of receiving this data and displaying it to the debug terminal. Once we can verify posting to the terminal we will move to the next stage of the data reporting testing.
+The pressure sensors we use to build the base will output data to our ESP device. We want to be sure the ESP is capable of receiving this data and displaying it to the debug terminal, which will be IDF MONITOR. Once we can verify posting to the terminal we will move to the next stage of the data reporting testing.
 
-With data being displayed properly, we can now use this to interpret what an empty versus full pitcher could be expected to weigh. We also want to be sure that any time the weight drops to 0 or some minimum baseline representing the weight of the platform, we don't report that as empty, but rather wait for the weight to return to an expected "empty" point. 
+With data being displayed properly, we can now use this to interpret what an empty versus full pitcher could be expected to weigh. The first test will include to test a known weight to make sure we get accuracate weight readings. 
+Next we will ensure the that when there is no wight on the plate, the data will be read as 0 g.
+Once this correct, we will move on to the more complex calibration with Pitcher + water.
+
 
 We will use different types of containers given the variety of containers possible to be used by customers. We will test at different set water levels, and verify that the expected weight represents the following formula. 
 
@@ -39,7 +42,9 @@ Once we have confirmed the ESP can send POST requests to a local machine, the ne
 
 With data being sent out of the ESP, the next stage is to test if we can send a notification on some set event. For a test case this could be a container being placed on the device. The data sent as part of this notification could be a value representing the weight of the container, or an estimate of how much liquid is inside.
 
-If we know how much liquid is inside the container when we place it on the base, it is easy to verify if the value we receive in the notification is the correct volume. Using different volumes we can create a table to show how close the reported volume was, and tweak our math to get it closer to accurate with different containers. 
+If we know how much liquid is inside the container when we place it on the base, it is easy to verify if the value we receive in the notification is the correct volume. Using different volumes we can create a table to show how close the reported volume was, and tweak our math to get it closer to accurate with different containers.
+
+When we pass the fake data tests, we will compare the debug terminal and the notification water levels to ensure that it is correct.
 
 \subsection*{Phone App Integration}
 
