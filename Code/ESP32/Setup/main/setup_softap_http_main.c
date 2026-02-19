@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -10,10 +11,23 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
+//http
+#include "esp_netif.h"
+#include "esp_event.h"
+#include "esp_http_server.h"
+
+
+//-----------------------Config-----------------------------
+//WIFI SSID
 #define WIFI_SSID "r esp wifi test"
 
-static const char *TAG = "softap";
+static const char *TAG = "esp_setup_softap_http";
+//----------------------------------------------------------
 
+
+
+
+//+++++++++++++++++++++++++WiFi+++++++++++++++++++++++++++++
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                     int32_t event_id, void* event_data)
 {
@@ -76,6 +90,54 @@ static void wifi_init_softap(void)
     ESP_LOGI(TAG, "SSID: Device-Setup");
     ESP_LOGI(TAG, "IP: http://192.168.4.1");
 }
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+//------------------------HTTP------------------------------
+/* Simple GET handler for "/" */
+static esp_err_t root_get_handler(httpd_req_t *req)
+{
+    const char* html =
+        "<!DOCTYPE html>"
+        "<html>"
+        "<head><title>ESP32 Setup</title></head>"
+        "<body>"
+        "<h1>ESP32 Provisioning</h1>"
+        "<p>Connect your WiFi!</p>"
+        "</body>"
+        "</html>";
+
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, html, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+/* URI registration */
+static httpd_uri_t root = {
+    .uri       = "/",
+    .method    = HTTP_GET,
+    .handler   = root_get_handler,
+    .user_ctx  = NULL
+};
+
+/* Start the HTTP server */
+static httpd_handle_t start_webserver(void)
+{
+    httpd_handle_t server = NULL;
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+
+    ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
+    if (httpd_start(&server, &config) == ESP_OK) {
+        httpd_register_uri_handler(server, &root);
+        return server;
+    }
+
+    ESP_LOGE(TAG, "Failed to start server!");
+    return NULL;
+}
+//----------------------------------------------------------
 
 void app_main(void)
 {
@@ -87,6 +149,11 @@ void app_main(void)
         ESP_ERROR_CHECK(nvs_flash_init());
     }
 
+    //start softap
     ESP_LOGI(TAG, "Starting SoftAP...");
     wifi_init_softap();
+
+    // Start HTTP server
+    start_webserver();
+    ESP_LOGI(TAG, "HTTP server running!");
 }
