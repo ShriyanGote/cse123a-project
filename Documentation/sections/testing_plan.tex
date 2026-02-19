@@ -49,3 +49,7 @@ When we pass the fake data tests, we will compare the debug terminal and the not
 \subsection*{Phone App Integration}
 
 \subsection*{Prototype Setup Out-Of-The-Box}
+
+In order to set up the prototype, the web app must connect to the ESP through its hosted soft AP and scan a QR code to enter the WiFi credentials. To test this, we will try to connect to the ESP on boot multiple times using different devices, such as iOS vs Android, and see if it is still able to connect through soft AP. We will also test different types of WiFi networks, such as mobile hotspots, traditional password-protected networks, and networks with outside authorization such as university WiFi.
+
+The user must also calibrate the device by measuring the empty and full weights of the filter on the weight sensor. On the webapp, they will be given instructions step-by-step to do this. In order to test this process, we will give the device to a new user and see if they are able to clearly follow the instructions and calibrate the device correctly. We will also test robustness by intentionally disobeying the instructions, such as by weighing it empty both times, to see our device handle it.
