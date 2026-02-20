@@ -1,42 +1,196 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.brita-dashboard {
+  --brita-blue: #00a3e0;
+  --brita-blue-dark: #0082b3;
+  --brita-water: #7dd3fc;
+  --brita-water-deep: #0ea5e9;
+  --brita-white: #f0f9ff;
+  --brita-green: #22c55e;
+  --brita-gray: #64748b;
+  --pitcher-bg: #e0f2fe;
+  --pitcher-border: #0ea5e9;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
+  color: #0c4a6e;
+}
+
+.brita-header {
   text-align: center;
+  margin-bottom: 2rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.brita-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0c4a6e;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.status-dot--full {
+  background-color: var(--brita-green);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.4);
+}
+
+.status-dot--empty {
+  background-color: var(--brita-gray);
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.3);
+}
+
+.status-label {
+  font-size: 0.875rem;
+  color: var(--brita-gray);
+  font-weight: 500;
+}
+
+.brita-empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--brita-gray);
+}
+
+.brita-pitcher-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.brita-pitcher {
+  position: relative;
+  width: 140px;
+  height: 200px;
+}
+
+.brita-pitcher__body {
+  position: absolute;
+  left: 20px;
+  top: 0;
+  width: 100px;
+  height: 100%;
+  border: 3px solid var(--pitcher-border);
+  border-radius: 0 0 24px 24px;
+  background: var(--pitcher-bg);
+  overflow: hidden;
+  box-shadow: inset 0 -4px 12px rgba(14, 165, 233, 0.15);
+}
+
+.brita-pitcher__water {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    180deg,
+    var(--brita-water) 0%,
+    var(--brita-water-deep) 100%
+  );
+  transition: height 0.8s cubic-bezier(0.33, 1, 0.68, 1);
+  border-radius: 0 0 21px 21px;
+  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.4);
+}
+
+.brita-pitcher__spout {
+  position: absolute;
+  top: 8px;
+  right: -8px;
+  width: 24px;
+  height: 32px;
+  border: 3px solid var(--pitcher-border);
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  background: var(--pitcher-bg);
+}
+
+.brita-pitcher__handle {
+  position: absolute;
+  top: 24px;
+  left: -16px;
+  width: 20px;
+  height: 100px;
+  border: 3px solid var(--pitcher-border);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  background: var(--pitcher-bg);
+}
+
+.brita-percent {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0c4a6e;
+  line-height: 1;
+}
+
+.brita-percent__unit {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--brita-blue-dark);
+  margin-left: 2px;
+}
+
+.brita-meta {
+  text-align: center;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  max-width: 360px;
+  margin: 0 auto;
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.brita-meta__updated {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0c4a6e;
+}
+
+.brita-meta__updated time {
+  font-weight: 500;
+  color: var(--brita-gray);
+}
+
+.brita-meta__detail {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--brita-gray);
+}
+
+@media (min-width: 480px) {
+  .brita-pitcher {
+    width: 160px;
+    height: 240px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .brita-pitcher__body {
+    left: 24px;
+    width: 112px;
+    border-radius: 0 0 28px 28px;
   }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  .brita-pitcher__water {
+    border-radius: 0 0 25px 25px;
   }
-}
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+  .brita-percent {
+    font-size: 3rem;
+  }
 }
