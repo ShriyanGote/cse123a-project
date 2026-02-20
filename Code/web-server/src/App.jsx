@@ -6,6 +6,15 @@ import "./App.css";
 const MAX_WEIGHT_G = 2500;
 const EMPTY_WEIGHT_G = 0; // weight when pitcher is empty (no water)
 
+// Set to true to show fake data and see the UI without Supabase
+const USE_DEMO_DATA = true;
+const DEMO_READING = {
+  device_id: "demo-sensor-1",
+  weight_g: 1625,
+  battery_mv: 3850,
+  created_at: new Date().toISOString(),
+};
+
 function getLevelPercent(weightG) {
   if (weightG == null || weightG <= EMPTY_WEIGHT_G) return 0;
   const range = MAX_WEIGHT_G - EMPTY_WEIGHT_G;
@@ -36,14 +45,18 @@ export default function App() {
     return () => clearInterval(t);
   }, []);
 
-  const percent = latest ? getLevelPercent(latest.weight_g) : 0;
-  const waterPresent = hasWater(latest?.weight_g);
-  const lastUpdated = latest?.created_at
-    ? new Date(latest.created_at)
+  const display = USE_DEMO_DATA ? DEMO_READING : latest;
+  const percent = display ? getLevelPercent(display.weight_g) : 0;
+  const waterPresent = hasWater(display?.weight_g);
+  const lastUpdated = display?.created_at
+    ? new Date(display.created_at)
     : null;
 
   return (
     <div className="brita-dashboard">
+      {USE_DEMO_DATA && (
+        <p className="brita-demo-banner">Demo mode — showing fake data</p>
+      )}
       <header className="brita-header">
         <h1>Brita Water Level</h1>
         <div className="status-row">
@@ -58,7 +71,7 @@ export default function App() {
         </div>
       </header>
 
-      {!latest ? (
+      {!display ? (
         <div className="brita-empty-state">
           <p>No data yet. Waiting for sensor…</p>
         </div>
@@ -89,9 +102,9 @@ export default function App() {
               </time>
             </p>
             <p className="brita-meta__detail">
-              Weight: {latest.weight_g} g
-              {latest.battery_mv != null && (
-                <> · Battery: {latest.battery_mv} mV</>
+              Weight: {display.weight_g} g
+              {display.battery_mv != null && (
+                <> · Battery: {display.battery_mv} mV</>
               )}
             </p>
           </div>

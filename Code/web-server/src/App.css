@@ -1,3 +1,16 @@
+.brita-demo-banner {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--brita-gray);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+}
+
 .brita-dashboard {
   --brita-blue: #00a3e0;
   --brita-blue-dark: #0082b3;
@@ -8,6 +21,7 @@
   --brita-gray: #64748b;
   --pitcher-bg: #e0f2fe;
   --pitcher-border: #0ea5e9;
+  position: relative;
   min-height: 100vh;
   padding: 2rem 1.5rem;
   font-family: system-ui, -apple-system, sans-serif;
