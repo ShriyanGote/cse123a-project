@@ -1,4 +1,4 @@
-% status report 3
+% status report 4
 
 \documentclass[12pt]{article}
 \usepackage{graphicx}
@@ -27,11 +27,13 @@
 % talk about the sensor we are setting up and designing a base for
 
 We have purchased the power module for this device. For the prototype we will be using a 3.7V 950mAh lithium ion battery. It will be connected to the ESP32 using the battery contact pins and a soldered on connector. Once we have set the device up in a way that we don't need to talk to it using USB for testing, we can power it solely from this battery. It should have more than enough power to support the board and the connected sensor. 
+We also began designing custom 3D-printed mounting plates for the Digital Load Cell Weight Sensor. The circular plates (110mm diameter) went through several design iterations to get the M4 screw hole positioning and sizing right, with test prints done to verify fitment against the actual load cell.
  
- % whats in progress
+% whats in progress
 \section*{What we are Working On}
+We are currently calibrating the load cell sensor now that the mounting plates have been built and tested. This involves configuring the HX711 breakout board and tuning the readings to ensure accurate weight measurements. We are also working on an improved plate design that includes countersunk screw holes so the base sits flat on a surface, as the current version leans slightly due to the screw heads protruding from the bottom.
 
- % what next on teh agenda 
+% what next on teh agenda 
 \section*{What's next}
 
 % also have indivudal secitons of what each persion did and is working on
@@ -39,6 +41,15 @@ We have purchased the power module for this device. For the prototype we will be
 \section*{Individual Contributions}
 
 \noindent\textbf{Dev Chodavadiya}:
+\begin{itemize}
+    \item Designed custom circular mounting plates (110mm diameter) for the Load Cell Weight Sensor using OpenCAD
+    \item Went through multiple design revisions to achieve proper M4 screw hole placement, aligning holes at 22mm and 32mm from the 
+        plate center to match the load cell mounting points
+    \item Test printed plates to verify fitment and adjusted hole diameter sizing to ensure proper M4 screw compatibility
+\end{itemize}
+
+\noindent Next steps include designing and printing spacers to go between the load cell and the mounting plates, as well as adding 
+a recessed countersink around the screw holes on the bottom of the plate so the screw heads sit flush and the base lays flat on a surface.\\
 
 \noindent\textbf{Logan Bossuwe}:
 
