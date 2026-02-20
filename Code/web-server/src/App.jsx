@@ -7,7 +7,7 @@ const MAX_WEIGHT_G = 2500;
 const EMPTY_WEIGHT_G = 0; // weight when pitcher is empty (no water)
 
 // Set to true to show fake data and see the UI without Supabase
-const USE_DEMO_DATA = true;
+const USE_DEMO_DATA = false;
 const DEMO_READING = {
   device_id: "demo-sensor-1",
   weight_g: 1625,
