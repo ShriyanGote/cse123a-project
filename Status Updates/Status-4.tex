@@ -40,7 +40,16 @@ We have purchased the power module for this device. For the prototype we will be
 \itemized{
     \item Cloned the separate web server repository and tested if I can deploy to Vercel successfully
     \item Tested the server locally and made myself familiar with the codebase
+    \item Researched ways to implement notifications to users when the water level is low
+    \item Found two methods: text message notifications and push notifications.
 }
 
+I am leaning towards push notifications since they are more user friendly and can be implemented using a service like 
+Firebase Cloud Messaging (FCM). Text message notifications would require integrating with a service like Twilio, which 
+have additional costs, while FCM has a free tier that should be sufficient for our needs. I will be working on integrating 
+FCM into our web server and setting up the necessary infrastructure to send push notifications to users when the water level 
+is low. I will also be working on writing some unit tests for receiving sample water level data and triggering notifications.
+
+\section*{}
 
 \end{document}
