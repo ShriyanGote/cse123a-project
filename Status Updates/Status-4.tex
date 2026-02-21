@@ -26,15 +26,28 @@
 
 % talk about the sensor we are setting up and designing a base for
 
-We have purchased the power module for this device. For the prototype we will be using a 3.7V 950mAh lithium ion battery. It will be connected to the ESP32 using the battery contact pins and a soldered on connector. Once we have set the device up in a way that we don't need to talk to it using USB for testing, we can power it solely from this battery. It should have more than enough power to support the board and the connected sensor. 
-We also began designing custom 3D-printed mounting plates for the Digital Load Cell Weight Sensor. The circular plates (110mm diameter) went through several design iterations to get the M4 screw hole positioning and sizing right, with test prints done to verify fitment against the actual load cell.
+We have purchased the power module for this device. For the prototype we will be using a 3.7V 950mAh lithium ion 
+battery. It will be connected to the ESP32 using the battery contact pins and a soldered on connector. Once we 
+have set the device up in a way that we don't need to talk to it using USB for testing, we can power it solely 
+from this battery. It should have more than enough power to support the board and the connected sensor. 
+We also began designing custom 3D-printed mounting plates for the Digital Load Cell Weight Sensor. The circular 
+plates (110mm diameter) went through several design iterations to get the M4 screw hole positioning and sizing 
+right, with test prints done to verify fitment against the actual load cell.
  
 % whats in progress
 \section*{What we are Working On}
-We are currently calibrating the load cell sensor now that the mounting plates have been built and tested. This involves configuring the HX711 breakout board and tuning the readings to ensure accurate weight measurements. We are also working on an improved plate design that includes countersunk screw holes so the base sits flat on a surface, as the current version leans slightly due to the screw heads protruding from the bottom.
+We are currently calibrating the load cell sensor now that the mounting plates have been built and tested. This 
+involves configuring the HX711 breakout board and tuning the readings to ensure accurate weight measurements. 
+We are also working on an improved plate design that includes countersunk screw holes so the base sits flat on 
+a surface, as the current version leans slightly due to the screw heads protruding from the bottom.
 
 % what next on teh agenda 
 \section*{What's next}
+We will be working on implementing push notifications for users when the water level is low. This will involve 
+integrating Firebase Cloud Messaging (FCM) into our web server and setting up the necessary infrastructure to 
+send notifications to users. We will also be working on writing unit tests for receiving sample water level data 
+and triggering notifications. Additionally, we will continue refining the hardware design and calibration of the 
+load cell sensor to ensure accurate and reliable measurements.
 
 % also have indivudal secitons of what each persion did and is working on
 
