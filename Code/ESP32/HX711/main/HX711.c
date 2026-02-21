@@ -8,14 +8,16 @@
 #include "driver/gpio.h"
 #include "esp_rom_sys.h"
 #include "esp_log.h"
+#include "freertos/portmacro.h"
 
 
 #define DOUT GPIO_NUM_4//DOUT goes LOW - ready to read, HIGH - In process of converting, see read raw
 #define SCK GPIO_NUM_5 // CLK, LOW HIGH LOW -  one clk pulse
 
-#define WEIGHT 1000.0f //CHANGE TO WEIGHT ON LOAD CELL
+//#define WEIGHT 1000.0f //CHANGE TO WEIGHT ON LOAD CELL
 
 #define DEBUG 1 //1 is DEBUG ON, 0 is DEBUG off
+
 #define HX711_PULSES_TOTAL 25
 
 
@@ -23,7 +25,7 @@ static const char *TAG = "HX711";
 
 // Calibration parameters
 static int32_t g_offset = 0; // tare offset
-static float   g_scale  = 1; // counts per gram
+static float   g_scale  = 1.0f; // counts per gram, will change for calibration
 
 
 static void sensor_init(void){
@@ -52,31 +54,38 @@ static void sensor_init(void){
 static int32_t read_raw(void){
     int32_t value = 0;
 
-    while(gpio_get_level(DOUT) == 1){
-        vTaskDelay(pdMS_TO_TICKS(1));
+    //debug HX711 Not ready if stuck 0
+    #if DEBUG
+    int waited = 0;
+    while (gpio_get_level(DOUT) == 1) {
+        vTaskDelay(pdMS_TO_TICKS(20));
+        waited += 20;
+        if (waited >= 1000) { // 1 second
+            ESP_LOGW(TAG, "HX711 not ready (DOUT stayed high)");
+            return 0;
+        }
     }
+    #endif
 
     //24bit read
-    for(int i = 0; i < 24; i++){
+    for(int i = 0; i < HX711_PULSES_TOTAL; i++){
         gpio_set_level(SCK,1);
         esp_rom_delay_us(1);
 
-        value = (value << 1) | gpio_get_level(DOUT);
-
+        if(i < 24){
+            value = (value << 1) | (gpio_get_level(DOUT) & 0x1);
+        }
         gpio_set_level(SCK, 0);
-        esp_rom_delay_us(1);
+        esp_rom_delay_us(2);
     }
 
-    if (value & 0x800000) {
-        value |= 0xFF000000;
-    }
-
+    if (value & 0x800000) { value |= 0xFF000000; }
     return (int32_t)value;
-
 }
 
-//Use if noisy
-static int32_t read_avg(int samples){
+//HELPER METHODS, GetMethods
+//Averages the samples, return the raw weight as an average to reduce noise
+static int32_t getRawWeight(int samples){
     if(samples <= 0){
         samples = 1;
     }
@@ -84,32 +93,64 @@ static int32_t read_avg(int samples){
     int64_t sum = 0;
     for(int i = 0; i < samples; i++){
         sum += read_raw();
-        vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
     return (int32_t)(sum/samples);  
 }
 
-static void tare(int samples)
-{
-    g_offset = read_avg(samples);
+static void tare(int samples){
+    g_offset = getRawWeight(samples);
 }
 
+static float getGrams(int32_t raw){
+    return (raw - g_offset) / g_scale;
+}
 
+static int32_t getChangeWeight(int rawWeight){
+    return rawWeight - g_offset;
+}
+
+//CHECKS DOUT, if BEFORE is HIGH there is problem, most likely wiring
+static void dout_checker(void)
+{
+    ESP_LOGI(TAG, "Before pulses: DOUT=%d", gpio_get_level(DOUT));
+    // Send 25 pulses (select A gain 128)
+    for (int i = 0; i < 25; i++) {
+        gpio_set_level(SCK, 1);
+        esp_rom_delay_us(2);
+        gpio_set_level(SCK, 0);
+        esp_rom_delay_us(2);
+    }
+    // HX711 should now start a conversion -> DOUT should go HIGH (usually)
+    esp_rom_delay_us(10);
+    ESP_LOGI(TAG, "After pulses:  DOUT=%d", gpio_get_level(DOUT));
+}
 void app_main(void)
 {
     sensor_init();
     vTaskDelay(pdMS_TO_TICKS(500)); //CHANGE to whenever powerup correctly
-    ESP_LOGI(TAG, "Starting...");
+
+    #if DEBUG
+        dout_checker();
+    #endif
+
+    ESP_LOGI(TAG, "Starting setup, please wait.");
     tare(20);
+    ESP_LOGI(TAG, "Tare offset=%" PRId32, g_offset);
+
+    vTaskDelay(pdMS_TO_TICKS(100)); //additional wait, subject to change
 
     #if DEBUG
     while (1) {
-        int32_t raw = read_avg(10);
-        float units = get_units(10);
+    int32_t raw = getRawWeight(10);           // ADC value from HX711
+    ESP_LOGI(TAG,
+             "raw=%" PRId32
+             "  offset=%" PRId32
+             "  weightChange=%" PRId32
+             "  grams=%.3f g",
+             raw, g_offset, getChangeWeight(raw), getGrams(raw));
 
-        ESP_LOGI(TAG, "raw=%" PRId32 "  units=%.3f", raw, units);
-
-        vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(500));
     }
     #endif
 }
