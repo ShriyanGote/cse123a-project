@@ -113,5 +113,13 @@ FCM into our web server and setting up the necessary infrastructure to send push
 is low. I will also be working on writing some unit tests for receiving sample water level data and triggering notifications.\\
 
 \noindent\textbf{Shriyan Gote}:
+\begin{itemize}
+    \item Styled the web dashboard as a Brita water level checker with a pitcher graphic, animated water fill, and percentage display
+    \item Added last-updated timestamp and a green status indicator when water is present in the pitcher
+    \item Implemented demo mode with mock sensor data so the UI can be tested without live hardware
+    \item Fixed the water level animation so it shows the current level immediately on page load and only animates when the value changes from new data
+    \item Set up deployment workflow to push to both the UCSC (GitLab) and GitHub repositories
+\end{itemize}
 
-\end{document}
+\noindent Next steps include keeping the web server in sync with the team repo and continuing to refine the dashboard as sensor data becomes available.\\
+\noindent Additionally, I will be working with Sam to implement additional features for the server and web app..\\
