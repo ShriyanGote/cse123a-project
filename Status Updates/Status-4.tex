@@ -53,10 +53,22 @@ a recessed countersink around the screw holes on the bottom of the plate so the 
 
 \noindent\textbf{Logan Bossuwe}:
 Worked on the initial design to begin calibrating. Took 3D printed plates the the floor and top plate for the load cell. Soldered header pins to the
-HX711
+HX711 \\
+
+
 \noindent\textbf{Pieter Nauwelaerts}:
 
+
 \noindent\textbf{Reid Graham}:
+\begin{itemize}
+    \item Created basic architecture diagram for code and communication between the ESP and Webapp
+    \item Coded the ESP to host a soft access point for sending WiFi credentials
+    \item Coded the ESP host an HTTP server and HTML page which can receive user input
+    \item Helped to solder the sensor to the amplifier
+\end{itemize}
+
+\noindent My next tasks are to code the ESP to attempt to connect to the given WiFi credentials and exit the setup phase. If it cannot connect, it should stay in setup and ask the user to submit again through the HTML page. I also plan to create the basic HTTP send and receive code so the ESP is able to connect to our web server once it is on the WiFi.
+\\
 
 \noindent\textbf{Sam Lai}:
 
