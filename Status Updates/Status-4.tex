@@ -65,8 +65,15 @@ load cell sensor to ensure accurate and reliable measurements.
 a recessed countersink around the screw holes on the bottom of the plate so the screw heads sit flush and the base lays flat on a surface.\\
 
 \noindent\textbf{Logan Bossuwe}:
-Worked on the initial design to begin calibrating. Took 3D printed plates the the floor and top plate for the load cell. Soldered header pins to the
-HX711 \\
+\begin{itemize}
+    \item From Dev's constructed plates, we communicated plate designs and I built the weight prototype with the 3D printed designs. I used 2 screws for both the top and bottom plate to lock them wit the load cell. Additionally added 5 washers with the screws to put a small buffer that will later be a proper 3D printed design.
+    \item I soldered the Load Cells, 4 wires to their respective connections on the HX711. The load cell itself is a wheatstoen bridge circuit, and the HX711 is the amplifier.
+    \item Successfully communicated a connection between each respective component, ESP32, HX711, and load cell to produce raw data. At the moment it is noisy.
+    \item Began making debugging prints for future edge case testing.
+\end{itemize}
+\noindent Next, I will calibrate the raw data into a useable data being Grams. I will start to build a main file that will connect all ESP32 code together for running.
+I will begin creating tests the functions and check the calibration through known weights.
+\\
 
 
 \noindent\textbf{Pieter Nauwelaerts}:
