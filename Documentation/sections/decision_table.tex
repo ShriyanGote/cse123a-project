@@ -3,6 +3,7 @@
 Items to decide on:
 \begin{itemize}
     \item Microcontroller
+   \item Sensor
     \begin{itemize}
         \item Ultrasonic: Pointed down from the lid onto a floating object
         \item Load Cell: Place the container on the load cell to measure the weight and calculate the water level
@@ -30,17 +31,21 @@ Items to decide on:
 
 \begin{table}[h]
 \centering
-\caption{Sensor Decision Table}
-\begin{tabular}{|l|c|c|c|c|}
+\begin{tabular}{lcccc}
 \hline
-\textbf{Criteria} & \textbf{Weight} & \textbf{Design A} & \textbf{Design B} & \textbf{Design C} \\
+\textbf{Criteria (Weight)} & \textbf{Capacitive} & \textbf{Weight} & \textbf{Laser} & \textbf{Ultrasonic} \\
 \hline
-Cost        & 0.30 &  &  &  \\
-Performance & 0.40 &  &  &  \\
-Power       & 0.20 &  &  &  \\
-Complexity  & 0.10 &  &  &  \\
+Cost (0.30)             & 5 & 5 & 3 & 5 \\
+Power (0.20)            & 5 & 4 & 3 & 4 \\
+Complexity (0.25)       & 3 & 4 & 2 & 3 \\
+Measurement Data (0.25) & 3 & 5 & 3 & 3 \\
 \hline
-\textbf{Total Score} &  &  &  &  \\
+\textbf{Weighted Total} & \textbf{4} & \textbf{4.55} & \textbf{2.70} & \textbf{3.85} \\
 \hline
 \end{tabular}
+\caption{Decision matrix comparing feasible sensing approaches (1 = poor, 5 = excellent)}
 \end{table}
+
+Based on the decision matrix, the weight sensor is the best sensing 
+method because it has the highest weighted total score (4.55). It performs especially well 
+in measurement quality while still keeping cost, power, and overall complexity at a strong level compared to the other options.

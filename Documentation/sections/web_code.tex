@@ -1,0 +1,31 @@
+\section*{Web Code}
+
+The goal of this section is to define the web code we will be using to display information from the microcontroller. This will eventually migrate from a web implementation to a phone app, but in the initial stage it exists as a web display. 
+
+\subsection*{Initial Design}
+
+In its most simple form it must be able to display static data on a web page. We have created a .html file with this basic information, shown in the following figure. 
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.6]{sections/images/basic_html.png}
+\caption{Output of Initial HTML Code}
+\label{basic_html}
+\end{center}
+\end{figure}
+
+From here there are a few changes that can be made. These changes follow the line of next steps to test this code and our designs. 
+
+\begin{itemize}
+\item Dynamically updating data with a controller (Proof of concept testing w/ simple text)
+\item Sending and interpreting sensor data 
+\item Graphic interface changes
+\item Sending text notifications to a phone
+
+\end{itemize}
+
+In order to test these things we will create a local server interface using one of our computers that hosts this data. Then we will use a microcontroller to send HTTP PUT requests. Finally, using the received data to change what gets displayed. 
+
+\subsection*{End Point of this Design}
+
+The plan is to host this using Vercel. The microcontroller is able to send data to Vercel that can be interpreted  and displayed properly using Javascript. We are in the process of setting up Vercel to get this system working as intended. Once it is set up it is easy to migrate this initial testing code over to that platform and continue development from there. 
