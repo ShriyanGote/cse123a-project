@@ -116,9 +116,12 @@
     var(--brita-water) 0%,
     var(--brita-water-deep) 100%
   );
-  transition: height 0.8s cubic-bezier(0.33, 1, 0.68, 1);
   border-radius: 0 0 21px 21px;
   box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.4);
+}
+
+.brita-pitcher__water--animate {
+  transition: height 0.8s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 .brita-pitcher__spout {
