@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { getToken, onMessage } from "firebase/messaging";
 import { supabase } from "./supabase";
+import { getMessagingIfSupported } from "./firebase";
 import "./App.css";
 
 // Typical Brita pitcher capacity ~2.5L ≈ 2500g water
@@ -7,7 +9,7 @@ const MAX_WEIGHT_G = 2500;
 const EMPTY_WEIGHT_G = 0; // weight when pitcher is empty (no water)
 
 // Set to true to show fake data and see the UI without Supabase
-const USE_DEMO_DATA = true;
+const USE_DEMO_DATA = false;
 const DEMO_READING = {
   device_id: "demo-sensor-1",
   weight_g: 1625,
@@ -44,6 +46,54 @@ export default function App() {
     load();
     const t = setInterval(load, 5000);
     return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    let unsubscribeForeground = null;
+
+    async function setupPushNotifications() {
+      if (!("serviceWorker" in navigator) || !("Notification" in window)) return;
+
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") return;
+
+      const messaging = await getMessagingIfSupported();
+      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+      if (!messaging || !vapidKey) return;
+
+      const serviceWorkerRegistration = await navigator.serviceWorker.register(
+        "/firebase-messaging-sw.js"
+      );
+
+      const token = await getToken(messaging, {
+        vapidKey,
+        serviceWorkerRegistration,
+      });
+
+      if (!token) return;
+
+      await fetch("/api/register-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      unsubscribeForeground = onMessage(messaging, (payload) => {
+        const title = payload?.notification?.title || "Brita Alert";
+        const body = payload?.notification?.body || "Water level is low.";
+        new Notification(title, { body });
+      });
+    }
+
+    setupPushNotifications().catch((error) => {
+      console.error("FCM setup failed", error);
+    });
+
+    return () => {
+      if (typeof unsubscribeForeground === "function") {
+        unsubscribeForeground();
+      }
+    };
   }, []);
 
   const display = USE_DEMO_DATA ? DEMO_READING : latest;
