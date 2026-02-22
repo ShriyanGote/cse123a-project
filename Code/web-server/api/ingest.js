@@ -36,49 +36,71 @@ function getFirebaseApp() {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Use POST" });
-  }
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Use POST" });
+    }
 
-  if (req.headers["x-api-key"] !== process.env.INGEST_API_KEY) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
+    if (req.headers["x-api-key"] !== process.env.INGEST_API_KEY) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-  const { device_id, weight_g, battery_mv } = req.body || {};
+    const { device_id, weight_g, battery_mv } = req.body || {};
 
-  const { data: previousReading, error: previousError } = await supabase
-    .from("water_readings")
-    .select("weight_g")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    const { data: previousReading, error: previousError } = await supabase
+      .from("water_readings")
+      .select("weight_g")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  if (previousError) return res.status(500).json({ error: previousError.message });
+    if (previousError) return res.status(500).json({ error: previousError.message });
 
-  const { error } = await supabase.from("water_readings").insert([
-    { device_id, weight_g, battery_mv }
-  ]);
+    const { error } = await supabase.from("water_readings").insert([
+      { device_id, weight_g, battery_mv }
+    ]);
 
-  if (error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: error.message });
 
-  const currentPercent = getLevelPercent(Number(weight_g));
-  const previousPercent = getLevelPercent(previousReading?.weight_g);
-  const crossedBelowThreshold =
-    currentPercent < LOW_WATER_THRESHOLD_PERCENT &&
-    (!previousReading || previousPercent >= LOW_WATER_THRESHOLD_PERCENT);
+    const currentPercent = getLevelPercent(Number(weight_g));
+    const previousPercent = getLevelPercent(previousReading?.weight_g);
+    const crossedBelowThreshold =
+      currentPercent < LOW_WATER_THRESHOLD_PERCENT &&
+      (!previousReading || previousPercent >= LOW_WATER_THRESHOLD_PERCENT);
 
-  if (crossedBelowThreshold) {
-    const { data: tokenRows, error: tokenError } = await supabase
-      .from("notification_tokens")
-      .select("token");
+    const debug = {
+      currentPercent,
+      previousPercent,
+      crossedBelowThreshold,
+      tokenCount: 0,
+      firebaseConfigured: false,
+      sentCount: 0,
+      failedCount: 0,
+    };
 
-    if (!tokenError && tokenRows?.length) {
-      const firebaseApp = getFirebaseApp();
+    if (crossedBelowThreshold) {
+      const { data: tokenRows, error: tokenError } = await supabase
+        .from("notification_tokens")
+        .select("token");
 
-      if (firebaseApp) {
+      if (tokenError) {
+        console.error("Failed to read notification_tokens", tokenError);
+      } else if (tokenRows?.length) {
         const tokens = tokenRows.map((row) => row.token).filter(Boolean);
+        debug.tokenCount = tokens.length;
 
-        if (tokens.length > 0) {
+        let firebaseApp = null;
+        try {
+          firebaseApp = getFirebaseApp();
+        } catch (initError) {
+          console.error("Firebase Admin initialization failed", initError);
+        }
+
+        if (firebaseApp) {
+          debug.firebaseConfigured = true;
+        }
+
+        if (firebaseApp && tokens.length > 0) {
           try {
             const response = await admin.messaging(firebaseApp).sendEachForMulticast({
               tokens,
@@ -91,6 +113,9 @@ export default async function handler(req, res) {
                 level_percent: String(currentPercent),
               },
             });
+
+            debug.sentCount = response.successCount;
+            debug.failedCount = response.failureCount;
 
             const invalidTokens = [];
             response.responses.forEach((r, index) => {
@@ -115,7 +140,10 @@ export default async function handler(req, res) {
         }
       }
     }
-  }
 
-  res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, debug });
+  } catch (unhandledError) {
+    console.error("Unhandled ingest failure", unhandledError);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 }
