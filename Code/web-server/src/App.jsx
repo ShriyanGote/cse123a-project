@@ -28,6 +28,7 @@ function hasWater(weightG) {
 
 export default function App() {
   const [latest, setLatest] = useState(null);
+  const [waterCanAnimate, setWaterCanAnimate] = useState(false);
 
   async function load() {
     const { data } = await supabase
@@ -47,6 +48,15 @@ export default function App() {
 
   const display = USE_DEMO_DATA ? DEMO_READING : latest;
   const percent = display ? getLevelPercent(display.weight_g) : 0;
+
+  // Enable water height transition only after first paint so reload doesn’t animate from 0
+  useEffect(() => {
+    if (!display) return;
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setWaterCanAnimate(true));
+    });
+    return () => cancelAnimationFrame(id);
+  }, [!!display]);
   const waterPresent = hasWater(display?.weight_g);
   const lastUpdated = display?.created_at
     ? new Date(display.created_at)
@@ -81,7 +91,7 @@ export default function App() {
             <div className="brita-pitcher">
               <div className="brita-pitcher__body">
                 <div
-                  className="brita-pitcher__water"
+                  className={`brita-pitcher__water${waterCanAnimate ? " brita-pitcher__water--animate" : ""}`}
                   style={{ height: `${percent}%` }}
                 />
               </div>
