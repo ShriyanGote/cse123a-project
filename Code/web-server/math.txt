@@ -1,0 +1,11 @@
+Need to implement the following for the value calculations
+
+if reported gram values drops somewhat below "empty" stored value 
+    - nothing happens, don't report empty
+
+any time else, pull full and empty values from storage
+
+percent = (value - empty) / (full - empty) * 100%
+
+reported value on website needs to reflect this percentage value. 
+Stored server values are only empty and full, set by the setup process. 
