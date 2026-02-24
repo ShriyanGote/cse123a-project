@@ -1,0 +1,57 @@
+\documentclass[12pt]{article}
+
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{url}
+
+\geometry{margin=1in}
+
+\title{CSE 123A - Demo Script\\Water Level Monitoring System}
+\author{Group 8}
+\date{}
+
+\begin{document}
+\pagestyle{fancy}
+\maketitle
+\fancyfoot{}
+\fancyhead{}
+\fancyfoot[R]{\thepage}
+
+
+
+
+%% --------------------------------------------------------
+\section*{Part 1: Introduction (1 minute)}
+
+\textbf{Action:} Hold up or gesture toward the Brita pitcher.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+``Has this ever happened to you? You come home after a long day, you're thirsty, and you go to grab the water filter pitcher---only to find it completely empty. Nobody refilled it.
+This is a common problem in shared living spaces---dorms, family homes, offices. Everyone uses the filtered water, but nobody knows when it's running low until it's too late.
+Our project solves this. We built a smart water level monitoring system that sits underneath your water filter pitcher, continuously tracking how much water is left, and sends a notification to everyone in the household when it's time to refill.''
+\end{quote}
+
+%% --------------------------------------------------------
+\section*{Part 2: The Hardware (1--1.5 minutes)}
+
+\textbf{Action:} Pick up the prototype base and point out each component as mentioning it.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+``Let's start with the hardware. The system has three main components:
+
+\textbf{First, the load cell.} This is a strain-gauge weight sensor. When weight is applied, it bends slightly, and that bending changes its electrical resistance. The change is ver tiny---so we use the \textbf{HX711 amplifier board} to boost the signal into something our microcontroller can read. The HX711 gives us 24-bit resolution, which means we can detect very small changes in weight.
+
+\textbf{Second, the ESP32 microcontroller.} This is the brain of our system. It reads the weight data from the HX711, converts it into a water level percentage, and sends that data over WiFi to our cloud server.
+
+\textbf{Third, the mounting base.} We designed and 3D-printed two circular plates, that sandwich the load cell. The pitcher sits on top. We designed these with M4 screw holes so everything stays secure and aligned.
+\end{quote}
+
