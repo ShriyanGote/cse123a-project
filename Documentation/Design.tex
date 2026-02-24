@@ -1,7 +1,7 @@
 \documentclass[12pt]{article}
 
 % Include all packages and commands
-\input{preamble.tex}
+\input{sections/preamble.tex}
 
 \begin{document}
 
@@ -11,14 +11,80 @@
 \fancyhead{}
 \fancyfoot[R]{\thepage}
 
-% Sections
-\input{sections/problem_statement.tex}
-\input{sections/need_statement.tex}
-\input{sections/goals.tex}
-\input{sections/personas.tex}
-\input{sections/timeline.tex}
-\input{sections/decision_table.tex}
-\input{sections/testing_plan.tex}
-\input{sections/web_code.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%% FRONT MATTER %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{roman}
+\input{sections/intro/executive_summary.tex}        %TODO
+\tableofcontents                                    %TODO
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% BODY %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%% INTRODUCTION (WHY?) %%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+\input{sections/intro/problem_statement.tex}
+\input{sections/intro/need_statement.tex}
+\input{sections/intro/goal_statement.tex}
+\input{sections/intro/personas.tex}
+\input{sections/intro/research_existing_products.tex} %TODO
+\input{sections/intro/sustainability_statement.tex}   %TODO
+
+%%%%%%%%%%%%%%%%%%%% DESIGN (WHAT?) %%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Design}
+\input{sections/design/aesthetic_prototype.tex}        %TODO
+\input{sections/design/design_for_manufacture.tex}     %TODO
+\input{sections/design/block_diagrams.tex}             %TODO
+\input{sections/design/wiring_diagrams.tex}            %TODO
+\input{sections/design/web_code.tex}             
+\input{sections/design/state_transition_diagrams.tex}  %TODO
+\input{sections/design/technology.tex}                 %TODO
+\input{sections/design/simulations.tex}                %TODO
+
+%%%%%%%%%%%%%%%%%%%% EVALUATION (WORKS?) %%%%%%%%%%%%%%%%%%%%
+
+\section{Evaluation}
+\input{sections/evaluation/functional_prototype.tex}   %TODO
+\input{sections/evaluation/testing.tex}                %TODO
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% APPENDICES %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+
+%%%%%%%%%%%%%%%%%%%% APPENDIX 1 %%%%%%%%%%%%%%%%%%%%
+
+\section{Problem Formulation}               
+\input{sections/appendix1/conceptualisations.tex}       %TODO
+\input{sections/appendix1/brainstorming.tex}            %TODO
+\input{sections/appendix1/decision_table.tex}
+\input{sections/appendix1/morphological_charts.tex}     %TODO
+
+%%%%%%%%%%%%%%%%%%%% APPENDIX 2 %%%%%%%%%%%%%%%%%%%%
+
+\section{Planning}                          
+\input{sections/appendix2/timeline.tex}
+\input{sections/appendix2/division_of_labor.tex}        %TODO
+\input{sections/appendix2/collaboration.tex}            %TODO
+
+%%%%%%%%%%%%%%%%%%%% APPENDIX 3 %%%%%%%%%%%%%%%%%%%%
+
+\section{Test Plan \& Results}             
+\input{sections/appendix3/testing_plan.tex}
+
+%%%%%%%%%%%%%%%%%%%% APPENDIX 4 %%%%%%%%%%%%%%%%%%%%
+
+\section{Review}                           
+\input{sections/appendix4/team_reflections.tex}         %TODO
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}
