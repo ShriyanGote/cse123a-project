@@ -18,13 +18,10 @@
 \maketitle
 \fancyfoot{}
 \fancyhead{}
-\fancyfoot[R]{\thepage}
-
-
-
+% \fancyfoot[R]{\thepage}
 
 %% --------------------------------------------------------
-\section*{Part 1: Introduction (1 minute)}
+\section*{Part 1: Introduction }
 
 \textbf{Action:} Hold up or gesture toward the Brita pitcher.
 
@@ -37,8 +34,9 @@ This is a common problem in shared living spaces---dorms, family homes, offices.
 Our project solves this. We built a smart water level monitoring system that sits underneath your water filter pitcher, continuously tracking how much water is left, and sends a notification to everyone in the household when it's time to refill.''
 \end{quote}
 
+
 %% --------------------------------------------------------
-\section*{Part 2: The Hardware (1--1.5 minutes)}
+\section*{Part 2: The Hardware }
 
 \textbf{Action:} Pick up the prototype base and point out each component as mentioning it.
 
@@ -56,5 +54,43 @@ Our project solves this. We built a smart water level monitoring system that sit
 \end{quote}
 
 
+%% --------------------------------------------------------
+\section*{Part 3: Live Demo -- Weighing }
+
+\textbf{Action:} Place the pitcher on the platform. Have the a computer open showing the readings of the sesnor.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+``Now let's see it in action.
+% maybe add calibration before?
+I'm going to place this Brita pitcher on the sensor base. The load cell is now measuring the total weight. Our ESP32 reads that value, subtracts the known weight of the empty pitcher, and calculates the percentage of water remaining.
+
+\textit{[Point to the web dashboard.]}
+% ( with fake data)
+Over here on our web dashboard, you can see the water level updating. Right now it's showing [read current percentage]. The pitcher graphic fills up to match the actual level, and you can see the exact percentage and the last time the reading was updated.
+
+Let me pour some water out to simulate usage.
+
+\textit{[Pour water out of the pitcher into a cup.]}
+% fake data 
+Watch the dashboard---you can see the percentage dropping as I pour. The system polls the database every five seconds, so there's a short delay, but it tracks the change.''
+\end{quote}
+
+
+% show how software works
+
+
+
+% notifications 
+
+
+
+% Q&A
+
+
+
+% conclusion
 \end{document}
 
