@@ -1,0 +1,14 @@
+\section{HX711}
+This file will show the necessary components to be able to collect/read data from the HX711 sensor to your microcontroller.
+
+\subsection{Important Wires}
+SCK is the clock line. DOUT is the data line. This means whenever DOUT is low it is ready to read. The clock line comes in pulses.
+
+\subsection{Read Data}
+The HX711 Sensor is a 24-bit analog to digital converter. To read data, you will need to be able to read the raw 24bits.
+The wire that matters here is SCK, since SCK is a pulse that will shift 1 bit each time, you need to do this 24 times for the full
+number. Additionally, there are extra pulses needed for the HX711 to select Chanel. This is inferred as my define PULSES_TOTAL 25.
+Recommend to create a delay when waiting for DOUT to go low again, sometimes it might stay high.
+
+\subsection{Calibration}
+The Sensor gives raw data, as counts.
