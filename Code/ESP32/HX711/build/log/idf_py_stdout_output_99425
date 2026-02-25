@@ -1,0 +1,133 @@
+Command: /Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python /Users/loganbossuwe/Desktop/esp/esp-idf/tools/idf_monitor.py -p /dev/cu.usbmodem101 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32c3 --revision 3 --decode-panic backtrace /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/HX711.elf /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf -m '/Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python' '/Users/loganbossuwe/Desktop/esp/esp-idf/tools/idf.py'
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40381d8a
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time Feb 24 2026 17:02:09[0m
+[0;32mI (25) boot: chip revision: v0.4[0m
+[0;32mI (25) boot: efuse block revision: v1.3[0m
+[0;32mI (28) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (32) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (36) boot.esp32c3: SPI Flash Size : 2MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (44) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (53) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (66) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (76) esp_image: segment 0: paddr=00010020 vaddr=3c020020 size=09044h ( 36932) map[0m
+[0;32mI (89) esp_image: segment 1: paddr=0001906c vaddr=3fc8bc00 size=013a0h (  5024) load[0m
+[0;32mI (91) esp_image: segment 2: paddr=0001a414 vaddr=40380000 size=05c04h ( 23556) load[0m
+[0;32mI (102) esp_image: segment 3: paddr=00020020 vaddr=42000020 size=176d8h ( 95960) map[0m
+[0;32mI (121) esp_image: segment 4: paddr=00037700 vaddr=40385c04 size=05eb8h ( 24248) load[0m
+[0;32mI (125) esp_image: segment 5: paddr=0003d5c0 vaddr=50000000 size=00020h (    32) load[0m
+[0;32mI (129) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (130) boot: Disabling RNG early entropy source...[0m
+[0;32mI (146) cpu_start: Unicore app[0m
+[0;32mI (154) cpu_start: Pro cpu start user code[0m
+[0;32mI (154) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (154) app_init: Application information:[0m
+[0;32mI (155) app_init: Project name:     HX711[0m
+[0;32mI (158) app_init: App version:      ad704d3[0m
+[0;32mI (162) app_init: Compile time:     Feb 24 2026 17:02:01[0m
+[0;32mI (167) app_init: ELF file SHA256:  41e242488...[0m
+[0;32mI (171) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (175) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (179) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (183) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (187) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (193) heap_init: At 3FC8DE60 len 000321A0 (200 KiB): RAM[0m
+[0;32mI (198) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (204) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (210) heap_init: At 50000020 len 00001FC8 (7 KiB): RTCRAM[0m
+[0;32mI (217) spi_flash: detected chip: generic[0m
+[0;32mI (219) spi_flash: flash io: dio[0m
+[0;33mW (222) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;32mI (235) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (241) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (248) main_task: Started on CPU0[0m
+[0;32mI (248) main_task: Calling app_main()[0m
+[0;32mI (748) HX711: Before pulses: DOUT=0[0m
+[0;32mI (748) HX711: After pulses:  DOUT=1[0m
+[0;32mI (748) HX711: Starting setup, please wait.[0m
+[0;32mI (2588) HX711: Tare offset=-379551[0m
+[0;32mI (3508) HX711: raw=-379591  offset=-379551  weightChange=-40  grams=0.399 g[0m
+[0;32mI (4768) HX711: raw=-379566  offset=-379551  weightChange=-15  grams=0.150 g[0m
+[0;32mI (6048) HX711: raw=-379560  offset=-379551  weightChange=-9  grams=0.090 g[0m
+[0;32mI (7328) HX711: raw=-379520  offset=-379551  weightChange=31  grams=-0.309 g[0m
+[0;32mI (8608) HX711: raw=-379529  offset=-379551  weightChange=22  grams=-0.219 g[0m
+[0;32mI (9888) HX711: raw=-379570  offset=-379551  weightChange=-19  grams=0.189 g[0m
+[0;32mI (11148) HX711: raw=-379577  offset=-379551  weightChange=-26  grams=0.259 g[0m
+[0;32mI (12428) HX711: raw=-379585  offset=-379551  weightChange=-34  grams=0.339 g[0m
+[0;32mI (13708) HX711: raw=-379571  offset=-379551  weightChange=-20  grams=0.199 g[0m
+[0;32mI (14988) HX711: raw=-379578  offset=-379551  weightChange=-27  grams=0.269 g[0m
+[0;32mI (16268) HX711: raw=-386348  offset=-379551  weightChange=-6797  grams=67.767 g[0m
+[0;32mI (17548) HX711: raw=-398338  offset=-379551  weightChange=-18787  grams=187.308 g[0m
+[0;32mI (18808) HX711: raw=-398323  offset=-379551  weightChange=-18772  grams=187.159 g[0m
+[0;32mI (20088) HX711: raw=-398366  offset=-379551  weightChange=-18815  grams=187.587 g[0m
+[0;32mI (21368) HX711: raw=-398342  offset=-379551  weightChange=-18791  grams=187.348 g[0m
+[0;32mI (22648) HX711: raw=-398354  offset=-379551  weightChange=-18803  grams=187.468 g[0m
+[0;32mI (23928) HX711: raw=-398347  offset=-379551  weightChange=-18796  grams=187.398 g[0m
+[0;32mI (25208) HX711: raw=-398371  offset=-379551  weightChange=-18820  grams=187.637 g[0m
+[0;32mI (26468) HX711: raw=-398336  offset=-379551  weightChange=-18785  grams=187.288 g[0m
+[0;32mI (27748) HX711: raw=-398349  offset=-379551  weightChange=-18798  grams=187.418 g[0m
+[0;32mI (29028) HX711: raw=-398359  offset=-379551  weightChange=-18808  grams=187.517 g[0m
+[0;32mI (30308) HX711: raw=-398369  offset=-379551  weightChange=-18818  grams=187.617 g[0m
+[0;32mI (31588) HX711: raw=-398359  offset=-379551  weightChange=-18808  grams=187.517 g[0m
+[0;32mI (32868) HX711: raw=-398359  offset=-379551  weightChange=-18808  grams=187.517 g[0m
+[0;32mI (34128) HX711: raw=-398381  offset=-379551  weightChange=-18830  grams=187.737 g[0m
+[0;32mI (35408) HX711: raw=-398385  offset=-379551  weightChange=-18834  grams=187.777 g[0m
+[0;32mI (36688) HX711: raw=-398367  offset=-379551  weightChange=-18816  grams=187.597 g[0m
+[0;32mI (37968) HX711: raw=-398356  offset=-379551  weightChange=-18805  grams=187.488 g[0m
+[0;32mI (39248) HX711: raw=-398359  offset=-379551  weightChange=-18808  grams=187.517 g[0m
+[0;32mI (40528) HX711: raw=-398381  offset=-379551  weightChange=-18830  grams=187.737 g[0m
+[0;32mI (41788) HX711: raw=-398365  offset=-379551  weightChange=-18814  grams=187.577 g[0m
+[0;32mI (43068) HX711: raw=-398384  offset=-379551  weightChange=-18833  grams=187.767 g[0m
+[0;32mI (44348) HX711: raw=-398399  offset=-379551  weightChange=-18848  grams=187.916 g[0m
+[0;32mI (45628) HX711: raw=-398358  offset=-379551  weightChange=-18807  grams=187.507 g[0m
+[0;32mI (46908) HX711: raw=-398344  offset=-379551  weightChange=-18793  grams=187.368 g[0m
+[0;32mI (48168) HX711: raw=-398346  offset=-379551  weightChange=-18795  grams=187.388 g[0m
+[0;32mI (49448) HX711: raw=-398351  offset=-379551  weightChange=-18800  grams=187.438 g[0m
+[0;32mI (50728) HX711: raw=-398344  offset=-379551  weightChange=-18793  grams=187.368 g[0m
+[0;32mI (52008) HX711: raw=-398355  offset=-379551  weightChange=-18804  grams=187.478 g[0m
+[0;32mI (53288) HX711: raw=-398354  offset=-379551  weightChange=-18803  grams=187.468 g[0m
+[0;32mI (54568) HX711: raw=-398395  offset=-379551  weightChange=-18844  grams=187.876 g[0m
+[0;32mI (55828) HX711: raw=-398361  offset=-379551  weightChange=-18810  grams=187.537 g[0m
+[0;32mI (57108) HX711: raw=-398352  offset=-379551  weightChange=-18801  grams=187.448 g[0m
+[0;32mI (58388) HX711: raw=-398374  offset=-379551  weightChange=-18823  grams=187.667 g[0m
+[0;32mI (59668) HX711: raw=-398385  offset=-379551  weightChange=-18834  grams=187.777 g[0m
+[0;32mI (60948) HX711: raw=-398376  offset=-379551  weightChange=-18825  grams=187.687 g[0m
+[0;32mI (62228) HX711: raw=-398386  offset=-379551  weightChange=-18835  grams=187.787 g[0m
+[0;32mI (63488) HX711: raw=-398370  offset=-379551  weightChange=-18819  grams=187.627 g[0m
+[0;32mI (64768) HX711: raw=-398352  offset=-379551  weightChange=-18801  grams=187.448 g[0m
+[0;32mI (66048) HX711: raw=-398366  offset=-379551  weightChange=-18815  grams=187.587 g[0m
+[0;32mI (67328) HX711: raw=-398348  offset=-379551  weightChange=-18797  grams=187.408 g[0m
+[0;32mI (68608) HX711: raw=-398380  offset=-379551  weightChange=-18829  grams=187.727 g[0m
+[0;32mI (69888) HX711: raw=-398363  offset=-379551  weightChange=-18812  grams=187.557 g[0m
+[0;32mI (71148) HX711: raw=-398386  offset=-379551  weightChange=-18835  grams=187.787 g[0m
+[0;32mI (72428) HX711: raw=-398382  offset=-379551  weightChange=-18831  grams=187.747 g[0m
+[0;32mI (73708) HX711: raw=-398380  offset=-379551  weightChange=-18829  grams=187.727 g[0m
+[0;32mI (74988) HX711: raw=-398373  offset=-379551  weightChange=-18822  grams=187.657 g[0m
+[0;32mI (76268) HX711: raw=-398325  offset=-379551  weightChange=-18774  grams=187.178 g[0m
+[0;32mI (77528) HX711: raw=-398382  offset=-379551  weightChange=-18831  grams=187.747 g[0m
+[0;32mI (78808) HX711: raw=-398379  offset=-379551  weightChange=-18828  grams=187.717 g[0m
+[0;32mI (80088) HX711: raw=-398359  offset=-379551  weightChange=-18808  grams=187.517 g[0m
+[0;32mI (81368) HX711: raw=-398375  offset=-379551  weightChange=-18824  grams=187.677 g[0m
+[0;32mI (82648) HX711: raw=-398346  offset=-379551  weightChange=-18795  grams=187.388 g[0m
+[0;32mI (83928) HX711: raw=-398376  offset=-379551  weightChange=-18825  grams=187.687 g[0m
+[0;32mI (85188) HX711: raw=-398336  offset=-379551  weightChange=-18785  grams=187.288 g[0m
+[0;32mI (86468) HX711: raw=-398365  offset=-379551  weightChange=-18814  grams=187.577 g[0m
+[0;32mI (87748) HX711: raw=-398369  offset=-379551  weightChange=-18818  grams=187.617 g[0m
+[0;32mI (89028) HX711: raw=-398328  offset=-379551  weightChange=-18777  grams=187.208 g[0m
+[0;32mI (90308) HX711: raw=-398364  offset=-379551  weightChange=-18813  grams=187.567 g[0m
+[0;32mI (91588) HX711: raw=-398361  offset=-379551  weightChange=-18810  grams=187.537 g[0m
+[0;32mI (92848) HX711: raw=-398386  offset=-379551  weightChange=-18835  grams=187.787 g[0m
+[0;32mI (94128) HX711: raw=-398387  offset=-379551  weightChange=-18836  grams=187.797 g[0m

@@ -25,7 +25,7 @@ static const char *TAG = "HX711";
 
 // Calibration parameters
 static int32_t g_offset = 0; // tare offset
-static float   g_scale  = 1.0f; // counts per gram, will change for calibration
+static float   g_scale  = -100.3f; // counts per gram, will change for calibration
 
 
 static void sensor_init(void){
@@ -106,7 +106,7 @@ static float getGrams(int32_t raw){
     return (raw - g_offset) / g_scale;
 }
 
-static int32_t getChangeWeight(int rawWeight){
+static int32_t getRawChange(int rawWeight){
     return rawWeight - g_offset;
 }
 
@@ -146,9 +146,9 @@ void app_main(void)
     ESP_LOGI(TAG,
              "raw=%" PRId32
              "  offset=%" PRId32
-             "  weightChange=%" PRId32
+             "  rawChange=%" PRId32
              "  grams=%.3f g",
-             raw, g_offset, getChangeWeight(raw), getGrams(raw));
+             raw, g_offset, getRawChange(raw), getGrams(raw));
 
     vTaskDelay(pdMS_TO_TICKS(500));
     }
