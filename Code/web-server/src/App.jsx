@@ -4,9 +4,9 @@ import { supabase } from "./supabase";
 import { getMessagingIfSupported } from "./firebase";
 import "./App.css";
 
-// Typical Brita pitcher capacity ~2.5L ≈ 2500g water
-const MAX_WEIGHT_G = 2500;
-const EMPTY_WEIGHT_G = 0; // weight when pitcher is empty (no water)
+// Default calibration if none is stored in Supabase
+const DEFAULT_FULL_G = 2500; // ~2.5L of water
+const DEFAULT_EMPTY_G = 0;
 
 // Set to true to show fake data and see the UI without Supabase
 const USE_DEMO_DATA = false;
@@ -17,19 +17,29 @@ const DEMO_READING = {
   created_at: new Date().toISOString(),
 };
 
-function getLevelPercent(weightG) {
-  if (weightG == null || weightG <= EMPTY_WEIGHT_G) return 0;
-  const range = MAX_WEIGHT_G - EMPTY_WEIGHT_G;
-  const value = ((weightG - EMPTY_WEIGHT_G) / range) * 100;
+function getLevelPercent(weightG, calibration) {
+  if (weightG == null) return 0;
+
+  const empty = calibration?.empty ?? DEFAULT_EMPTY_G;
+  const full = calibration?.full ?? DEFAULT_FULL_G;
+
+  if (full <= empty || weightG <= empty) return 0;
+
+  const range = full - empty;
+  const value = ((weightG - empty) / range) * 100;
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
-function hasWater(weightG) {
-  return weightG != null && weightG > EMPTY_WEIGHT_G;
+function hasWater(weightG, calibration) {
+  if (weightG == null) return false;
+  const empty = calibration?.empty ?? DEFAULT_EMPTY_G;
+  return weightG > empty;
 }
 
 export default function App() {
   const [latest, setLatest] = useState(null);
+  const [calibration, setCalibration] = useState(null);
+  const [isSavingCalibration, setIsSavingCalibration] = useState(false);
   const [waterCanAnimate, setWaterCanAnimate] = useState(false);
 
   async function load() {
@@ -42,8 +52,19 @@ export default function App() {
     setLatest(data ?? null);
   }
 
+  async function loadCalibration() {
+    const { data } = await supabase
+      .from("calibration")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setCalibration(data ?? null);
+  }
+
   useEffect(() => {
     load();
+    loadCalibration();
     const t = setInterval(load, 5000);
     return () => clearInterval(t);
   }, []);
@@ -97,7 +118,7 @@ export default function App() {
   }, []);
 
   const display = USE_DEMO_DATA ? DEMO_READING : latest;
-  const percent = display ? getLevelPercent(display.weight_g) : 0;
+  const percent = display ? getLevelPercent(display.weight_g, calibration) : 0;
 
   // Enable water height transition only after first paint so reload doesn’t animate from 0
   useEffect(() => {
@@ -107,10 +128,37 @@ export default function App() {
     });
     return () => cancelAnimationFrame(id);
   }, [!!display]);
-  const waterPresent = hasWater(display?.weight_g);
+  const waterPresent = hasWater(display?.weight_g, calibration);
   const lastUpdated = display?.created_at
     ? new Date(display.created_at)
     : null;
+
+  async function upsertCalibration(nextFields) {
+    setIsSavingCalibration(true);
+    const base = calibration ?? {};
+    const payload = {
+      id: base.id ?? 1,
+      empty: "empty" in nextFields ? nextFields.empty : base.empty ?? null,
+      full: "full" in nextFields ? nextFields.full : base.full ?? null,
+    };
+
+    await supabase
+      .from("calibration")
+      .upsert(payload, { onConflict: "id" });
+
+    await loadCalibration();
+    setIsSavingCalibration(false);
+  }
+
+  async function calibrateEmpty() {
+    if (!display) return;
+    await upsertCalibration({ empty: display.weight_g });
+  }
+
+  async function calibrateFull() {
+    if (!display) return;
+    await upsertCalibration({ full: display.weight_g });
+  }
 
   return (
     <div className="brita-dashboard">
@@ -167,6 +215,40 @@ export default function App() {
                 <> · Battery: {display.battery_mv} mV</>
               )}
             </p>
+            <div className="brita-calibration">
+              <div className="brita-calibration__row">
+                <button
+                  className="brita-calibration__button"
+                  type="button"
+                  onClick={calibrateEmpty}
+                  disabled={!display || isSavingCalibration}
+                >
+                  Calibrate empty
+                </button>
+                <button
+                  className="brita-calibration__button brita-calibration__button--primary"
+                  type="button"
+                  onClick={calibrateFull}
+                  disabled={!display || isSavingCalibration}
+                >
+                  Calibrate full
+                </button>
+              </div>
+              <p className="brita-calibration__current">
+                Empty:{" "}
+                {calibration?.empty != null
+                  ? `${calibration.empty} g`
+                  : `${DEFAULT_EMPTY_G} g (default)`}{" "}
+                · Full:{" "}
+                {calibration?.full != null
+                  ? `${calibration.full} g`
+                  : `${DEFAULT_FULL_G} g (default)`}
+              </p>
+              <p className="brita-calibration__hint">
+                Uses the latest reading when you press the buttons. New
+                calibrations overwrite previous values.
+              </p>
+            </div>
           </div>
         </>
       )}
