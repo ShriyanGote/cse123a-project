@@ -160,6 +160,11 @@ export default function App() {
     await upsertCalibration({ full: display.weight_g });
   }
 
+  async function resetCalibration() {
+    if (!display) return;
+    await upsertCalibration({ empty: null, full: null });
+  }
+
   return (
     <div className="brita-dashboard">
       {USE_DEMO_DATA && (
@@ -232,6 +237,14 @@ export default function App() {
                   disabled={!display || isSavingCalibration}
                 >
                   Calibrate full
+                </button>
+                <button
+                  className="brita-calibration__button brita-calibration__button--reset"
+                  type="button"
+                  onClick={resetCalibration}
+                  disabled={isSavingCalibration}
+                >
+                  Reset calibration
                 </button>
               </div>
               <p className="brita-calibration__current">
