@@ -1,3 +1,15 @@
+/*
+
+You can use this command to send sample data to the ingest API endpoint. It has a debug output that shows the current percent, 
+previous percent, whether it crossed the low water threshold, number of notification tokens, and how many attempts 
+succeeded/failed.
+
+Make sure to replace {INGEST-API-KEY} with the actual API key from your environment variables.
+
+Command: curl -s -o /tmp/ingestDebug.out -w "HTTP %{http_code}\n" -X POST https://cse123a-project-6a3s.vercel.app/api/ingest -H "Content-Type: application/json" -H "x-api-key: {INGEST-API-KEY}" -d '{"device_id":"demo-calibrate-1","weight_g":1100,"battery_mv":3790}' && cat /tmp/ingestDebug.out
+
+*/
+
 import { createClient } from "@supabase/supabase-js";
 import admin from "firebase-admin";
 
