@@ -57,8 +57,10 @@ This week, I restructured the design document to better match the outline in Can
  I also updated the architecture diagram after our discussion on communication between the microcontroller and web server. It now shows that the MCU will only send data, the weight, and calculations and calibration will happen on the webapp side.  
 
 \noindent\textbf{Sam Lai}:
-
-
-\noindent\textbf{Shriyan Gote}:
+This week, I worked on creating unit tests for the web app, specifically for the water level calculation and calibration actions. 
+The unit tests cover several cases, such as when there is no weight data available, whether the water level is correctly calculated 
+based on the weight data, and whether the calibration action correctly updates the calibration data. I am currently working on reimplementing 
+the notifications using Push API instead of Firebase Cloud Messaging. Push API has all the features of Firebase Cloud Messaging, but 
+it is able to send push notifications on IOS devices, which is a major advantage over Firebase Cloud Messaging.
 
 \end{document}
