@@ -1,5 +1,4 @@
 % status report 5
-
 \documentclass[12pt]{article}
 \usepackage{graphicx}
 \usepackage{fancyhdr}
@@ -28,31 +27,44 @@
  
 % whats in progress
 \section*{What we are Working On}
-
+We are working on bridging the gap between each others smaller works. Best example is starting to send/recieve data to the webserver. Additionaly, the plates
+for the prototype had a mistake in the initial design, so we are revising for more accuracate weight measures.
 
 % what next on teh agenda 
 \section*{What's next}
-
+We plan to print the newly redesigned base plates, which has a flat bottom to provide more accurate and stable weight 
+readings. We are also increasing the plate thickness to handle heavier loads and expanding the plate dimensions to accommodate 
+a wider variety of container sizes.
 
 % also have indivudal secitons of what each persion did and is working on
 
 \section*{Individual Contributions}
 
 \noindent\textbf{Dev Chodavadiya}:
-
+This week, I redesigned the base plate to increase its thickness and revised the screw hole layout to a racetrack pattern, 
+ensuring the bottom surface sits flat. I also created engineering drawings for the base plates and worked on developing a 
+demo script for our end-of-quarter initial prototype presentation.\\
 
 \noindent\textbf{Logan Bossuwe}:
+This week I calibrated the weight to the accuracy within 1-2 grams of the weight. I will test future weights heavier than 5kg. I began looking at combining the code Ried wrote so we can start sending data through http.
 
+I also began adding toward the design document with the calibrating code document.
 
 \noindent\textbf{Pieter Nauwelaerts}:
+Significant updates to diagrams for the initial prototype presentation. Changes include noting that we will be showing the smart base reporting data to a laptop serial connection rather than through a WiFi to server connection. We will also be demonstrating a web app rather than a working phone app. 
 
+I also began the process of creating test programs for the current sensor setup so we can test the code written and determine if any fixes or possible corner cases were left out. This also includes limit testing how fast the data can be updated, as well as how it handles repeated changes to the state. 
 
 \noindent\textbf{Reid Graham}:
 This week, I restructured the design document to better match the outline in Canvas and to include important information on the architecture of our product.
 
- I also updated the architecture diagram after our discussion on communication between the microcontroller and web server. It now shows that the MCU will only send data, the weight, and calculations and calibration will happen on the webapp side.  
+ I also updated the architecture diagram after our discussion on communication between the microcontroller and web server. It now shows that the MCU will only send data, the weight, and calculations and calibration will happen on the webapp side. \\ 
 
 \noindent\textbf{Sam Lai}:
+This week, I worked on creating unit tests for the web app, specifically for the water level calculation and calibration actions. 
+The unit tests cover several cases, such as when there is no weight data available, whether the water level is correctly calculated 
+based on the weight data, and whether the calibration action correctly updates the calibration data. I am currently working on reimplementing 
+the notifications using Push API instead of Firebase Cloud Messaging. Push API has all the features of Firebase Cloud Messaging, but 
+it is able to send push notifications on IOS devices, which is a major advantage over Firebase Cloud Messaging.
 
-
-\noindent\textbf{Shriyan Gote}:
+\end{document}
