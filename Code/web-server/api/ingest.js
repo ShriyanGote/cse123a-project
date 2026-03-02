@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import admin from "firebase-admin";
+import webpush from "web-push";
 
 const MAX_WEIGHT_G = 2500;
 const EMPTY_WEIGHT_G = 0;
@@ -10,29 +10,27 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+let webPushConfigured = false;
+
+function configureWebPush() {
+  if (webPushConfigured) return true;
+
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  const subject = process.env.VAPID_SUBJECT;
+
+  if (!publicKey || !privateKey || !subject) return false;
+
+  webpush.setVapidDetails(subject, publicKey, privateKey);
+  webPushConfigured = true;
+  return true;
+}
+
 function getLevelPercent(weightG) {
   if (weightG == null || weightG <= EMPTY_WEIGHT_G) return 0;
   const range = MAX_WEIGHT_G - EMPTY_WEIGHT_G;
   const value = ((weightG - EMPTY_WEIGHT_G) / range) * 100;
   return Math.min(100, Math.max(0, Math.round(value)));
-}
-
-function getFirebaseApp() {
-  if (admin.apps.length > 0) return admin.app();
-
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
-  if (!projectId || !clientEmail || !privateKey) return null;
-
-  return admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId,
-      clientEmail,
-      privateKey,
-    }),
-  });
 }
 
 export default async function handler(req, res) {
@@ -72,38 +70,46 @@ export default async function handler(req, res) {
       currentPercent,
       previousPercent,
       crossedBelowThreshold,
-      tokenCount: 0,
-      firebaseConfigured: false,
+      subscriptionCount: 0,
+      webPushConfigured: false,
       sentCount: 0,
       failedCount: 0,
     };
 
     if (crossedBelowThreshold) {
-      const { data: tokenRows, error: tokenError } = await supabase
+      const { data: subscriptionRows, error: subscriptionError } = await supabase
         .from("notification_tokens")
         .select("token");
 
-      if (tokenError) {
-        console.error("Failed to read notification_tokens", tokenError);
-      } else if (tokenRows?.length) {
-        const tokens = tokenRows.map((row) => row.token).filter(Boolean);
-        debug.tokenCount = tokens.length;
+      if (subscriptionError) {
+        console.error("Failed to read notification_tokens", subscriptionError);
+      } else if (subscriptionRows?.length) {
+        const subscriptions = subscriptionRows
+          .map((row) => {
+            if (!row?.token || typeof row.token !== "string") return null;
+            try {
+              const parsed = JSON.parse(row.token);
+              if (parsed && typeof parsed.endpoint === "string") {
+                return {
+                  rawToken: row.token,
+                  subscription: parsed,
+                };
+              }
+            } catch {
+              return null;
+            }
+            return null;
+          })
+          .filter(Boolean);
 
-        let firebaseApp = null;
-        try {
-          firebaseApp = getFirebaseApp();
-        } catch (initError) {
-          console.error("Firebase Admin initialization failed", initError);
-        }
+        debug.subscriptionCount = subscriptions.length;
 
-        if (firebaseApp) {
-          debug.firebaseConfigured = true;
-        }
+        const isWebPushReady = configureWebPush();
+        debug.webPushConfigured = isWebPushReady;
 
-        if (firebaseApp && tokens.length > 0) {
+        if (isWebPushReady && subscriptions.length > 0) {
           try {
-            const response = await admin.messaging(firebaseApp).sendEachForMulticast({
-              tokens,
+            const payload = JSON.stringify({
               notification: {
                 title: "Brita water level low",
                 body: `Water level is ${currentPercent}%. Time to refill.`,
@@ -114,28 +120,34 @@ export default async function handler(req, res) {
               },
             });
 
-            debug.sentCount = response.successCount;
-            debug.failedCount = response.failureCount;
+            const expiredSubscriptions = [];
 
-            const invalidTokens = [];
-            response.responses.forEach((r, index) => {
-              const code = r.error?.code || "";
-              if (
-                code.includes("registration-token-not-registered") ||
-                code.includes("invalid-registration-token")
-              ) {
-                invalidTokens.push(tokens[index]);
+            await Promise.all(
+              subscriptions.map(async (item) => {
+                try {
+                  await webpush.sendNotification(item.subscription, payload);
+                  debug.sentCount += 1;
+                } catch (pushError) {
+                  debug.failedCount += 1;
+
+                  const statusCode = pushError?.statusCode;
+                  if (statusCode === 404 || statusCode === 410) {
+                    expiredSubscriptions.push(item.rawToken);
+                  } else {
+                    console.error("Web Push send failed", pushError);
+                  }
+                }
               }
-            });
+            ));
 
-            if (invalidTokens.length > 0) {
+            if (expiredSubscriptions.length > 0) {
               await supabase
                 .from("notification_tokens")
                 .delete()
-                .in("token", invalidTokens);
+                .in("token", expiredSubscriptions);
             }
           } catch (notifyError) {
-            console.error("FCM send failed", notifyError);
+            console.error("Push notification send failed", notifyError);
           }
         }
       }

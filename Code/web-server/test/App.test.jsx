@@ -84,15 +84,6 @@ function expectPercentFill(container, expectedPercent) {
   expect(water).toHaveStyle({ height: `${expectedPercent}%` });
 }
 
-vi.mock("../src/firebase", () => ({
-  getMessagingIfSupported: vi.fn(async () => null),
-}));
-
-vi.mock("firebase/messaging", () => ({
-  getToken: vi.fn(async () => null),
-  onMessage: vi.fn(() => vi.fn()),
-}));
-
 describe("App", () => {
   beforeEach(() => {
     mockDb.latest = null;

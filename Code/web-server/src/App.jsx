@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken, onMessage } from "firebase/messaging";
 import { supabase } from "./supabase";
-import { getMessagingIfSupported } from "./firebase";
 import "./App.css";
 
 // Default calibration if none is stored in Supabase
@@ -16,6 +14,13 @@ const DEMO_READING = {
   battery_mv: 3850,
   created_at: new Date().toISOString(),
 };
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+}
 
 function getLevelPercent(weightG, calibration) {
   if (weightG == null) return 0;
@@ -70,51 +75,40 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    let unsubscribeForeground = null;
-
     async function setupPushNotifications() {
       if (!("serviceWorker" in navigator) || !("Notification" in window)) return;
+
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      if (!vapidPublicKey) return;
 
       const permission = await Notification.requestPermission();
       if (permission !== "granted") return;
 
-      const messaging = await getMessagingIfSupported();
-      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-      if (!messaging || !vapidKey) return;
-
       const serviceWorkerRegistration = await navigator.serviceWorker.register(
-        "/firebase-messaging-sw.js"
+        "/push-sw.js"
       );
 
-      const token = await getToken(messaging, {
-        vapidKey,
-        serviceWorkerRegistration,
-      });
+      let subscription = await serviceWorkerRegistration.pushManager.getSubscription();
 
-      if (!token) return;
+      if (!subscription) {
+        subscription = await serviceWorkerRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        });
+      }
+
+      if (!subscription) return;
 
       await fetch("/api/register-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-
-      unsubscribeForeground = onMessage(messaging, (payload) => {
-        const title = payload?.notification?.title || "Brita Alert";
-        const body = payload?.notification?.body || "Water level is low.";
-        new Notification(title, { body });
+        body: JSON.stringify({ subscription }),
       });
     }
 
     setupPushNotifications().catch((error) => {
-      console.error("FCM setup failed", error);
+      console.error("Push setup failed", error);
     });
-
-    return () => {
-      if (typeof unsubscribeForeground === "function") {
-        unsubscribeForeground();
-      }
-    };
   }, []);
 
   const display = USE_DEMO_DATA ? DEMO_READING : latest;
