@@ -1,3 +1,19 @@
-\subsection{Research into Existing Designs}
+\subsection{Research into Existing Designs and Products}
 
-TODO
+To understand where our design fits, we researched three existing products that partially meet the same need.
+
+\subsubsection{Withings Body Smart}
+
+The Withings Body Smart is a consumer Wi-Fi scale that measures weight, body fat, muscle mass, and water percentage using strain gauge load cells and bioelectrical impedance analysis. It syncs data automatically to the Withings smartphone app, where users can track trends and set goals. While it offers a polished user experience, the system is entirely closed---users must rely on Withings' proprietary app and cloud service, with no way to self-host data or customize the interface.
+
+\subsubsection{Wyze Scale Ultra}
+
+The Wyze Scale Ultra takes a similar approach but adds a 4.3-inch color display directly on the scale, so users can view 13 body composition metrics without needing their phone nearby. It supports Wi-Fi syncing to the Wyze app and integrates with third-party fitness platforms like Apple Health and Google Fit. Like the Withings, it is a closed system that cannot be modified or repurposed beyond its intended body composition use case.
+
+\subsubsection{Hackster.io ESP32 MQTT Weight System}
+
+On the DIY side, a Hackster.io project by The Embedded Things implements an ESP32-based weight measurement system using an HX711 amplifier and load cell. It features MQTT communication for real-time data streaming, multi-sample averaging for noise reduction, and automatic tare on startup. This project demonstrates strong signal processing but requires an external MQTT broker and separate dashboard software, adding complexity that our self-hosted approach avoids.
+
+\subsubsection{Where Our Design Fits}
+
+Our project fills a gap between these existing solutions. The commercial scales offer polished experiences but are closed systems tied to proprietary apps. The Hackster.io project is open-source and uses similar hardware, but depends on external services for data display. Our design combines the low cost and openness of a DIY build with a fully self-hosted web interface on the ESP32 that provides real-time weight display, historical logging, and alerts---all without needing external apps or cloud services.
