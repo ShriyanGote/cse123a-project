@@ -10,6 +10,7 @@
 #include "esp_log.h"
 #include "freertos/portmacro.h"
 
+#include "HX711.h"
 
 #define DOUT GPIO_NUM_4//DOUT goes LOW - ready to read, HIGH - In process of converting, see read raw
 #define SCK GPIO_NUM_5 // CLK, LOW HIGH LOW -  one clk pulse
@@ -47,7 +48,7 @@ static void sensor_init(void){
     io.intr_type = GPIO_INTR_DISABLE;
     ESP_ERROR_CHECK(gpio_config(&io));
 
-    gpio_set_level(SCK, 0);
+    hx711_set_sck(0);
 }
 
 //HX711 is a 24bit readings
@@ -57,7 +58,7 @@ static int32_t read_raw(void){
     //debug HX711 Not ready if stuck 0
     #if DEBUG
     int waited = 0;
-    while (gpio_get_level(DOUT) == 1) {
+    while (hx711_get_dout() == 1) {
         vTaskDelay(pdMS_TO_TICKS(20));
         waited += 20;
         if (waited >= 1000) { // 1 second
@@ -69,13 +70,13 @@ static int32_t read_raw(void){
 
     //24bit read
     for(int i = 0; i < HX711_PULSES_TOTAL; i++){
-        gpio_set_level(SCK,1);
+        hx711_set_sck(1);
         esp_rom_delay_us(1);
 
         if(i < 24){
-            value = (value << 1) | (gpio_get_level(DOUT) & 0x1);
+            value = (value << 1) | (hx711_get_dout() & 0x1);
         }
-        gpio_set_level(SCK, 0);
+        hx711_set_sck(0);
         esp_rom_delay_us(2);
     }
 
@@ -113,18 +114,35 @@ static int32_t getRawChange(int rawWeight){
 //CHECKS DOUT, if BEFORE is HIGH there is problem, most likely wiring
 static void dout_checker(void)
 {
-    ESP_LOGI(TAG, "Before pulses: DOUT=%d", gpio_get_level(DOUT));
+    ESP_LOGI(TAG, "Before pulses: DOUT=%d", hx711_get_dout();
     // Send 25 pulses (select A gain 128)
     for (int i = 0; i < 25; i++) {
-        gpio_set_level(SCK, 1);
+        hx711_set_sck(1);
         esp_rom_delay_us(2);
-        gpio_set_level(SCK, 0);
+        hx711_set_sck(0);
         esp_rom_delay_us(2);
     }
     // HX711 should now start a conversion -> DOUT should go HIGH (usually)
     esp_rom_delay_us(10);
-    ESP_LOGI(TAG, "After pulses:  DOUT=%d", gpio_get_level(DOUT));
+    ESP_LOGI(TAG, "After pulses:  DOUT=%d", hx711_get_dout());
 }
+
+void hx711_set_sck(int level) {
+    gpio_set_level(SCK, level);
+}
+
+int hx711_get_dout(void) {
+    return gpio_get_level(DOUT);
+}
+
+void hx711_delay_us(int us) {
+    esp_rom_delay_us(us);
+}
+
+void hx711_delay_ms(int ms) {
+    vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
 void app_main(void)
 {
     sensor_init();
