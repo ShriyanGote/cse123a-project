@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import App from "../src/App";
+import App from "../App";
 import {
   calibrationUpserts,
   customCalibration,
@@ -32,7 +32,7 @@ const mockDb = vi.hoisted(() => ({
   upsertCalls: [],
 }));
 
-vi.mock("../src/supabase", () => ({
+vi.mock("../supabase", () => ({
   supabase: {
     from: vi.fn((table) => {
       const query = {
