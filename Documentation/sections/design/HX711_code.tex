@@ -2,21 +2,21 @@
 This file will show the necessary components to be able to collect/read data from the HX711 sensor to your microcontroller.
 The goal is collect sensor readings, convert the readings to grams.
 
-\subsection{Important Wires}
+\subsubsection{Important Wires}
 SCK is the clock line. DOUT is the data line. This means whenever DOUT is low it is ready to read. The clock line comes in pulses.
 
-\subsection{Read Data}
+\subsubsection{Read Data}
 The HX711 Sensor is a 24-bit analog to digital converter. To read data, you will need to be able to read the raw 24bits.
 The wire that matters here is SCK, since SCK is a pulse that will shift 1 bit each time, you need to do this 24 times for the full
-number. Additionally, there are extra pulses needed for the HX711 to select Chanel. This is inferred as my define PULSES_TOTAL 25.
+number. Additionally, there are extra pulses needed for the HX711 to select Chanel. This is inferred as my define PULSES\_TOTAL 25.
 Create a delay when waiting for DOUT to go low again, sometimes it might stay high.
 
-\subsection{Average Sampling}
+\subsubsection{Average Sampling}
 Sometimes, the sensor will spike its readings. Average sampling allows us to deal with outliers.
 
-\subsection{Calibration}
+\subsubsection{Calibration}
 The Sensor gives raw data, as counts. From testing, have a hard coded number that when using to calculate the grams from the raw data, 
 just divide raw by the hard coded number.
 
-\subsection{Debug}
-For ESP32, the tool has ESP_logi to help out when monitoring for example. 
+\subsubsection{Debug}
+For ESP32, the tool has ESP\_logi to help out when monitoring for example. 
