@@ -1,0 +1,24 @@
+\subsection{Testing HX711}
+
+To test the code written for this project, we defrost had to create a simulated version of the sensor. Regardless of what the sensor reports we want to make sure that all of our math and interpretation of incoming data is correct. To do this, the functions were adapted to either take input from GPIO pins, or from a specific test file. 
+
+\subsubsection{Test File}
+
+Inside the test file are adapted versions of each function used by the main HX711 file. These include the following:
+
+\begin{itemize}
+\item hx711\_set\_sck
+\item hx711\_get\_dout
+\item read\_raw
+\item get\_raw\_weight
+\item tare
+\item get\_grams
+\end{itemize}
+
+With each of these functions, the test file simulates reading data from the sensor. 
+
+\subsubsection{Simulated Data}
+
+Using some set values defined at the top of the file including a hardcoded offset and scaling factor, the test file first sets the weight and tares it. Then based on a random number between 0 and 2, it sends either a 0, small weight, or large weight value. 
+
+When the test file calls to the read weight functions, some small noise of $\pm1g$ is used simulate the variability of the sensor reading. The sensor sends data in 24 bit samples, so the test code also includes the 24 bit shifting. Once the simulated data is created, the main function compares it to the expected result. If it's within one gram of the expected low high or zero value, then the value passes. This tolerance is arbitrary for the testing and will be different for the production code. 

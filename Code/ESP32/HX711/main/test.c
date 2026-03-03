@@ -88,19 +88,6 @@ float get_grams(int32_t raw){
     return (raw - offset) / scale;
 }
 
-int32_t getRawChange(int rawWeight){
-    return rawWeight - offset;
-}
-
-//CHECKS DOUT, if BEFORE is HIGH there is problem, most likely wiring
-void dout_checker(void)
-{
-    // Send 25 pulses (select A gain 128)
-    for (int i = 0; i < 25; i++) {
-        hx711_set_sck(1);
-        hx711_set_sck(0);
-    }
-}
 
 void hx711_delay_us(int us) {}
 void hx711_delay_ms(int ms) {}
