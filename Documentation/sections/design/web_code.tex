@@ -36,21 +36,20 @@ level estimation regardless of pitcher size or sensor placement. The application
 below a certain threshold.
 
 \subsubsection{System Architecture}
-
-\noindent The deployed architecture has three coordinated layers:
+The deployed architecture has three coordinated layers:
 
 \begin{itemize}
-	\item \textbf{Frontend dashboard (React):} Displays the latest reading, computes estimated level percentage, and status indicators.
+	\item \textbf{Frontend dashboard:} Displays the latest reading, computes estimated level percentage, and status indicators.
     \item \textbf{Vercel backend:} Receives sensor uploads and notification subscriptions.
 	\item \textbf{Supabase Storage:} Stores water readings, calibration parameters, and browser push subscription tokens.
 \end{itemize}
 
-\noindent Sensor data is sent to the backend endpoint with an API key, validated, and inserted into persistent storage. 
-The dashboard reads the newest value from Supabase on a polling interval and renders the latest state.
+\noindent The frontend was designed using the following languages: HTML, CSS, and JavaScript. It utilizes a React framework for building user interfaces. The backend is 
+implemented on Vercel, written in JavaScript (Node.js), with API endpoints for data ingestion and notification management. We are using Supabase, which provides a 
+PostgreSQL database for persistent storage and real-time capabilities.
 
 \subsubsection{Frontend Design and User Experience}
-
-\noindent The current dashboard is intentionally minimal and task-focused. Core interface elements are:
+The current dashboard is minimal and task-focused. Core interface elements are:
 
 \begin{itemize}
 	\item A large water-level visualization (pitcher graphic with animated fill height).
@@ -61,9 +60,39 @@ The dashboard reads the newest value from Supabase on a polling interval and ren
 
 \noindent Users can quickly assess whether refill action is needed without interpreting raw sensor values.
 
-\subsubsection{Calibration}
+\subsubsection{API Endpoints}
+The application has two primary API endpoints:
 
-\noindent To support different pitcher geometries and sensor offsets, the application includes user calibration controls:
+\begin{itemize}
+    \item \textbf{POST /api/ingest:} Receives sensor readings (device ID, weight, battery) from the microcontroller and stores the data in Supabase. 
+    If the weight is below a configured threshold, triggers a low-water notification to registered users.
+    
+    \item \textbf{POST /api/register-token:} Registers browser push subscriptions from the frontend and saves them in the database.
+\end{itemize}
+
+\noindent Sensor data is sent to the ingestion endpoint with an API key, validated, and inserted into a table on Supabase. The dashboard reads the newest 
+value from Supabase on a polling interval and renders the latest state. The token registration endpoint enables user devices to register for alert notifications.
+When invoked, it associates a device with a user account and stores the device token in a table on Supabase for later use in push notification delivery.
+
+\subsubsection{Supabase Tables}
+Supabase serves as persistent storage for both backend APIs and the frontend dashboard state. The ingestion and token-registration endpoints write data to
+Supabase using a service-role key, while the frontend dashboard queries the same tables to render the latest readings and calibration settings.\\
+
+\noindent The current deployment uses the following tables:
+
+\begin{itemize}
+	\item \textbf{\texttt{water\_readings}} --- Stores time-series sensor uploads from the microcontroller. Each row represents one sample and includes the
+	device name, weight in grams, and battery voltage in millivolts (e.g., \texttt{device\_id}, \texttt{weight\_g}, \texttt{battery\_mv}) with a timestamp (\texttt{created\_at}).
+
+	\item \textbf{\texttt{notification\_tokens}} --- Stores browser/device push tokens used for low-water alerts. Tokens are inserted or upserted on
+	registration and are later queried by the ingest pipeline when a low-water event occurs.
+
+	\item \textbf{\texttt{calibration}} --- Stores user calibration references for level estimation. The dashboard upserts a single calibration record
+	(using \texttt{id} constant) containing empty and full reference values (\texttt{empty}, \texttt{full}), then reads the latest entry when computing displayed percentage.
+\end{itemize}
+
+\subsubsection{Calibration}
+To support different pitcher geometries and sensor offsets, the application includes user calibration controls:
 
 \begin{itemize}
 	\item \textbf{Calibrate empty:} Stores the current reading as the empty reference.
@@ -74,15 +103,6 @@ The dashboard reads the newest value from Supabase on a polling interval and ren
 \noindent The level estimate is computed by linearly mapping measured weight between empty and full references, 
 then clamping the result between 0\% and 100\%. This makes the UI behavior predictable while still allowing practical 
 adjustments.
-
-\subsubsection{API Endpoints}
-
-The application has two primary API endpoints:
-
-\begin{itemize}
-    \item \textbf{POST /api/ingest:} Receives sensor readings (device ID, weight, battery) from the microcontroller and stores the data in Supabase. If the weight is below a configured threshold, triggers a low-water notification to registered users.
-    \item \textbf{POST /api/register-token:} Registers browser push subscriptions from the frontend and saves them in the database.
-\end{itemize}
 
 \subsubsection{Push Notifications}
 The push notification feature is designed as an event-driven subsystem that alerts users only when refill action is needed. 
