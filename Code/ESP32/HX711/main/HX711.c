@@ -86,7 +86,7 @@ static int32_t read_raw(void){
 
 //HELPER METHODS, GetMethods
 //Averages the samples, return the raw weight as an average to reduce noise
-static int32_t getRawWeight(int samples){
+static int32_t get_raw_weight(int samples){
     if(samples <= 0){
         samples = 1;
     }
@@ -100,10 +100,10 @@ static int32_t getRawWeight(int samples){
 }
 
 static void tare(int samples){
-    g_offset = getRawWeight(samples);
+    g_offset = get_raw_weight(samples);
 }
 
-static float getGrams(int32_t raw){
+static float get_grams(int32_t raw){
     return (raw - g_offset) / g_scale;
 }
 
@@ -160,13 +160,13 @@ void app_main(void)
 
     #if DEBUG
     while (1) {
-    int32_t raw = getRawWeight(10);           // ADC value from HX711
+    int32_t raw = get_raw_weight(10);           // ADC value from HX711
     ESP_LOGI(TAG,
              "raw=%" PRId32
              "  offset=%" PRId32
              "  rawChange=%" PRId32
              "  grams=%.3f g",
-             raw, g_offset, getRawChange(raw), getGrams(raw));
+             raw, g_offset, getRawChange(raw), get_grams(raw));
 
     vTaskDelay(pdMS_TO_TICKS(500));
     }
