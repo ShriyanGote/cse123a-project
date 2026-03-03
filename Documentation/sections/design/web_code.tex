@@ -1,9 +1,8 @@
 \subsection{Web Application}
 
-The web application is the user-facing interface for the smart water-level monitor. 
-In the current implementation, the system is fully deployed as a React frontend on Vercel with API endpoints and a 
-Supabase backend. The design goal is to provide a clear real-time estimate of remaining water in the container, 
-allow user calibration for different pitcher sizes, and send refill notifications when the water level becomes low.
+The web application is the user-facing interface for the smart water-level monitor. The design goal is to provide a clear 
+real-time estimate of remaining water in the container, allow user calibration for different pitcher sizes, and send refill 
+notifications when the water level becomes low.
 
 \subsubsection{Initial Design}
 
@@ -31,8 +30,12 @@ Then we will use a microcontroller to send HTTP PUT requests. Finally, using the
 
 \subsubsection{Current Design}
 
-\textbf{System Architecture}
-\vspace{0.3em}
+The current design is a React application deployed on Vercel, with a Supabase backend for data storage. The frontend displays the latest water level reading as a percentage, 
+along with a visual representation of the water level in the pitcher. Users can calibrate the system by setting empty and full reference points, which allows for accurate 
+level estimation regardless of pitcher size or sensor placement. The application also includes functionality to send push notifications to users when the water level falls 
+below a certain threshold.
+
+\subsubsection{System Architecture}
 
 \noindent The deployed architecture has three coordinated layers:
 
@@ -43,10 +46,9 @@ Then we will use a microcontroller to send HTTP PUT requests. Finally, using the
 \end{itemize}
 
 \noindent Sensor data is sent to the backend endpoint with an API key, validated, and inserted into persistent storage. 
-The dashboard reads the newest value from Supabase on a polling interval and renders the latest state.\\
+The dashboard reads the newest value from Supabase on a polling interval and renders the latest state.
 
-\noindent\textbf{Frontend Design and User Experience}
-\vspace{0.3em}
+\subsubsection{Frontend Design and User Experience}
 
 \noindent The current dashboard is intentionally minimal and task-focused. Core interface elements are:
 
@@ -58,3 +60,59 @@ The dashboard reads the newest value from Supabase on a polling interval and ren
 \end{itemize}
 
 \noindent Users can quickly assess whether refill action is needed without interpreting raw sensor values.
+
+\subsubsection{Calibration}
+
+\noindent To support different pitcher geometries and sensor offsets, the application includes user calibration controls:
+
+\begin{itemize}
+	\item \textbf{Calibrate empty:} Stores the current reading as the empty reference.
+	\item \textbf{Calibrate full:} Stores the current reading as the full reference.
+	\item \textbf{Reset calibration:} Clears stored values and falls back to default constants.
+\end{itemize}
+
+\noindent The level estimate is computed by linearly mapping measured weight between empty and full references, 
+then clamping the result between 0\% and 100\%. This makes the UI behavior predictable while still allowing practical 
+adjustments.
+
+\subsubsection{API Endpoints}
+
+The application has two primary API endpoints:
+
+\begin{itemize}
+    \item \textbf{POST /api/ingest:} Receives sensor readings (device ID, weight, battery) from the microcontroller and stores the data in Supabase. If the weight is below a configured threshold, triggers a low-water notification to registered users.
+    \item \textbf{POST /api/register-token:} Registers browser push subscriptions from the frontend and saves them in the database.
+\end{itemize}
+
+\subsubsection{Push Notifications}
+The push notification feature is designed as an event-driven subsystem that alerts users only when refill action is needed. 
+The implementation uses standard Web Push protocols with VAPID authentication and is integrated into the ingest API used for sensor data.
+
+\paragraph{1) Subscription Registration}
+
+When the dashboard is loaded, the browser requests notification permission. If permission is granted, a service worker is registered and 
+a Push API subscription is created (or reused if it already exists). The subscription object is sent to the backend endpoint and stored 
+in the \texttt{notification\_tokens} table in Supabase.
+
+\noindent This registration path has two design goals:
+\begin{itemize}
+	\item maintain a durable list of reachable user devices, and
+	\item avoid duplicate subscriptions by upserting on token value.
+\end{itemize}
+
+\paragraph{2) Alert Trigger Condition}
+
+Sensor readings are received by the ingestion endpoint and stored in \texttt{water\_readings} table. For each new reading, the backend 
+computes current and previous water-level percentages and checks for a low-level threshold crossing. The low-water threshold is currently set to 20\%.
+This design prevents repeated notifications while the level remains continuously low.
+
+\paragraph{3) Delivery}
+
+If the trigger condition is true, the backend loads all stored subscriptions and sends a Web Push payload to each valid endpoint. The payload includes a:
+\begin{itemize}
+	\item notification title
+    \item notification body
+	\item structured data (event type and level percentage) for client-side handling.
+\end{itemize}
+
+\noindent The service worker receives the push event, displays the notification, and handles click interaction by focusing an existing app tab or opening the web page.
