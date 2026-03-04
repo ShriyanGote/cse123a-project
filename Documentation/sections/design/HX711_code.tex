@@ -16,7 +16,19 @@ Sometimes, the sensor will spike its readings. Average sampling allows us to dea
 
 \subsubsection{Calibration}
 The Sensor gives raw data, as counts. From testing, have a hard coded number that when using to calculate the grams from the raw data, 
-just divide raw by the hard coded number.
+just divide raw by the hard coded number. Use known weights to calibrate accuracately.
+
+\subsection{Tare}
+For handling offset, tare function will take the current weight to zero. Whenever an object is placed later, the weight displays is sampling - offset.
+Sampling gives total weight, offset allows to remove the pre-existing weight to display the objects true weight.
 
 \subsubsection{Debug}
-For ESP32, the tool has ESP\_logi to help out when monitoring for example. 
+Print statements every second each signal/number:
+\begin{itemize}
+    \item SCK
+    \item DOUT
+    \item Raw Sample
+    \item Offset
+    \item Grams
+\end{itemize}
+Allows to bugs/problems code or hardware related.
