@@ -1,29 +1,34 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
 #include "esp_mac.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
+#include "esp_system.h"
 #include "nvs_flash.h"
+#include "nvs.h"
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
 // http
 #include "esp_netif.h"
-#include "esp_event.h"
 #include "esp_http_server.h"
+#include "http_utils.h"
 
 //-----------------------Config-----------------------------
 // WIFI SSID
-#define WIFI_SSID "wifi that steals your data"
+#define WIFI_SSID "Smart Filter Setup"
 
 static const char *TAG = "esp_setup_softap_http";
 //----------------------------------------------------------
 
-//+++++++++++++++++++++++++WiFi+++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++SoftAP+++++++++++++++++++++++++++
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
@@ -49,8 +54,9 @@ static void wifi_init_softap(void)
     /* Create default event loop */
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    /* Create default Wi-Fi AP */
+    /* Create default Wi-Fi AP and STA*/
     esp_netif_create_default_wifi_ap();
+    esp_netif_create_default_wifi_sta();
 
     /* Initialize Wi-Fi */
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -92,7 +98,8 @@ static void wifi_init_softap(void)
 
 //------------------------HTTP------------------------------
 /* URL decode (for wifi credentials) */
-void url_decode(char *dst, const char *src) {
+void url_decode(char *dst, const char *src)
+{
     while (*src)
     {
         if (*src == '+')
@@ -233,6 +240,66 @@ static httpd_handle_t start_webserver(void)
 }
 //----------------------------------------------------------
 
+//++++++++++++++++++++++++WiFi++++++++++++++++++++++++++++++
+void connect_to_wifi(const char *ssid, const char *pass)
+{
+    wifi_config_t wifi_config = {0};
+
+    strncpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
+    strncpy((char *)wifi_config.sta.password, pass, sizeof(wifi_config.sta.password));
+
+    wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_PSK;
+    wifi_config.sta.pmf_cfg.capable = true;
+    wifi_config.sta.pmf_cfg.required = false;
+
+    ESP_LOGI(TAG, "Attempting to connect to SSID:%s", ssid);
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_connect());
+}
+
+void save_wifi_credentials(const char *ssid, const char *pass)
+{
+    nvs_handle_t nvs;
+    ESP_ERROR_CHECK(nvs_open("wifi", NVS_READWRITE, &nvs));
+
+    ESP_ERROR_CHECK(nvs_set_str(nvs, "ssid", ssid));
+    ESP_ERROR_CHECK(nvs_set_str(nvs, "pass", pass));
+
+    ESP_ERROR_CHECK(nvs_commit(nvs));
+    nvs_close(nvs);
+
+    ESP_LOGI(TAG, "WiFi credentials saved to NVS");
+}
+
+bool load_wifi_credentials(char *ssid, char *pass)
+{
+    nvs_handle_t nvs;
+
+    if (nvs_open("wifi", NVS_READONLY, &nvs) != ESP_OK)
+        return false;
+
+    size_t ssid_len = 64;
+    size_t pass_len = 64;
+
+    if (nvs_get_str(nvs, "ssid", ssid, &ssid_len) != ESP_OK)
+    {
+        nvs_close(nvs);
+        return false;
+    }
+
+    if (nvs_get_str(nvs, "pass", pass, &pass_len) != ESP_OK)
+    {
+        nvs_close(nvs);
+        return false;
+    }
+
+    nvs_close(nvs);
+    return true;
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 void app_main(void)
 {
     /* Initialize NVS (required for Wi-Fi) */
@@ -248,6 +315,30 @@ void app_main(void)
     ESP_LOGI(TAG, "Starting SoftAP...");
     wifi_init_softap();
 
+    //ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    connect_to_wifi("Reid's iPhone 17", "fortnite67");
+    vTaskDelay(1000 / portTICK_PERIOD_MS); // wait for connection
+    
+    //test GET
+    char *resp = send_http_get("example.com", "80", "/");
+    if (resp != NULL) printf("Response:\n%s\n", resp);
+    else printf("Failed to get response\n");
+    free(resp);
+    //test POST
+    send_http_post("key=valueee", "httpbin.org", "80", "/post");
+    
+    return;
+
+    // //attempt to load saved credentials and connect
+    // char ssid[64];
+    // char pass[64];
+    // if (load_wifi_credentials(ssid, pass)) {
+    //     ESP_LOGI(TAG, "Found stored credentials. Connecting...");
+    //     connect_to_wifi(ssid, pass);
+    // } else {
+    //     ESP_LOGI(TAG, "No saved WiFi credentials.");
+    // }
+    
     // Start HTTP server
     start_webserver();
     ESP_LOGI(TAG, "HTTP server running!");
