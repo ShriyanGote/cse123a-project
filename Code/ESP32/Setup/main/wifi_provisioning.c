@@ -1,32 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
+#include "wifi_provisioning.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+// Logging tag
+extern const char *TAG_WIFI_PROV = "esp_setup_softap_http";
 
-#include "esp_mac.h"
-#include "esp_wifi.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "esp_system.h"
-#include "nvs_flash.h"
-#include "nvs.h"
-
-#include "lwip/err.h"
-#include "lwip/sys.h"
-
-// http
-#include "esp_netif.h"
-#include "esp_http_server.h"
-#include "http_utils.h"
-
-//-----------------------Config-----------------------------
-// WIFI SSID
-#define WIFI_SSID "Smart Filter Setup"
-
-static const char *TAG = "esp_setup_softap_http";
-//----------------------------------------------------------
 
 //+++++++++++++++++++++++++SoftAP+++++++++++++++++++++++++++
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
@@ -35,13 +11,13 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
     if (event_id == WIFI_EVENT_AP_STACONNECTED)
     {
         wifi_event_ap_staconnected_t *event = (wifi_event_ap_staconnected_t *)event_data;
-        ESP_LOGI(TAG, "station " MACSTR " join, AID=%d",
+        ESP_LOGI(TAG_WIFI_PROV, "station " MACSTR " join, AID=%d",
                  MAC2STR(event->mac), event->aid);
     }
     else if (event_id == WIFI_EVENT_AP_STADISCONNECTED)
     {
         wifi_event_ap_stadisconnected_t *event = (wifi_event_ap_stadisconnected_t *)event_data;
-        ESP_LOGI(TAG, "station " MACSTR " leave, AID=%d, reason=%d",
+        ESP_LOGI(TAG_WIFI_PROV, "station " MACSTR " leave, AID=%d, reason=%d",
                  MAC2STR(event->mac), event->aid, event->reason);
     }
 }
@@ -90,9 +66,9 @@ static void wifi_init_softap(void)
     /* Start Wi-Fi */
     ESP_ERROR_CHECK(esp_wifi_start());
 
-    ESP_LOGI(TAG, "SoftAP started");
-    ESP_LOGI(TAG, "SSID: Device-Setup");
-    ESP_LOGI(TAG, "IP: http://192.168.4.1");
+    ESP_LOGI(TAG_WIFI_PROV, "SoftAP started");
+    ESP_LOGI(TAG_WIFI_PROV, "SSID: Device-Setup");
+    ESP_LOGI(TAG_WIFI_PROV, "IP: http://192.168.4.1");
 }
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -173,7 +149,7 @@ static esp_err_t wifi_post_handler(httpd_req_t *req)
     ret = httpd_req_recv(req, buf, remaining);
     if (ret <= 0)
     {
-        ESP_LOGE(TAG, "Failed to read POST data");
+        ESP_LOGE(TAG_WIFI_PROV, "Failed to read POST data");
         httpd_resp_send_500(req);
         return ESP_FAIL;
     }
@@ -182,15 +158,15 @@ static esp_err_t wifi_post_handler(httpd_req_t *req)
     // decode URL-encoded form data
     char decoded[128];
     url_decode(decoded, buf);
-    ESP_LOGI(TAG, "Received POST data: %s", decoded);
+    ESP_LOGI(TAG_WIFI_PROV, "Received POST data: %s", decoded);
 
     // Parse the decoded string
     // Format: ssid=MySSID&pass=MyPassword
     char ssid[64] = {0};
     char pass[64] = {0};
     parse_http_credentials_data(decoded, ssid, pass);
-    ESP_LOGI(TAG, "SSID: '%s'", ssid);
-    ESP_LOGI(TAG, "Password: '%s'", pass);
+    ESP_LOGI(TAG_WIFI_PROV, "SSID: '%s'", ssid);
+    ESP_LOGI(TAG_WIFI_PROV, "Password: '%s'", pass);
 
     // Respond with a confirmation page
     httpd_resp_set_type(req, "text/html");
@@ -227,7 +203,7 @@ static httpd_handle_t start_webserver(void)
     httpd_handle_t server = NULL;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
 
-    ESP_LOGI(TAG, "Starting server on port: %d", config.server_port);
+    ESP_LOGI(TAG_WIFI_PROV, "Starting server on port: %d", config.server_port);
     if (httpd_start(&server, &config) == ESP_OK)
     {
         httpd_register_uri_handler(server, &root);
@@ -235,7 +211,7 @@ static httpd_handle_t start_webserver(void)
         return server;
     }
 
-    ESP_LOGE(TAG, "Failed to start server!");
+    ESP_LOGE(TAG_WIFI_PROV, "Failed to start server!");
     return NULL;
 }
 //----------------------------------------------------------
@@ -252,7 +228,7 @@ void connect_to_wifi(const char *ssid, const char *pass)
     wifi_config.sta.pmf_cfg.capable = true;
     wifi_config.sta.pmf_cfg.required = false;
 
-    ESP_LOGI(TAG, "Attempting to connect to SSID:%s", ssid);
+    ESP_LOGI(TAG_WIFI_PROV, "Attempting to connect to SSID:%s", ssid);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_connect());
@@ -269,7 +245,7 @@ void save_wifi_credentials(const char *ssid, const char *pass)
     ESP_ERROR_CHECK(nvs_commit(nvs));
     nvs_close(nvs);
 
-    ESP_LOGI(TAG, "WiFi credentials saved to NVS");
+    ESP_LOGI(TAG_WIFI_PROV, "WiFi credentials saved to NVS");
 }
 
 bool load_wifi_credentials(char *ssid, char *pass)
@@ -300,6 +276,8 @@ bool load_wifi_credentials(char *ssid, char *pass)
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+
 void app_main(void)
 {
     /* Initialize NVS (required for Wi-Fi) */
@@ -312,8 +290,58 @@ void app_main(void)
     }
 
     // start softap
-    ESP_LOGI(TAG, "Starting SoftAP...");
+    ESP_LOGI(TAG_WIFI_PROV, "Starting SoftAP...");
     wifi_init_softap();
+
+    //attempt to load saved credentials and connect
+    char ssid[64];
+    char pass[64];
+    if (load_wifi_credentials(ssid, pass)) {
+        ESP_LOGI(TAG, "Found stored credentials. Connecting...");
+        connect_to_wifi(ssid, pass);
+    } else {
+        ESP_LOGI(TAG, "No saved WiFi credentials.");
+    }
+    
+    // Start HTTP server
+    start_webserver();
+    ESP_LOGI(TAG_WIFI_PROV, "HTTP server running!");
+}
+
+void init_wifi() {
+
+    /* Initialize NVS (required for Wi-Fi) */
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+        ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+{
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ESP_ERROR_CHECK(nvs_flash_init());
+    }
+
+    //attempt to load saved credentials and connect
+    char ssid[64];
+    char pass[64];
+    if (load_wifi_credentials(ssid, pass)) {
+        ESP_LOGI(TAG, "Found stored credentials. Connecting...");
+        connect_to_wifi(ssid, pass);
+    } else {
+        ESP_LOGI(TAG, "No saved WiFi credentials.");
+
+        // start softap
+        ESP_LOGI(TAG_WIFI_PROV, "Starting SoftAP...");
+        wifi_init_softap();
+
+        // Start HTTP server
+        start_webserver();
+        ESP_LOGI(TAG_WIFI_PROV, "HTTP server running!");
+        
+    }
+
+}
+
+
+void test_wifi_and_http() {
 
     //ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     connect_to_wifi("Reid's iPhone 17", "fortnite67");
@@ -324,22 +352,7 @@ void app_main(void)
     if (resp != NULL) printf("Response:\n%s\n", resp);
     else printf("Failed to get response\n");
     free(resp);
+    
     //test POST
     send_http_post("key=valueee", "httpbin.org", "80", "/post");
-    
-    return;
-
-    // //attempt to load saved credentials and connect
-    // char ssid[64];
-    // char pass[64];
-    // if (load_wifi_credentials(ssid, pass)) {
-    //     ESP_LOGI(TAG, "Found stored credentials. Connecting...");
-    //     connect_to_wifi(ssid, pass);
-    // } else {
-    //     ESP_LOGI(TAG, "No saved WiFi credentials.");
-    // }
-    
-    // Start HTTP server
-    start_webserver();
-    ESP_LOGI(TAG, "HTTP server running!");
 }
