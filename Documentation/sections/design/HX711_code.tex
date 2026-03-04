@@ -1,9 +1,34 @@
 \subsection{HX711}
 This file will show the necessary components to be able to collect/read data from the HX711 sensor to your microcontroller.
-The goal is collect sensor readings, convert the readings to grams.
+The goal is collect sensor readings, convert the readings to grams. Includes documentation of wires.
 
-\subsubsection{Important Wires}
-SCK is the clock line. DOUT is the data line. This means whenever DOUT is low it is ready to read. The clock line comes in pulses.
+\subsubsection{SCK}
+    \begin{itemize}
+        \item SCK is the clock line.
+        \item Controls when bits are shifted out of DOUT, each pulse moves the next data bit to the output.
+        \item SCK LOW->HIGH - Shifts out one bit
+        \item SCK HIGH for some time - Power down mode
+        \item LOW after power down - Sensor wakes up and converts data
+    \end{itemize}
+
+\subsubsection{DOUT}
+    \begin{itemize}
+        \item DOUT, Data output that sends 24-bit measurement to microcontroller
+        \item DOUT HIGH - HX711 currently converting data not ready
+        \item DOUT LOW - Data is ready to read
+    \end{itemize}
+
+\subsubsection{Pins}
+    \begin{itemize}
+        \item VCC - power supply around 2.7-5.5V
+        \item GND - Ground
+        \item E+ - Positive excitation voltage
+        \item E- - Negative excitation voltage
+        \item A+ - Positive signal input, Chanel A
+        \item A- - Negative signal input, Chanel A
+        \item B+ - Positive signal input, Chanel B
+        \item B- - Negative signal input, Chanel B
+    \end{itemize}
 
 \subsubsection{Read Data}
 The HX711 Sensor is a 24-bit analog to digital converter. To read data, you will need to be able to read the raw 24bits.
