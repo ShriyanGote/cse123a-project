@@ -21,7 +21,7 @@
 \fancyfoot[R]{\thepage}
 
 \noindent Link to Status Updates section in our repo \\
-\url{https://git.ucsc.edu/pnauwela/123a-project/-/tree/main/Status%20Updates?ref_type=heads}
+\url{https://git.ucsc.edu/pnauwela/123a-project/-/tree/main/Status\%20Updates?ref_type=heads}
 
  % whats been completed 
 \section*{What we Did}
@@ -31,7 +31,7 @@
 \section*{What we are Working On}
 
 
-% what next on teh agenda 
+% what next on the agenda 
 \section*{What's next}
 
 
@@ -44,6 +44,10 @@
 \noindent\textbf{Logan Bossuwe}:
 
 \noindent\textbf{Pieter Nauwelaerts}:
+
+This week I created the testing code for the HX711 sensor. The major changes include a different way of approaching how we design the microcontroller code in order to allow us to switch between the microcontroller, and test code. This was done using a C header file to define the shared functions, and having two separate main files, one for microcontroller deployment, and one for testing. 
+
+The test code simulates the Wheatstone bridge sensor and passes the functions data that would come in or out. Simulated weight readings go into the functions, the logic is the same as the logic used by the microcontroller, and the output comes out as is verified agains what we should expect to see. The logic we use in the microcontroller can now be verified and tested. This includes pushing it to the limit by having very fast sequences of activity and checking that the outputs come out in the same order. 
 
 \noindent\textbf{Reid Graham}:
 
