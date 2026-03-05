@@ -76,34 +76,86 @@ export default function App() {
 
   useEffect(() => {
     async function setupPushNotifications() {
-      if (!("serviceWorker" in navigator) || !("Notification" in window)) return;
+      console.log("[PushDebug] setup started");
+
+      if (!("serviceWorker" in navigator) || !("Notification" in window)) {
+        console.warn("[PushDebug] Push unsupported", {
+          hasServiceWorker: "serviceWorker" in navigator,
+          hasNotification: "Notification" in window,
+        });
+        return;
+      }
 
       const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!vapidPublicKey) return;
+      if (!vapidPublicKey) {
+        console.warn("[PushDebug] Missing VITE_VAPID_PUBLIC_KEY");
+        return;
+      }
+
+      console.log("[PushDebug] VAPID key found", {
+        keyLength: vapidPublicKey.length,
+      });
+
+      console.log("[PushDebug] Current notification permission", {
+        permission: Notification.permission,
+      });
 
       const permission = await Notification.requestPermission();
-      if (permission !== "granted") return;
+      console.log("[PushDebug] Permission request result", { permission });
+      if (permission !== "granted") {
+        console.warn("[PushDebug] Permission not granted; aborting subscribe");
+        return;
+      }
 
       const serviceWorkerRegistration = await navigator.serviceWorker.register(
         "/push-sw.js"
       );
 
+      console.log("[PushDebug] Service worker registered", {
+        scope: serviceWorkerRegistration.scope,
+      });
+
       let subscription = await serviceWorkerRegistration.pushManager.getSubscription();
+
+      console.log("[PushDebug] Existing subscription", {
+        exists: Boolean(subscription),
+      });
 
       if (!subscription) {
         subscription = await serviceWorkerRegistration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
+
+        console.log("[PushDebug] Created new subscription", {
+          endpoint: subscription?.endpoint,
+        });
       }
 
-      if (!subscription) return;
+      if (!subscription) {
+        console.warn("[PushDebug] No subscription returned from browser");
+        return;
+      }
 
-      await fetch("/api/register-token", {
+      const registerResponse = await fetch("/api/register-token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ subscription }),
       });
+
+      const registerBody = await registerResponse.text();
+      console.log("[PushDebug] /api/register-token response", {
+        ok: registerResponse.ok,
+        status: registerResponse.status,
+        body: registerBody,
+      });
+
+      if (!registerResponse.ok) {
+        console.warn("[PushDebug] Failed to register subscription token");
+        return;
+      }
+
+      console.log("[PushDebug] setup completed successfully");
     }
 
     setupPushNotifications().catch((error) => {
