@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import "./App.css";
 
@@ -46,6 +46,10 @@ export default function App() {
   const [calibration, setCalibration] = useState(null);
   const [isSavingCalibration, setIsSavingCalibration] = useState(false);
   const [waterCanAnimate, setWaterCanAnimate] = useState(false);
+  const [notificationSupported, setNotificationSupported] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState("default");
+  const [isSubscribingPush, setIsSubscribingPush] = useState(false);
+  const [pushStatus, setPushStatus] = useState("");
 
   async function load() {
     const { data } = await supabase
@@ -74,66 +78,53 @@ export default function App() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    async function setupPushNotifications() {
-      console.log("[PushDebug] setup started");
+  const subscribeToPush = useCallback(async ({ requestPermission = false } = {}) => {
+    if (!("serviceWorker" in navigator) || !("Notification" in window)) {
+      setPushStatus("Push notifications are not supported in this browser.");
+      return;
+    }
 
-      if (!("serviceWorker" in navigator) || !("Notification" in window)) {
-        console.warn("[PushDebug] Push unsupported", {
-          hasServiceWorker: "serviceWorker" in navigator,
-          hasNotification: "Notification" in window,
-        });
-        return;
-      }
+    const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    if (!vapidPublicKey) {
+      setPushStatus("Missing VAPID_PUBLIC_KEY.");
+      return;
+    }
 
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-      if (!vapidPublicKey) {
-        console.warn("[PushDebug] Missing VITE_VAPID_PUBLIC_KEY");
-        return;
-      }
+    let permission = Notification.permission;
+    if (requestPermission) {
+      permission = await Notification.requestPermission();
+    }
 
-      console.log("[PushDebug] VAPID key found", {
-        keyLength: vapidPublicKey.length,
-      });
+    setNotificationPermission(permission);
 
-      console.log("[PushDebug] Current notification permission", {
-        permission: Notification.permission,
-      });
+    if (permission !== "granted") {
+      setPushStatus(
+        permission === "denied"
+          ? "Notifications are blocked. Enable them in browser settings."
+          : "Notifications are not enabled yet."
+      );
+      return;
+    }
 
-      const permission = await Notification.requestPermission();
-      console.log("[PushDebug] Permission request result", { permission });
-      if (permission !== "granted") {
-        console.warn("[PushDebug] Permission not granted; aborting subscribe");
-        return;
-      }
+    setIsSubscribingPush(true);
+    setPushStatus("");
 
+    try {
       const serviceWorkerRegistration = await navigator.serviceWorker.register(
         "/push-sw.js"
       );
 
-      console.log("[PushDebug] Service worker registered", {
-        scope: serviceWorkerRegistration.scope,
-      });
-
       let subscription = await serviceWorkerRegistration.pushManager.getSubscription();
-
-      console.log("[PushDebug] Existing subscription", {
-        exists: Boolean(subscription),
-      });
 
       if (!subscription) {
         subscription = await serviceWorkerRegistration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
-
-        console.log("[PushDebug] Created new subscription", {
-          endpoint: subscription?.endpoint,
-        });
       }
 
       if (!subscription) {
-        console.warn("[PushDebug] No subscription returned from browser");
+        setPushStatus("Failed to create a push subscription.");
         return;
       }
 
@@ -143,25 +134,35 @@ export default function App() {
         body: JSON.stringify({ subscription }),
       });
 
-      const registerBody = await registerResponse.text();
-      console.log("[PushDebug] /api/register-token response", {
-        ok: registerResponse.ok,
-        status: registerResponse.status,
-        body: registerBody,
-      });
-
       if (!registerResponse.ok) {
-        console.warn("[PushDebug] Failed to register subscription token");
+        setPushStatus("Subscription registration failed on the server.");
         return;
       }
 
-      console.log("[PushDebug] setup completed successfully");
+      setPushStatus("Notifications are enabled.");
+    } finally {
+      setIsSubscribingPush(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const supported = "serviceWorker" in navigator && "Notification" in window;
+    setNotificationSupported(supported);
+
+    if (!supported) {
+      setPushStatus("Push notifications are not supported in this browser.");
+      return;
     }
 
-    setupPushNotifications().catch((error) => {
-      console.error("Push setup failed", error);
-    });
-  }, []);
+    setNotificationPermission(Notification.permission);
+
+    if (Notification.permission === "granted") {
+      subscribeToPush({ requestPermission: false }).catch((error) => {
+        console.error("Push setup failed", error);
+        setPushStatus("Push setup failed. Check browser console for details.");
+      });
+    }
+  }, [subscribeToPush]);
 
   const display = USE_DEMO_DATA ? DEMO_READING : latest;
   const percent = display ? getLevelPercent(display.weight_g, calibration) : 0;
@@ -228,6 +229,22 @@ export default function App() {
             {waterPresent ? "Water in pitcher" : "Pitcher empty"}
           </span>
         </div>
+        {notificationSupported && notificationPermission !== "granted" && (
+          <div className="brita-calibration" style={{ marginTop: 12 }}>
+            <p className="brita-calibration__hint">
+              Enable notifications to get low-water alerts.
+            </p>
+            <button
+              className="brita-calibration__button brita-calibration__button--primary"
+              type="button"
+              onClick={() => subscribeToPush({ requestPermission: true })}
+              disabled={isSubscribingPush}
+            >
+              {isSubscribingPush ? "Enabling..." : "Enable notifications"}
+            </button>
+          </div>
+        )}
+        {pushStatus && <p className="brita-calibration__hint">{pushStatus}</p>}
       </header>
 
       {!display ? (

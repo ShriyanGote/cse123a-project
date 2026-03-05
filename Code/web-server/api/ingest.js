@@ -166,7 +166,6 @@ export default async function handler(req, res) {
                   debug.failedReasons.push({
                     statusCode: statusCode ?? null,
                     message: pushError?.message ?? "Unknown push error",
-                    endpoint: item.subscription?.endpoint ?? null,
                   });
                 }
               }
