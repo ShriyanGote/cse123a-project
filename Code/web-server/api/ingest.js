@@ -12,6 +12,14 @@ const supabase = createClient(
 
 let webPushConfigured = false;
 
+function getMissingVapidEnvVars() {
+  const missing = [];
+  if (!process.env.VAPID_PUBLIC_KEY) missing.push("VAPID_PUBLIC_KEY");
+  if (!process.env.VAPID_PRIVATE_KEY) missing.push("VAPID_PRIVATE_KEY");
+  if (!process.env.VAPID_SUBJECT) missing.push("VAPID_SUBJECT");
+  return missing;
+}
+
 function configureWebPush() {
   if (webPushConfigured) return true;
 
@@ -24,6 +32,26 @@ function configureWebPush() {
   webpush.setVapidDetails(subject, publicKey, privateKey);
   webPushConfigured = true;
   return true;
+}
+
+function parseSubscriptionToken(token) {
+  if (!token) return null;
+
+  if (typeof token === "string") {
+    try {
+      const parsed = JSON.parse(token);
+      if (parsed && typeof parsed.endpoint === "string") return parsed;
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  if (typeof token === "object" && typeof token.endpoint === "string") {
+    return token;
+  }
+
+  return null;
 }
 
 function getLevelPercent(weightG) {
@@ -72,11 +100,15 @@ export default async function handler(req, res) {
       crossedBelowThreshold,
       subscriptionCount: 0,
       webPushConfigured: false,
+      missingVapidEnvVars: [],
       sentCount: 0,
       failedCount: 0,
+      failedReasons: [],
     };
 
     if (crossedBelowThreshold) {
+      debug.missingVapidEnvVars = getMissingVapidEnvVars();
+
       const { data: subscriptionRows, error: subscriptionError } = await supabase
         .from("notification_tokens")
         .select("token");
@@ -86,19 +118,13 @@ export default async function handler(req, res) {
       } else if (subscriptionRows?.length) {
         const subscriptions = subscriptionRows
           .map((row) => {
-            if (!row?.token || typeof row.token !== "string") return null;
-            try {
-              const parsed = JSON.parse(row.token);
-              if (parsed && typeof parsed.endpoint === "string") {
-                return {
-                  rawToken: row.token,
-                  subscription: parsed,
-                };
-              }
-            } catch {
-              return null;
-            }
-            return null;
+            const parsedSubscription = parseSubscriptionToken(row?.token);
+            if (!parsedSubscription) return null;
+
+            return {
+              rawToken: row.token,
+              subscription: parsedSubscription,
+            };
           })
           .filter(Boolean);
 
@@ -136,6 +162,12 @@ export default async function handler(req, res) {
                   } else {
                     console.error("Web Push send failed", pushError);
                   }
+
+                  debug.failedReasons.push({
+                    statusCode: statusCode ?? null,
+                    message: pushError?.message ?? "Unknown push error",
+                    endpoint: item.subscription?.endpoint ?? null,
+                  });
                 }
               }
             ));
