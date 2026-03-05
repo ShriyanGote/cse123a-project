@@ -29,7 +29,7 @@ static int32_t g_offset = 0; // tare offset
 static float   g_scale  = -100.3f; // counts per gram, will change for calibration
 
 
-static void sensor_init(void){
+void sensor_init(void){
     gpio_config_t io = {0};  
 
     //sck is output
@@ -52,7 +52,7 @@ static void sensor_init(void){
 }
 
 //HX711 is a 24bit readings
-static int32_t read_raw(void){
+int32_t read_raw(void){
     int32_t value = 0;
 
     //debug HX711 Not ready if stuck 0
@@ -86,7 +86,7 @@ static int32_t read_raw(void){
 
 //HELPER METHODS, GetMethods
 //Averages the samples, return the raw weight as an average to reduce noise
-static int32_t get_raw_weight(int samples){
+int32_t get_raw_weight(int samples){
     if(samples <= 0){
         samples = 1;
     }
@@ -99,22 +99,32 @@ static int32_t get_raw_weight(int samples){
     return (int32_t)(sum/samples);  
 }
 
-static void tare(int samples){
+void tare(int samples){
     g_offset = get_raw_weight(samples);
 }
 
-static float get_grams(int32_t raw){
+float get_grams(int32_t raw){
     return (raw - g_offset) / g_scale;
 }
 
-static int32_t getRawChange(int rawWeight){
+int32_t getRawChange(int rawWeight){
     return rawWeight - g_offset;
 }
 
-//CHECKS DOUT, if BEFORE is HIGH there is problem, most likely wiring
-static void dout_checker(void)
+int32_t hx711_get_offset(void)
 {
-    ESP_LOGI(TAG, "Before pulses: DOUT=%d", hx711_get_dout();
+    return g_offset;
+}
+
+float hx711_get_scale(void)
+{
+    return g_scale;
+}
+
+//CHECKS DOUT, if BEFORE is HIGH there is problem, most likely wiring
+void dout_checker(void)
+{
+    ESP_LOGI(TAG, "Before pulses: DOUT=%d", hx711_get_dout());
     // Send 25 pulses (select A gain 128)
     for (int i = 0; i < 25; i++) {
         hx711_set_sck(1);
@@ -141,34 +151,4 @@ void hx711_delay_us(int us) {
 
 void hx711_delay_ms(int ms) {
     vTaskDelay(pdMS_TO_TICKS(ms));
-}
-
-void app_main(void)
-{
-    sensor_init();
-    vTaskDelay(pdMS_TO_TICKS(500)); //CHANGE to whenever powerup correctly
-
-    #if DEBUG
-        dout_checker();
-    #endif
-
-    ESP_LOGI(TAG, "Starting setup, please wait.");
-    tare(20);
-    ESP_LOGI(TAG, "Tare offset=%" PRId32, g_offset);
-
-    vTaskDelay(pdMS_TO_TICKS(100)); //additional wait, subject to change
-
-    #if DEBUG
-    while (1) {
-    int32_t raw = get_raw_weight(10);           // ADC value from HX711
-    ESP_LOGI(TAG,
-             "raw=%" PRId32
-             "  offset=%" PRId32
-             "  rawChange=%" PRId32
-             "  grams=%.3f g",
-             raw, g_offset, getRawChange(raw), get_grams(raw));
-
-    vTaskDelay(pdMS_TO_TICKS(500));
-    }
-    #endif
 }
