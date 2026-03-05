@@ -1,3 +1,54 @@
-\subsection{Conceptualisations}
+\subsection{Conceptualisations for Design Approach}
+\subsubsection{Contactless Capacitive Water Level Sensing}
+The strip will be placed vertically on the exterior side of the brita/pitcher to detect exact water level. 
+Works as long as plastic is not too thick which britas fit the description. \\
 
-TODO
+\noindent\textbf{Pros}
+    \begin{itemize}
+    \item Low-cost
+    \item No contact
+    \item Small mechanical approach
+    \item Customizable for future addons
+    \end{itemize}
+\noindent\textbf{Cons}
+    \begin{itemize}
+    \item Need a good environment for sensor, not humid so not great inside a fridge
+    \end{itemize}
+
+\subsubsection{Weight based, Load}
+The design places the pitcher unto a load cell to measure the weight. We will calibrate it to the changes in weight.\\
+\noindent\textbf{Pros}
+    \begin{itemize}
+    \item Highest accuracy of all designs
+    \item Fits to many pitcher dimensions
+    \end{itemize}
+\noindent\textbf{Cons}
+    \begin{itemize}
+    \item Need a good environment for sensor, not humid so not great inside a fridge
+    \end{itemize}
+
+\subsubsection{Ultrasonic}
+An ultrasonic sensor estimates the water level by measuring the echo time of sound waves reflected from the water surface.\\
+\noindent\textbf{Pros}
+    \begin{itemize}
+    \item Inexpensive
+    \item Easy implementation
+    \end{itemize}
+\noindent\textbf{Cons}
+    \begin{itemize}
+    \item Humidity problem
+    \end{itemize}
+
+\subsubsection{Laser}
+A laser or time-of-flight sensor measures the distance from the sensor to the water surface.
+The measured distance is converted into liquid height and volume. \\
+\noindent\textbf{Pros}
+    \begin{itemize}
+    \item Continous measurements
+    \item Non contact
+    \end{itemize}
+\noindent\textbf{Cons}
+    \begin{itemize}
+    \item Humidity problem
+    \item Clear line of sight
+    \end{itemize}
