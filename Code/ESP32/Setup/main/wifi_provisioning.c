@@ -1,13 +1,13 @@
 #include "wifi_provisioning.h"
 
 // Logging tag
-extern const char *TAG_WIFI_PROV = "esp_setup_softap_http";
-
+static const char *TAG_WIFI_PROV = "esp_setup_softap_http";
 
 //+++++++++++++++++++++++++SoftAP+++++++++++++++++++++++++++
 static void wifi_event_handler(void *arg, esp_event_base_t event_base,
                                int32_t event_id, void *event_data)
 {
+    //AP events
     if (event_id == WIFI_EVENT_AP_STACONNECTED)
     {
         wifi_event_ap_staconnected_t *event = (wifi_event_ap_staconnected_t *)event_data;
@@ -19,6 +19,19 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base,
         wifi_event_ap_stadisconnected_t *event = (wifi_event_ap_stadisconnected_t *)event_data;
         ESP_LOGI(TAG_WIFI_PROV, "station " MACSTR " leave, AID=%d, reason=%d",
                  MAC2STR(event->mac), event->aid, event->reason);
+    }
+
+    //STA events
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED)
+    {
+        wifi_event_sta_disconnected_t *disconn = (wifi_event_sta_disconnected_t *)event_data;
+        ESP_LOGW(TAG_WIFI_PROV, "Failed to connect, reason %d", disconn->reason);
+        esp_wifi_connect(); // optionally retry
+    }
+    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP)
+    {
+        ip_event_got_ip_t *ip_event = (ip_event_got_ip_t *)event_data;
+        ESP_LOGI(TAG_WIFI_PROV, "Connected! Got IP: " IPSTR, IP2STR(&ip_event->ip_info.ip));
     }
 }
 
@@ -42,6 +55,13 @@ static void wifi_init_softap(void)
     ESP_ERROR_CHECK(esp_event_handler_instance_register(
         WIFI_EVENT,
         ESP_EVENT_ANY_ID,
+        &wifi_event_handler,
+        NULL,
+        NULL));
+    /* Register IP events */
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(
+        IP_EVENT,
+        IP_EVENT_STA_GOT_IP,
         &wifi_event_handler,
         NULL,
         NULL));
@@ -168,6 +188,9 @@ static esp_err_t wifi_post_handler(httpd_req_t *req)
     ESP_LOGI(TAG_WIFI_PROV, "SSID: '%s'", ssid);
     ESP_LOGI(TAG_WIFI_PROV, "Password: '%s'", pass);
 
+    //ATTEMPT TO CONNECT TO WIFI USING THESE CREDENTIALS
+    connect_to_wifi(ssid, pass);
+
     // Respond with a confirmation page
     httpd_resp_set_type(req, "text/html");
     httpd_resp_send(req,
@@ -276,6 +299,72 @@ bool load_wifi_credentials(char *ssid, char *pass)
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+void init_wifi() {
+    /* Initialize NVS (required for Wi-Fi) */
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+        ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ESP_ERROR_CHECK(nvs_flash_init());
+    }
+    wifi_init_softap();
+    vTaskDelay(1000 / portTICK_PERIOD_MS); // wait for AP to start
+
+    
+}
+
+void init_wifi2() {
+
+    /* Initialize NVS (required for Wi-Fi) */
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+        ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ESP_ERROR_CHECK(nvs_flash_init());
+    }
+
+    // attempt to load saved credentials and connect
+    char ssid[64];
+    char pass[64];
+    if (load_wifi_credentials(ssid, pass))
+    {
+        ESP_LOGI(TAG_WIFI_PROV, "Found stored credentials. Connecting...");
+        connect_to_wifi(ssid, pass);
+    }
+    else
+    {
+        ESP_LOGI(TAG_WIFI_PROV, "No saved WiFi credentials.");
+
+        // start softap
+        ESP_LOGI(TAG_WIFI_PROV, "Starting SoftAP...");
+        wifi_init_softap();
+
+        // Start HTTP server
+        start_webserver();
+        ESP_LOGI(TAG_WIFI_PROV, "HTTP server running!");
+    }
+}
+
+void test_wifi_and_http()
+{
+
+    // ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    connect_to_wifi("Reid's iPhone 17", "fortnite67");
+    vTaskDelay(1000 / portTICK_PERIOD_MS); // wait for connection
+
+    // test GET
+    char *resp = send_http_get("example.com", "80", "/");
+    if (resp != NULL)
+        printf("Response:\n%s\n", resp);
+    else
+        printf("Failed to get response\n");
+    free(resp);
+
+    // test POST
+    send_http_post("key=valueee", "httpbin.org", "80", "/post");
+}
 
 
 void app_main(void)
@@ -288,71 +377,8 @@ void app_main(void)
         ESP_ERROR_CHECK(nvs_flash_erase());
         ESP_ERROR_CHECK(nvs_flash_init());
     }
-
-    // start softap
-    ESP_LOGI(TAG_WIFI_PROV, "Starting SoftAP...");
     wifi_init_softap();
-
-    //attempt to load saved credentials and connect
-    char ssid[64];
-    char pass[64];
-    if (load_wifi_credentials(ssid, pass)) {
-        ESP_LOGI(TAG, "Found stored credentials. Connecting...");
-        connect_to_wifi(ssid, pass);
-    } else {
-        ESP_LOGI(TAG, "No saved WiFi credentials.");
-    }
-    
-    // Start HTTP server
-    start_webserver();
-    ESP_LOGI(TAG_WIFI_PROV, "HTTP server running!");
-}
-
-void init_wifi() {
-
-    /* Initialize NVS (required for Wi-Fi) */
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
-        ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
-{
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ESP_ERROR_CHECK(nvs_flash_init());
-    }
-
-    //attempt to load saved credentials and connect
-    char ssid[64];
-    char pass[64];
-    if (load_wifi_credentials(ssid, pass)) {
-        ESP_LOGI(TAG, "Found stored credentials. Connecting...");
-        connect_to_wifi(ssid, pass);
-    } else {
-        ESP_LOGI(TAG, "No saved WiFi credentials.");
-
-        // start softap
-        ESP_LOGI(TAG_WIFI_PROV, "Starting SoftAP...");
-        wifi_init_softap();
-
-        // Start HTTP server
-        start_webserver();
-        ESP_LOGI(TAG_WIFI_PROV, "HTTP server running!");
-        
-    }
-
-}
-
-
-void test_wifi_and_http() {
-
-    //ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    connect_to_wifi("Reid's iPhone 17", "fortnite67");
-    vTaskDelay(1000 / portTICK_PERIOD_MS); // wait for connection
-    
-    //test GET
-    char *resp = send_http_get("example.com", "80", "/");
-    if (resp != NULL) printf("Response:\n%s\n", resp);
-    else printf("Failed to get response\n");
-    free(resp);
-    
-    //test POST
-    send_http_post("key=valueee", "httpbin.org", "80", "/post");
+    vTaskDelay(1000 / portTICK_PERIOD_MS); // wait for AP to start
+    test_wifi_and_http();
+    //init_wifi();
 }
