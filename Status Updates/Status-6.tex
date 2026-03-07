@@ -21,35 +21,68 @@
 \fancyfoot[R]{\thepage}
 
 \noindent Link to Status Updates section in our repo \\
-\url{https://git.ucsc.edu/pnauwela/123a-project/-/tree/main/Status%20Updates?ref_type=heads}
+\url{https://git.ucsc.edu/pnauwela/123a-project/-/tree/main/Status\%20Updates?ref_type=heads}
 
  % whats been completed 
 \section*{What we Did}
+This week we conducted code tests on important system functionality. The tests were created for the microcontroller code and focused on verifying logic for the sensor. We also updated significant portions of documentation and diagrams to prepare for presentations. These design documents will be important when presenting the initial prototype. 
 
+Another major improvement came in the hardware. They were reprinted to recess the screws and create a flat plane for more accurate measurements. We now also have code working for HTTP GET and POST requests from a separate microcontroller. This is just as a proof of concept and will eventually be included in the main system code. 
  
 % whats in progress
 \section*{What we are Working On}
 
+We are working on preparing a script for the initial prototype presentation. We are also working on system connections to prepare for the next iteration of our prototype. Most of the work in-progress is documentation as we wrote code and now need to document how it works and why we chose to write it this way. 
 
-% what next on teh agenda 
+% what next on the agenda 
 \section*{What's next}
 
-
+The next step is to complete the presentation script. It is also to have a more complete document to provide for the design document. We also need to prepare for the next changes we will be implementing in spring quarter. The next iteration of the design is already in the planning stages and we have an idea of what direction we will be going in. 
 % Individual contributions
 
 \section*{Individual Contributions}
 
 \noindent\textbf{Dev Chodavadiya}:
 
+This week I focused on hardware iteration and documentation. 
+
+On the hardware side, I reprinted the base plates to fix a flatness issue — the previous prints were slightly slanted, so I adjusted the print settings to ensure the bottom plate sits level on a surface. 
+
+On the documentation side, I made progress on the design document by writing the research into existing designs section, the sustainability statement, and the aesthetic prototype section with CAD renders and photos of the current assembly.
+
+I will design and print washers to go between the load cell sensor and the plates for better contact and stability. The team will continue working on the demo script to have it ready for the demonstration.\\
+
+
 \noindent\textbf{Logan Bossuwe}:
 
 \noindent\textbf{Pieter Nauwelaerts}:
 
+This week I created the testing code for the HX711 sensor. The major changes include a different way of approaching how we design the microcontroller code in order to allow us to switch between the microcontroller, and test code. This was done using a C header file to define the shared functions, and having two separate main files, one for microcontroller deployment, and one for testing. 
+
+The test code simulates the Wheatstone bridge sensor and passes the functions data that would come in or out. Simulated weight readings go into the functions, the logic is the same as the logic used by the microcontroller, and the output comes out as is verified agains what we should expect to see. The logic we use in the microcontroller can now be verified and tested. This includes pushing it to the limit by having very fast sequences of activity and checking that the outputs come out in the same order. 
+
 \noindent\textbf{Reid Graham}:
+
+This week, I created the code for the microcontroller to connect to a WiFi network and send HTTP GET and POST requests. I also created header files for organization and relavant functions, as well as helped to integrate this functionality into the main file. I also created some test code for the WiFi provisioning code, including testing important functions like url decoding. For the physical sensor, I installed a new base plate for the scale that made it more stable.
+
+I also worked on the design document, including editing the architecture diagram, adding to the block diagrams section, and writing some of the documentation for the WiFi provisioning functionality.
+
+For the next week, I want to prioritize finalizing the design document, including the sections on test plan and results and MCU HTTP functionality.
+
+
 
 \noindent\textbf{Sam Lai}:
 
+This week, I worked on reimplementing the push notification logic for the webapp to use Push API instead of Firebase Cloud Messaging. 
+The web app is now able to receive push notifications on all browsers on desktop, android, and on IOS safari home screen apps. The app
+will prompt the user to allow notifications, and if they accept, it will subscribe them to push notifications. I also worked on the web 
+app section of the design document. This includes writing about the initial design and the current design of the web app which includes 
+detailed sub sections about the architecture, frontend design, backend api endpoints, database tables, and the push notification system. 
+I will continue to work on the design document and will be focusing on the testing section next. I will also be working on creating unit 
+tests for the notification system and subscription prompt.
+
 \noindent\textbf{Shriyan Gote}:
 
+This week, I wrote C files to test the server connection using POST HTTP requests from the microcontroller. I also wrote documentation about the web app code, re-did the calibration flow in the dashboard, and worked on adding environment variables to Vercel for deployment.\\
 
 \end{document}

@@ -11,5 +11,17 @@ for combined components, and end-to-end testing for the entire system.
 % Write about the testing of the web application
 % Needs to include the unit tests for frontend components like in App.test.js (Basic rendering, calibration buttons, push notifications)
 % Also needs to include testing for the API endpoints
+
+When creating the tests for the microcontroller code, it's important to consider what a user behavior might look like, but also important to understand what level the behavior could get to. How likely is it that a user is putting a full filter on, then an empty one, and back to full, in a matter of milliseconds? How capable is this controller of dealing with sharp spikes and changes? The testing plan covers both simulated behavior for quick and sharp event behavior, as well as a more practical testing plan for typical user behavior. 
+
+In order to verify the function of the code reading from the Wheatstone bridge sensor, we must verify that the logic itself works the way we think. There are multiple parts that require logical verification. 
+
+First, the sensor data will come in with some small variation depending on where the weight is placed on the base, and because ADC values can vary slightly  without any other input. Sensor reading code must also account for the fact that data can change very quickly, so testing the logic through repeated, high frequency changes, can help show its robustness. There is also the issue of whether data inputted to the code is read in correctly through the bit shift operations, so checking the shift operations for correctness is important. 
+
+Testing the microcontroller code in this design involves a separate file that contains simulated HX711 behavior. This behavior is passed into the functions used on the microcontroller, which provide an output back to the test file. These outputs are verified against expected outputs and if they are the same or within a certain level of tolerance, then we can say the code passed the tests. 
+
+To test the behavior that would be seen for a typical user, we must have standard objects that we use for the different levels of weight. A large weight, a small weight, and no weight are the simplest form of this. For example, fitting with the project, say a water filter with 100mL of water, versus a water filter with 3L of water. These two objects have drastically different weights so putting it on the scale and viewing how the code responds could represent a typical user behavior of taking the empty filter, filling it, and returning it to the base. 
+
+
 \subsubsection{Web Application}
 

@@ -1,0 +1,9 @@
+\subsection{Microcontroller WiFi Provisioning}
+
+In order for the microcontroller to connect to the home network, the user must be able to send the WiFi credentials to the device. This is called WiFi provisioning. In our design, the MCU hosts a WiFi soft access point, an HTTP server, and an HTML page that allows the user to input the WiFi credentials. Once it is connected to the home network, it will save this information and can communicate with the web application.
+
+\subsubsection{First Boot}
+When the device is first turned on, it will attempt to connect to the last known WiFi network using credentials from non-volatile storage. If the connection is successful, the device will operate normally and send data to the web application. If the connection fails (e.g. because the credentials are incorrect or the network is unavailable), the device will enter provisioning mode.
+
+\subsubsection{Soft Access Point}
+In provisioning mode, the MCU will create its own WiFi soft access point with a unique name (e.g. "Smart Filter Setup"). On that network, it will host an HTTP server on a specific IP address along with an HTML page. The user can then follow the instructions on the device to connect to this network using their phone or computer, scan a QR code to access the HTML page, and enter their WiFi credentials. Once the user submits the form with their credentials, the device will attempt to connect to the specified WiFi network. If the connection is successful, it will save the credentials to non-volatile storage for future use and exit provisioning mode. If the connection fails, it will display an error message and remain in provisioning mode until valid credentials are provided.
