@@ -46,7 +46,7 @@ Our project solves this. We built a smart water level monitoring system that sit
 \begin{quote}
 ``Let's start with the hardware. The system has three main components:
 
-\textbf{First, the load cell.} This is a strain-gauge weight sensor. When weight is applied, it bends slightly, and that bending changes its electrical resistance. The change is ver tiny---so we use the \textbf{HX711 amplifier board} to boost the signal into something our microcontroller can read. The HX711 gives us 24-bit resolution, which means we can detect very small changes in weight.
+\textbf{First, the load cell.} This is a strain-gauge weight sensor. When weight is applied, it bends slightly, and that bending changes its electrical resistance. The change is very tiny---so we use the \textbf{HX711 amplifier board} to boost the signal into something our microcontroller can read. The HX711 gives us 24-bit resolution, which means we can detect very small changes in weight.
 
 \textbf{Second, the ESP32 microcontroller.} This is the brain of our system. It reads the weight data from the HX711, converts it into a water level percentage, and sends that data over WiFi to our cloud server.
 
@@ -57,7 +57,7 @@ Our project solves this. We built a smart water level monitoring system that sit
 %% --------------------------------------------------------
 \section*{Part 3: Live Demo -- Weighing }
 
-\textbf{Action:} Place the pitcher on the platform. Have the a computer open showing the readings of the sesnor.
+\textbf{Action:} Place the pitcher on the platform. Have the a computer open showing the readings of the sensor.
 
 \bigskip
 \noindent\textit{Script:}
@@ -81,14 +81,31 @@ Watch the dashboard---you can see the percentage dropping as I pour. The system 
 
 % show how software works
 
+\section*{Part 4: Software Demo}
 
+\textbf{Action:} Open laptop to the web server to demonstrate navigating the page
 
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+``The initial prototype uses a web dashboard to display important device information. This dashboard is also where the initial configuration of the product happens. When a user first starts up this device, they need to calibrate it with empty and full weights. 
+
+\textit{[Highlight calibration buttons]} Both an empty and a full value are required for the product to work as intended. In the startup sequence the user will be prompted for an empty pitcher of water to be placed on the base. After pressing the calibration button they will be asked to fill it up and return it to the base to calibrate the full value. 
+
+Full and empty values are adjustable and configurable at any time, so if a user buys a new filter that holds a larger quantity of water, they can simply change the calibration values and continue using the device as intended. 
+
+When the values are calibrated, the system is able to use the data sent by the microcontroller to adjust the visible water level. It will also send notifications if it detects a value within 10\% of empty. This notification is intended to act as a reminder to fill the filter, and as an alert to anyone who was hoping to get some water soon. 
+\end{quote}
 % notifications 
 
 
 
 % Q&A
 
+\section*{Part 6: Questions}
+
+\textbf{Action:} Leave all components visible on the center of the demo table, ready to be moved or pointed at for any questions regarding hardware. 
 
 
 % conclusion
