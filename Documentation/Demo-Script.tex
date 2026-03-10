@@ -95,15 +95,35 @@ Watch the dashboard---you can see the percentage dropping as I pour. The system 
 
 Full and empty values are adjustable and configurable at any time, so if a user buys a new filter that holds a larger quantity of water, they can simply change the calibration values and continue using the device as intended. 
 
-When the values are calibrated, the system is able to use the data sent by the microcontroller to adjust the visible water level. It will also send notifications if it detects a value within 10\% of empty. This notification is intended to act as a reminder to fill the filter, and as an alert to anyone who was hoping to get some water soon. 
+When the values are calibrated, the system is able to use the data sent by the microcontroller to adjust the visible water level.
 \end{quote}
-% notifications 
 
+% show how notifications work
+\section*{Part 5: Notification Demo}
 
+\textbf{Action:} Keep the dashboard visible and reset the water level to above the low-water threshold 20\%.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+``Now we will demonstrate the notification feature and how we can subscribe to alerts for when the water level is running low.
+
+\textit{[Point to the current percentage on the dashboard.]}
+Right now, our low-water threshold is set to 20\% and the pitcher level is above the low-water threshold, so no alert is sent. Once the level drops below that value, the app will trigger a push notification to subscribed devices. But first, we have to subscribe to notifications. 
+
+\textit{[Point to "Enable Notifications" button on the dashboard.]} This button will prompt you to allow notifications for our web app. Once you allow that, your device will be subscribed and ready to receive alerts.
+
+\textit{[Click on "Enable Notifications" button and allow]} Now, we will measure the pitcher when it is near empty. 
+
+\textit{[Simulate water level to less than 20\%]} You can see the dashboard now reads [read value below 20\%]. Within a few seconds, the notification should appear on the top right corner of your screen.
+
+The message says that the filter is running low and needs to be refilled. After the pitcher is refilled and the percentage rises, the system returns to normal and waits for the next low-water event.''
+\end{quote}
 
 % Q&A
 
-\section*{Part 5: Questions}
+\section*{Part 6: Questions}
 
 \textbf{Action:} Leave all components visible on the center of the demo table, ready to be moved or pointed at for any questions regarding hardware. 
 
