@@ -65,8 +65,24 @@ export default function App() {
   useEffect(() => {
     load();
     loadCalibration();
-    const t = setInterval(load, 5000);
-    return () => clearInterval(t);
+
+    // Subscribe to realtime changes so we update immediately when new data is inserted
+    const channel = supabase
+      .channel("water_readings_changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "water_readings" },
+        () => load()
+      )
+      .subscribe();
+
+    // Fallback poll every 10s in case Realtime isn't configured for the table
+    const t = setInterval(load, 10000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(t);
+    };
   }, []);
 
   useEffect(() => {
