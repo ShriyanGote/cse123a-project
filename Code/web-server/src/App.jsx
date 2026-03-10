@@ -230,7 +230,7 @@ export default function App() {
           </span>
         </div>
         {notificationSupported && notificationPermission !== "granted" && (
-          <div className="brita-calibration" style={{ marginTop: 12 }}>
+          <div className="brita-calibration brita-calibration--push" style={{ marginTop: 12 }}>
             <p className="brita-calibration__hint">
               Enable notifications to get low-water alerts.
             </p>
