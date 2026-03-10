@@ -110,13 +110,13 @@ The implementation uses standard Web Push protocols with VAPID authentication an
 
 \paragraph{1) Subscription Registration}
 
-When the dashboard is loaded, the browser requests notification permission. If permission is granted, a service worker is registered and 
-a Push API subscription is created (or reused if it already exists). The subscription object is sent to the backend endpoint and stored 
-in the \texttt{notification\_tokens} table in Supabase.
+When the dashboard is loaded, the browser UI has a button that the user can click on to request notification permission. Clicking on the button 
+triggers a pop up that asks the user to allow/disallow notifications for the website. If permission is granted, a service worker is registered and a Push API 
+subscription is created (or reused if it already exists). The subscription object is sent to the backend endpoint and stored in the \texttt{notification\_tokens} table in Supabase.
 
 \noindent This registration path has two design goals:
 \begin{itemize}
-	\item maintain a durable list of reachable user devices, and
+	\item maintain a durable list of reachable user devices
 	\item avoid duplicate subscriptions by upserting on token value.
 \end{itemize}
 

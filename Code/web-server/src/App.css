@@ -222,6 +222,12 @@
   border-color: transparent;
 }
 
+.brita-calibration__button--reset {
+  border-color: rgba(148, 163, 184, 0.8);
+  background: #f8fafc;
+  color: #475569;
+}
+
 .brita-calibration__button:disabled {
   opacity: 0.6;
   cursor: default;
@@ -235,6 +241,11 @@
 
 .brita-calibration__button--primary:not(:disabled):hover {
   background: linear-gradient(90deg, #0284c7, #16a34a);
+}
+
+.brita-calibration__button--reset:not(:disabled):hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
 }
 
 .brita-calibration__current {

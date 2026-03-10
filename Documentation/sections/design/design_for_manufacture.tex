@@ -1,3 +1,13 @@
 \subsection{Design for Manufacture}
+\subsubsection{3D-Printed Base Plates}
 
-TODO
+The top and bottom plates are 3D-printed in PLA at a 0.2mm layer height. Each plate is 110mm in diameter and 8mm thick with M4 screw holes and racetrack-shaped countersink pockets. The plates went through multiple print iterations to resolve a flatness issue where the bottom surface was slightly slanted, which affected the stability of the load cell. This was fixed by adjusting bed leveling and print orientation to ensure a flat bottom surface.
+
+\subsubsection{Load Cell Assembly}
+
+The 75mm bar-type strain gauge load cell is sandwiched between the two plates using four M4 x 10mm bolts---two through the top plate into one end of the load cell, and two through the bottom plate into the other end. This creates a cantilever arrangement where weight applied to the top plate causes measurable strain on the load cell. The assembly requires only an M4 hex key and can be taken apart and reassembled in a few minutes.
+
+\subsubsection{Electronics}
+
+The ESP32 microcontroller and HX711 amplifier are currently mounted on a breadboard alongside the prototype. The HX711 connects to the load cell via four wires (E+, E-, A+, A-) and communicates with the ESP32 over two GPIO pins (data and clock). Power is supplied to the ESP32 via USB. The breadboard setup allows for easy debugging and rewiring during development, with the intent to move to a more permanent soldered configuration in the final version.
+

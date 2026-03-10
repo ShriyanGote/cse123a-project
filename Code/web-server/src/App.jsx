@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-import { getToken, onMessage } from "firebase/messaging";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase";
-import { getMessagingIfSupported } from "./firebase";
 import "./App.css";
 
 // Default calibration if none is stored in Supabase
@@ -16,6 +14,13 @@ const DEMO_READING = {
   battery_mv: 3850,
   created_at: new Date().toISOString(),
 };
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+}
 
 function getLevelPercent(weightG, calibration) {
   if (weightG == null) return 0;
@@ -41,6 +46,10 @@ export default function App() {
   const [calibration, setCalibration] = useState(null);
   const [isSavingCalibration, setIsSavingCalibration] = useState(false);
   const [waterCanAnimate, setWaterCanAnimate] = useState(false);
+  const [notificationSupported, setNotificationSupported] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState("default");
+  const [isSubscribingPush, setIsSubscribingPush] = useState(false);
+  const [pushStatus, setPushStatus] = useState("");
 
   async function load() {
     const { data } = await supabase
@@ -85,53 +94,91 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    let unsubscribeForeground = null;
-
-    async function setupPushNotifications() {
-      if (!("serviceWorker" in navigator) || !("Notification" in window)) return;
-
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") return;
-
-      const messaging = await getMessagingIfSupported();
-      const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
-      if (!messaging || !vapidKey) return;
-
-      const serviceWorkerRegistration = await navigator.serviceWorker.register(
-        "/firebase-messaging-sw.js"
-      );
-
-      const token = await getToken(messaging, {
-        vapidKey,
-        serviceWorkerRegistration,
-      });
-
-      if (!token) return;
-
-      await fetch("/api/register-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-
-      unsubscribeForeground = onMessage(messaging, (payload) => {
-        const title = payload?.notification?.title || "Brita Alert";
-        const body = payload?.notification?.body || "Water level is low.";
-        new Notification(title, { body });
-      });
+  const subscribeToPush = useCallback(async ({ requestPermission = false } = {}) => {
+    if (!("serviceWorker" in navigator) || !("Notification" in window)) {
+      setPushStatus("Push notifications are not supported in this browser.");
+      return;
     }
 
-    setupPushNotifications().catch((error) => {
-      console.error("FCM setup failed", error);
-    });
+    const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    if (!vapidPublicKey) {
+      setPushStatus("Missing VAPID_PUBLIC_KEY.");
+      return;
+    }
 
-    return () => {
-      if (typeof unsubscribeForeground === "function") {
-        unsubscribeForeground();
+    let permission = Notification.permission;
+    if (requestPermission) {
+      permission = await Notification.requestPermission();
+    }
+
+    setNotificationPermission(permission);
+
+    if (permission !== "granted") {
+      setPushStatus(
+        permission === "denied"
+          ? "Notifications are blocked. Enable them in browser settings."
+          : "Notifications are not enabled yet."
+      );
+      return;
+    }
+
+    setIsSubscribingPush(true);
+    setPushStatus("");
+
+    try {
+      const serviceWorkerRegistration = await navigator.serviceWorker.register(
+        "/push-sw.js"
+      );
+
+      let subscription = await serviceWorkerRegistration.pushManager.getSubscription();
+
+      if (!subscription) {
+        subscription = await serviceWorkerRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        });
       }
-    };
+
+      if (!subscription) {
+        setPushStatus("Failed to create a push subscription.");
+        return;
+      }
+
+      const registerResponse = await fetch("/api/register-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription }),
+      });
+
+      if (!registerResponse.ok) {
+        setPushStatus("Subscription registration failed on the server.");
+        return;
+      }
+
+      setPushStatus("Notifications are enabled.");
+    } finally {
+      setIsSubscribingPush(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const supported = "serviceWorker" in navigator && "Notification" in window;
+    setNotificationSupported(supported);
+
+    if (!supported) {
+      setPushStatus("Push notifications are not supported in this browser.");
+      return;
+    }
+
+    setNotificationPermission(Notification.permission);
+
+    if (Notification.permission === "granted") {
+      subscribeToPush({ requestPermission: false }).catch((error) => {
+        console.error("Push setup failed", error);
+        setPushStatus("Push setup failed. Check browser console for details.");
+      });
+    }
+  }, [subscribeToPush]);
 
   const display = USE_DEMO_DATA ? DEMO_READING : latest;
   const percent = display ? getLevelPercent(display.weight_g, calibration) : 0;
@@ -176,6 +223,11 @@ export default function App() {
     await upsertCalibration({ full: display.weight_g });
   }
 
+  async function resetCalibration() {
+    if (!display) return;
+    await upsertCalibration({ empty: null, full: null });
+  }
+
   return (
     <div className="brita-dashboard">
       {USE_DEMO_DATA && (
@@ -193,6 +245,22 @@ export default function App() {
             {waterPresent ? "Water in pitcher" : "Pitcher empty"}
           </span>
         </div>
+        {notificationSupported && notificationPermission !== "granted" && (
+          <div className="brita-calibration" style={{ marginTop: 12 }}>
+            <p className="brita-calibration__hint">
+              Enable notifications to get low-water alerts.
+            </p>
+            <button
+              className="brita-calibration__button brita-calibration__button--primary"
+              type="button"
+              onClick={() => subscribeToPush({ requestPermission: true })}
+              disabled={isSubscribingPush}
+            >
+              {isSubscribingPush ? "Enabling..." : "Enable notifications"}
+            </button>
+          </div>
+        )}
+        {pushStatus && <p className="brita-calibration__hint">{pushStatus}</p>}
       </header>
 
       {!display ? (
@@ -248,6 +316,14 @@ export default function App() {
                   disabled={!display || isSavingCalibration}
                 >
                   Calibrate full
+                </button>
+                <button
+                  className="brita-calibration__button brita-calibration__button--reset"
+                  type="button"
+                  onClick={resetCalibration}
+                  disabled={isSavingCalibration}
+                >
+                  Reset calibration
                 </button>
               </div>
               <p className="brita-calibration__current">
