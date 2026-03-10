@@ -23,7 +23,7 @@
 %% --------------------------------------------------------
 \section*{Part 1: Introduction }
 
-\textbf{Action:} Hold up or gesture toward the Brita pitcher.
+\textbf{Action:} Hold up or gesture toward the water pitcher.
 
 \bigskip
 \noindent\textit{Script:}
@@ -48,7 +48,7 @@ Our project solves this. We built a smart water level monitoring system that sit
 
 \textbf{First, the load cell.} This is a strain-gauge weight sensor. When weight is applied, it bends slightly, and that bending changes its electrical resistance. The change is very tiny---so we use the \textbf{HX711 amplifier board} to boost the signal into something our microcontroller can read. The HX711 gives us 24-bit resolution, which means we can detect very small changes in weight.
 
-\textbf{Second, the ESP32 microcontroller.} This is the brain of our system. It reads the weight data from the HX711, converts it into a water level percentage, and sends that data over WiFi to our cloud server.
+\textbf{Second, the microcontroller.} This is the brain of our system. It reads the weight data from the HX711, converts it into a water level percentage, and sends that data over WiFi to our cloud server.
 
 \textbf{Third, the mounting base.} We designed and 3D-printed two circular plates, that sandwich the load cell. The pitcher sits on top. We designed these with M4 screw holes so everything stays secure and aligned.
 \end{quote}
@@ -65,7 +65,7 @@ Our project solves this. We built a smart water level monitoring system that sit
 \begin{quote}
 ``Now let's see it in action.
 % maybe add calibration before?
-I'm going to place this Brita pitcher on the sensor base. The load cell is now measuring the total weight. Our ESP32 reads that value, subtracts the known weight of the empty pitcher, and calculates the percentage of water remaining.
+I'm going to place this water pitcher on the sensor base. The load cell is now measuring the total weight. Our microcontroller reads that value, subtracts the known weight of the empty pitcher, and calculates the percentage of water remaining.
 
 \textit{[Point to the web dashboard.]}
 % ( with fake data)
@@ -95,7 +95,7 @@ Watch the dashboard---you can see the percentage dropping as I pour. The system 
 
 Full and empty values are adjustable and configurable at any time, so if a user buys a new filter that holds a larger quantity of water, they can simply change the calibration values and continue using the device as intended. 
 
-When the values are calibrated, the system is able to use the data sent by the microcontroller to adjust the visible water level.
+When the values are calibrated, the system is able to use the data sent by the microcontroller to adjust the visible water level."
 \end{quote}
 
 % show how notifications work
