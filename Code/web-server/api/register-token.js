@@ -10,10 +10,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Use POST" });
   }
 
-  const { token } = req.body || {};
-  if (!token || typeof token !== "string") {
-    return res.status(400).json({ error: "Missing FCM token" });
+  const { subscription } = req.body || {};
+  if (
+    !subscription ||
+    typeof subscription !== "object" ||
+    typeof subscription.endpoint !== "string"
+  ) {
+    return res.status(400).json({ error: "Missing Push subscription" });
   }
+
+  const token = JSON.stringify(subscription);
 
   const { error } = await supabase.from("notification_tokens").upsert(
     [

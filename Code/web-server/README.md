@@ -1,7 +1,7 @@
 # Brita Water Level Web Server
 
 This app shows your latest pitcher level from Supabase and receives new sensor readings through `api/ingest.js`.
-It can also send Firebase Cloud Messaging (FCM) push notifications when the water level drops below 20%.
+It can also send Web Push notifications when the water level drops below 20%.
 
 ## Local dev
 
@@ -13,50 +13,40 @@ Run the app:
 
 `npm run dev`
 
-## Push notification setup (FCM)
+## Testing
 
-### 1) Add environment variables
+Run frontend tests:
 
-Client (Vite):
+`npm run test:run`
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
-- `VITE_FIREBASE_VAPID_KEY`
+Run manual ingest with sample data:
 
-Server/API:
+Post sample data using the command below. You can modify the device_id, weight_g, and battery_mv variables in the command.
 
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `INGEST_API_KEY`
-- `FIREBASE_PROJECT_ID`
-- `FIREBASE_CLIENT_EMAIL`
-- `FIREBASE_PRIVATE_KEY` (store with escaped newlines as `\\n`)
+Make sure to replace `{INGEST-API-KEY}` with your actual key.
 
-### 2) Create notification token table in Supabase
+`curl -s -o /tmp/ingestDebug.out -w "HTTP %{http_code}\n" -X POST https://cse123a-project-6a3s.vercel.app/api/ingest -H "Content-Type: application/json" -H "x-api-key: {INGEST-API-KEY}" -d '{"device_id":"test-ingest-1","weight_g":1500,"battery_mv":3800}' && cat /tmp/ingestDebug.out`
 
-Run this SQL:
+Example output:
 
-```sql
-create table if not exists public.notification_tokens (
-	token text primary key,
-	updated_at timestamptz not null default now()
-);
-```
+`HTTP 200`
 
-### 3) Configure Firebase web push
+`{"ok":true,"debug":{"currentPercent":44,"previousPercent":52,"crossedBelowThreshold":false,"subscriptionCount":0,"webPushConfigured":false,"sentCount":0,"failedCount":0}}`
 
-- In Firebase Console, create a Web App and enable Cloud Messaging.
-- Generate a Web Push certificate key pair and set `VITE_FIREBASE_VAPID_KEY`.
-- Generate a service account key and map values into
-	`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`.
+The debug response includes current/previous percent, threshold crossing status, subscription count, and notification send success/failure counts.
 
-## Behavior
+## Notification Behavior
 
-- Frontend requests notification permission and registers an FCM token at `POST /api/register-token`.
-- `POST /api/ingest` stores each reading, computes water level percent, and sends push alerts when level crosses from >=20% to <20%.
-- Invalid FCM tokens are automatically removed from `notification_tokens`.
+- Frontend requests notification permission, creates a Push API subscription, and registers it at `POST /api/register-token`.
+- `POST /api/ingest` stores each reading, computes water level percent, and sends push alerts with `web-push` when level crosses from >=20% to <20%.
+
+Required environment variables for push:
+
+- `VITE_VAPID_PUBLIC_KEY` (frontend)
+- `VAPID_PUBLIC_KEY` (server)
+- `VAPID_PRIVATE_KEY` (server)
+- `VAPID_SUBJECT` (server, ex: `mailto:your-email@example.com`)
+
+Generate a key pair with:
+
+- `npx web-push generate-vapid-keys`
