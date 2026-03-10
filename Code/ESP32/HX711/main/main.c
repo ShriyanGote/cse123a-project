@@ -11,7 +11,13 @@
 #include "HX711.h"   // your header
 #define DEBUG 1 //1 is DEBUG ON, 0 is DEBUG off
 
+/* Run ipconfig in terminal on device that is
+*  running test_server.py to find it */
+#define TEST_SERVER_IP "192.168.1.104"
+
 static const char *TAG = "MAIN";
+
+
 
 void app_main(void)
 {
@@ -49,7 +55,8 @@ void app_main(void)
         
         char post_data[64];
         snprintf(post_data, sizeof(post_data), "weight=%.2f", grams);
-        send_http_post(post_data, "httpbin.org", "80", "/post");
+
+        send_http_post(post_data, TEST_SERVER_IP, "1234", "/api/ingest");
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 #endif
