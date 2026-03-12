@@ -27,7 +27,7 @@ def handle_weight(body):
         return
 
     if weight != last_weight:
-        print(f"Weight changed: {weight}")
+        print(f"Weight changed: {weight} g")
         last_weight = weight
 
 
