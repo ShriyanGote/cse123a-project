@@ -1,4 +1,4 @@
-\subsection{Test Plan \& Results}
+\subsection{Overview}
 
 There are multiple sections of our design that require testing individually, then together as a whole. The following list represents the pathway we will take when testing our prototype segments.
 
@@ -11,7 +11,7 @@ There are multiple sections of our design that require testing individually, the
 \item Prototype Setup Out-Of-The-Box
 \end{itemize}
 
-\subsection*{MCU Data Reporting}
+\subsubsection*{MCU Data Reporting}
 
 The pressure sensors we use to build the base will output data to our MCU device. We want to be sure the MCU is capable of receiving this data and displaying it to the debug terminal, which will be IDF MONITOR. Once we can verify posting to the terminal we will move to the next stage of the data reporting testing.
 
@@ -28,17 +28,17 @@ W_{total} = W_{container} + V * \frac{g}{mL}
 
 Water weighs 1 gram per milliliter so if we keep track of the volume we put into the container we know exactly what to expect for output weight if we know the base weight of the container alone. 
 
-\subsection*{MCU Web Posting}
+\subsubsection*{MCU Web Posting}
 
 To test this functionality the simplest way is to have the MCU send some sort of HTTP POST pointed at one of our local machines. We can receive and print this data and then move forward to testing sensor data output. 
 
 With a working sensor we can trigger a POST request when an event happens. In this test case it could be picking up the container from the base which triggers a POST request with some set information. Upon successful receipt of this we can confirm that the HTTP method is working on a small scale and move to the next segment of testing. 
 
-\subsection*{Vercel Receiving and Displaying Data}
+\subsubsection*{Vercel Receiving and Displaying Data}
 
 Once we have confirmed the MCU can send POST requests to a local machine, the next stage is to implement that using Vercel. 
 
-\subsection*{Notification System}
+\subsubsection*{Notification System}
 
 With data being sent out of the MCU, the next stage is to test if we can send a notification on some set event. For a test case this could be a container being placed on the device. The data sent as part of this notification could be a value representing the weight of the container, or an estimate of how much liquid is inside.
 
@@ -46,10 +46,187 @@ If we know how much liquid is inside the container when we place it on the base,
 
 When we pass the fake data tests, we will compare the debug terminal and the notification water levels to ensure that it is correct.
 
-\subsection*{Phone App Integration}
+\subsubsection*{Phone App Integration}
 
-\subsection*{Prototype Setup Out-Of-The-Box}
+With the notification system working, we can now test if the notifications are being sent to the phone app. We will use the same test case as before, which is placing a container on the base. We will verify that the notification is received on the phone and that the data in the notification is correct.
+
+We will also verify that the current fill level of the container is being displayed on the phone app. We will test this by placing a container with a known volume of liquid on the base and verifying that the fill level displayed on the phone app is correct.
+
+\subsubsection*{Prototype Setup Out-Of-The-Box}
 
 In order to set up the prototype, the web app must connect to the MCU through its hosted soft AP and scan a QR code to enter the WiFi credentials. To test this, we will try to connect to the MCU on boot multiple times using different devices, such as iOS vs Android, and see if it is still able to connect through soft AP. We will also test different types of WiFi networks, such as mobile hotspots, traditional password-protected networks, and networks with outside authorization such as university WiFi.
 
 The user must also calibrate the device by measuring the empty and full weights of the filter on the weight sensor. On the webapp, they will be given instructions step-by-step to do this. In order to test this process, we will give the device to a new user and see if they are able to clearly follow the instructions and calibrate the device correctly. We will also test robustness by intentionally disobeying the instructions, such as by weighing it empty both times, to see our device handle it.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{System Testing}
+
+\subsection*{WiFi Capability \& Provisioning}
+
+\noindent{}\textbf{Objective:}
+Verify that the Smart Water Filter Base can be provisioned with WiFi credentials and
+reliably connect to a wireless network for communication with external devices.\\
+
+\noindent{}\textbf{Test Cases:}
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\topsep}{0pt}
+
+    \item \textbf{Initial Provisioning Test}
+    \begin{itemize}
+        \item \textbf{Procedure:} Power on the device in provisioning mode and use the setup interface to enter WiFi SSID and password.
+        \item \textbf{Expected Result:} The device stores the credentials and connects to the specified network.
+    \end{itemize}
+
+    \item \textbf{Automatic Reconnection Test}
+    \begin{itemize}
+        \item \textbf{Procedure:} Power cycle the device after provisioning has been completed.
+        \item \textbf{Expected Result:} The device reconnects automatically to the saved WiFi network without requiring reconfiguration.
+    \end{itemize}
+
+    \item \textbf{Invalid Credential Handling}
+    \begin{itemize}
+        \item \textbf{Procedure:} Attempt provisioning using an incorrect WiFi password.
+        \item \textbf{Expected Result:} The device fails to connect and indicates a connection error or returns to provisioning mode.
+    \end{itemize}
+
+    \item \textbf{Network Loss Recovery}
+    \begin{itemize}
+        \item \textbf{Procedure:} Disconnect the router or move the device out of range, then restore the network.
+        \item \textbf{Expected Result:} The device automatically reconnects once the network becomes available.
+    \end{itemize}
+
+
+\end{itemize}
+
+\noindent{}\textbf{Success Criteria:}
+The device can be provisioned successfully, stores WiFi credentials correctly, and maintains
+reliable connectivity to the network during normal operation.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Group Management Test Plan}
+
+\noindent{}\textbf{Objective:}
+Verify that users can join and leave a group associated with a specific Smart Water Filter Base and that group membership is updated correctly in the application.\\
+
+\noindent{}\textbf{Test Cases:}
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\topsep}{0pt}
+
+\item \textbf{Join Group Test}
+\begin{itemize}
+\item \textbf{Procedure:} A user enters the group code or selects the filter in the application to join its group.
+\item \textbf{Expected Result:} The user is successfully added to the group and gains access to the filter’s information.
+\end{itemize}
+
+\item \textbf{Leave Group Test}
+\begin{itemize}
+\item \textbf{Procedure:} A user selects the option to leave the group in the application.
+\item \textbf{Expected Result:} The user is removed from the group and no longer sees the filter’s data.
+\end{itemize}
+
+\item \textbf{Multiple User Membership Test}
+\begin{itemize}
+\item \textbf{Procedure:} Multiple users join the same filter group from different devices.
+\item \textbf{Expected Result:} All users are successfully added and can view the same filter information.
+\end{itemize}
+
+\item \textbf{Invalid Group Handling}
+\begin{itemize}
+\item \textbf{Procedure:} Attempt to join a group using an invalid or non-existent group code.
+\item \textbf{Expected Result:} The application rejects the request and displays an error message.
+\end{itemize}
+
+\end{itemize}
+
+\noindent{}\textbf{Success Criteria:}
+Users can reliably join and leave groups associated with a filter, and group membership is accurately reflected across all devices.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Water Level Monitoring and Display}
+
+\noindent{}\textbf{Objective:}
+Verify that the Smart Water Filter Base accurately measures the water level and correctly displays this information to users through the application.\\
+
+\noindent{}\textbf{Test Cases:}
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\topsep}{0pt}
+
+\item \textbf{Sensor Calibration Test}
+\begin{itemize}
+\item \textbf{Procedure:} Empty the container and select the “Empty” calibration option in the application. Then fill the container to the maximum level and select the “Full” calibration option.
+\item \textbf{Expected Result:} The system stores the calibration values and uses them to correctly scale future sensor readings to the displayed water level.
+\end{itemize}
+
+\item \textbf{Water Level Accuracy Test}
+\begin{itemize}
+\item \textbf{Procedure:} Fill the container to several known levels and record the value reported by the Smart Water Filter Base.
+\item \textbf{Expected Result:} The reported level closely matches the actual water level within an acceptable error range.
+\end{itemize}
+
+\item \textbf{Empty and Full Level Test}
+\begin{itemize}
+\item \textbf{Procedure:} Test the system with the container completely empty and completely full.
+\item \textbf{Expected Result:} The application correctly displays the minimum and maximum water levels.
+\end{itemize}
+
+\item \textbf{Data Transmission Test}
+\begin{itemize}
+\item \textbf{Procedure:} Verify that sensor readings are transmitted from the Smart Water Filter Base to the application over WiFi.
+\item \textbf{Expected Result:} The application consistently displays the most recent water level data.
+\end{itemize}
+
+\end{itemize}
+
+\noindent{}\textbf{Success Criteria:}
+The Smart Water Filter Base accurately measures water level and reliably communicates this information to the user interface.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection*{Notification System Test Plan}
+
+\noindent{}\textbf{Objective:}
+Verify that the system generates and delivers notifications to users when specific conditions occur, such as low water levels or filter maintenance requirements.\\
+
+\noindent{}\textbf{Test Cases:}
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\parsep}{0pt}
+\setlength{\topsep}{0pt}
+
+\item \textbf{Low Water Level Notification}
+\begin{itemize}
+\item \textbf{Procedure:} Reduce the water level below the defined threshold.
+\item \textbf{Expected Result:} A notification is generated and displayed to users indicating that the water level is low.
+\end{itemize}
+
+\item \textbf{Notification Delivery Test}
+\begin{itemize}
+\item \textbf{Procedure:} Trigger a notification event and verify that it appears in the application interface.
+\item \textbf{Expected Result:} The notification is delivered and visible to the user.
+\end{itemize}
+
+\item \textbf{Multiple User Notification Test}
+\begin{itemize}
+\item \textbf{Procedure:} Trigger a notification event while multiple users are members of the same group.
+\item \textbf{Expected Result:} All users in the group receive the notification.
+\end{itemize}
+
+\end{itemize}
+
+\noindent{}\textbf{Success Criteria:}
+Notifications are reliably generated and delivered to all relevant users when system conditions trigger an alert.
