@@ -8,12 +8,13 @@ The plates used above and below the load cell are made for functional prototype 
 handling various water filter pitchers. Temporary HTTP server made to display and mimick how data is shown/handled.
 
 \subsubsection{Web Application}
-The current web application uses a clean, single-page dashboard layout. It is currently hosted at \url{https://cse123a-project-6a3s.vercel.app/}. It presents a water level percentage, a visual water-level indicator, 
-and status text that communicates whether the pitcher has sufficient water. Additional metadata such as recent update information is shown to test and verify that data is being correctly received and displayed.\\
+The current web application uses a clean, single-page dashboard layout. It is currently hosted at \url{https://cse123a-project-6a3s.vercel.app/}. It shows the water level 
+as both a percentage and a pitcher graphic. The pitcher graphic fills or empties based on the latest sensor reading, so users can quickly see how much water is left. A 
+status message shows whether the water pitcher has water or is empty, and recent update details are shown to confirm data is being received correctly.\\
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=0.75\textwidth]{sections/images/web_app_prototype.png}
+\includegraphics[width=0.75\textwidth]{sections/images/webapp/web_app_prototype.png}
 \caption{Current Web Application Prototype Interface}
 \label{web_app_prototype_eval}
 \end{center}
@@ -21,25 +22,64 @@ and status text that communicates whether the pitcher has sufficient water. Addi
 
 \noindent The web application works as follows:
 \begin{enumerate}
-	\item The ESP32 sends a new sensor reading to the server.
+	\item The microcontroller sends a new sensor reading to the server.
 	\item The server stores the reading and makes it available to the dashboard.
 	\item The dashboard fetches the latest value and updates the displayed percentage and water-level visual.
     \item Users can calibrate the system by pressing "Calibrate empty" when the latest value is an empty pitcher and "Calibrate full" when the latest value is a full pitcher.
 	\item If the value is below the low-water threshold, the app sends a refill alert to users who enabled notifications.
 \end{enumerate}
 
+\noindent To calibrate the system, users will place an empty pitcher on the base and press "Calibrate empty" to set the empty value. Assuming the latest updated weight was 600 grams, you can see in 
+figure \ref{web_app_calibrate_empty_eval} that under the calibrate buttons, empty is now set to 600 grams and the water level is set to 0\%.
+
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=0.75\textwidth]{sections/images/web_app_enable_notif_prompt.png}
+\includegraphics[width=0.5\textwidth]{sections/images/webapp/web_app_calibrate_empty.png}
+\caption{Web Application After Calibrate Empty}
+\label{web_app_calibrate_empty_eval}
+\end{center}
+\end{figure}
+
+\noindent After calibrating the empty value, users can fill the pitcher to the full level and place it back on the base. Pressing "Calibrate full" will set the full value. 
+Assuming the new latest updated weight was 1500 grams, you can see in figure \ref{web_app_calibrate_full_eval} that under the calibrate buttons, full is now set to 1500 grams and the water level will be adjusted to 100\%.
+Users can also reset the calibration values at any time by simply pressing "Reset Calibration" button. This sets the empty and full values back to the default values, 0 grams and 2500 grams respectively.\\
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.5\textwidth]{sections/images/webapp/web_app_calibrate_full.png}
+\caption{Web Application After Calibrate Full}
+\label{web_app_calibrate_full_eval}
+\end{center}
+\end{figure}
+
+\noindent To subscribe to notifications, users can click the "Enable Notifications" button. This will trigger a permission prompt in the browser as shown in figure \ref{web_app_enable_notif_prompt_eval}.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.75\textwidth]{sections/images/webapp/web_app_enable_notif_prompt.png}
 \caption{Web Application Notification Permission Prompt}
 \label{web_app_enable_notif_prompt_eval}
 \end{center}
 \end{figure}
 
+\noindent If users allow notifications, they will be subscribed to receive alerts when the water level drops below the low-water threshold. The UI will also update to show that notifications are enabled 
+under the water status indicator as shown in figure \ref{web_app_prototype_notif_enabled_eval}.
+
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=0.75\textwidth]{sections/images/web_app_prototype_notif_enabled.png}
+\includegraphics[width=0.75\textwidth]{sections/images/webapp/web_app_prototype_notif_enabled.png}
 \caption{Web Application with Notifications Enabled}
 \label{web_app_prototype_notif_enabled_eval}
+\end{center}
+\end{figure}
+
+\noindent When the water level crosses the low-water threshold, which is currently set at 20\%, the browser will display a refill notification popup as shown in figure \ref{web_app_notif_popup_eval}.
+Clicking on the notification will take users to the dashboard where they can see the current water level and recent updates.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.75\textwidth]{sections/images/webapp/web_app_notif_popup.png}
+\caption{Low-Water Notification Popup}
+\label{web_app_notif_popup_eval}
 \end{center}
 \end{figure}
