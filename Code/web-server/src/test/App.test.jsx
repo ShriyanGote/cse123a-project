@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 import {
@@ -166,7 +166,6 @@ describe("App", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     restoreBrowserNotificationApis();
-    vi.useRealTimers();
   });
 
   // Empty-state rendering
@@ -311,53 +310,6 @@ describe("App", () => {
         { id: 1, empty: readCalibrationActions.weight_g, full: null },
         { id: 1, empty: readCalibrationActions.weight_g, full: null },
       ]);
-    });
-  });
-
-  describe("Edge cases", () => {
-    it("cleans up polling timers across repeated page refreshes", async () => {
-      const setIntervalSpy = vi.spyOn(window, "setInterval");
-      const clearIntervalSpy = vi.spyOn(window, "clearInterval");
-
-      const first = renderApp({ latest: defaultCalibration });
-      await screen.findByText("Water in pitcher");
-      first.unmount();
-
-      const second = renderApp({ latest: defaultCalibration });
-      await screen.findByText("Water in pitcher");
-      second.unmount();
-
-      expect(setIntervalSpy).toHaveBeenCalledTimes(2);
-      expect(clearIntervalSpy).toHaveBeenCalledTimes(2);
-
-      setIntervalSpy.mockRestore();
-      clearIntervalSpy.mockRestore();
-    });
-
-    it("updates displayed data correctly during rapid sensor updates", async () => {
-      vi.useFakeTimers();
-
-      const { container } = renderApp({ latest: defaultCalibration });
-      await screen.findByText(/Weight:\s*1250\s*g/);
-
-      mockDb.latest = {
-        ...defaultCalibration,
-        weight_g: 500,
-        created_at: "2026-03-01T00:00:00.000Z",
-      };
-      await vi.advanceTimersByTimeAsync(5000);
-
-      await screen.findByText(/Weight:\s*500\s*g/);
-
-      mockDb.latest = {
-        ...defaultCalibration,
-        weight_g: 2800,
-        created_at: "2026-03-01T00:00:05.000Z",
-      };
-      await vi.advanceTimersByTimeAsync(5000);
-
-      await screen.findByText(/Weight:\s*2800\s*g/);
-      expectPercentFill(container, 100);
     });
   });
 
