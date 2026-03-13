@@ -1,5 +1,30 @@
 \subsection{Web Application Testing}
 
-% TODO: Write about the testing of the web application
-% Needs to include the unit tests for frontend components like in App.test.js (Basic rendering, calibration buttons, push notifications)
-% Also needs to include testing for the API endpoints   
+The web app test file is designed to check the main user-facing behavior of the React application in a clear and controlled way. The tests render 
+the app with mock data so we can verify behavior without needing live hardware or external services. The test file is organized under the test directory within the source directory,
+along with the file \texttt{sampleWaterValues.js} that contains mock data. The test file uses the React Testing Library to render components and simulate user interactions,
+and Vitest for mocks, assertions, and test organization.
+
+\subsubsection{Basic UI Rendering}
+
+This section verifies that the interface renders correctly in both empty and normal states. It checks the message shown when no reading exists, 
+then confirms that water-level data, weight, and battery metadata are displayed when readings are available. It also checks that the displayed 
+percentage matches the expected calculation.
+
+\subsubsection{Calibration Actions and Edge Cases}
+
+This section tests user interaction with calibration controls. The test suite clicks the calibrate empty, calibrate full, and reset buttons, 
+then verifies that the expected calibration upsert operations are made. This section verifies calibration logic for both standard and edge 
+conditions. The tests confirm that custom empty/full calibration values are used, and that percentage output is clamped correctly. Readings 
+below empty are shown as 0\%, readings above full are shown as 100\%, and invalid ranges where full is less than or equal to empty also resolve to 0\%.
+
+\subsubsection{Push Notification Behavior}
+
+This section tests notification flows with mocked browser APIs. It includes unsupported-browser behavior, denied permission behavior, and successful 
+permission behavior. In the successful case, the test verifies service worker registration and push subscription setup.
+
+\subsubsection{API-Related Checks}
+
+This section covers API behavior that is directly tested. Specifically, when notifications are enabled successfully, the app is verified to send a 
+POST request to the token registration endpoint. Supabase reads and calibration writes are mocked so request behavior and state changes can be 
+checked without live backend dependencies.
