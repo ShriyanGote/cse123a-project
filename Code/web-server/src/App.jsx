@@ -218,7 +218,7 @@ export default function App() {
         <p className="brita-demo-banner">Demo mode — showing fake data</p>
       )}
       <header className="brita-header">
-        <h1>Brita Water Level</h1>
+        <h1>Water Filter Level</h1>
         <div className="status-row">
           <span
             className={`status-dot ${waterPresent ? "status-dot--full" : "status-dot--empty"}`}
