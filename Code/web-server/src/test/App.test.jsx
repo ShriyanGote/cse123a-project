@@ -166,6 +166,7 @@ describe("App", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     restoreBrowserNotificationApis();
+    vi.useRealTimers();
   });
 
   // Empty-state rendering
@@ -285,6 +286,78 @@ describe("App", () => {
         expect(mockDb.upsertCalls).toHaveLength(3);
       });
       expect(mockDb.upsertCalls).toEqual(calibrationUpserts);
+    });
+
+    it("handles pressing calibration buttons several times", async () => {
+      const user = userEvent.setup();
+      renderApp({ latest: readCalibrationActions });
+
+      await screen.findByText("Water in pitcher");
+
+      const calibrateEmptyButton = screen.getByRole("button", {
+        name: "Calibrate empty",
+      });
+
+      await user.click(calibrateEmptyButton);
+      await user.click(calibrateEmptyButton);
+      await user.click(calibrateEmptyButton);
+
+      await waitFor(() => {
+        expect(mockDb.upsertCalls).toHaveLength(3);
+      });
+
+      expect(mockDb.upsertCalls).toEqual([
+        { id: 1, empty: readCalibrationActions.weight_g, full: null },
+        { id: 1, empty: readCalibrationActions.weight_g, full: null },
+        { id: 1, empty: readCalibrationActions.weight_g, full: null },
+      ]);
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("cleans up polling timers across repeated page refreshes", async () => {
+      const setIntervalSpy = vi.spyOn(window, "setInterval");
+      const clearIntervalSpy = vi.spyOn(window, "clearInterval");
+
+      const first = renderApp({ latest: defaultCalibration });
+      await screen.findByText("Water in pitcher");
+      first.unmount();
+
+      const second = renderApp({ latest: defaultCalibration });
+      await screen.findByText("Water in pitcher");
+      second.unmount();
+
+      expect(setIntervalSpy).toHaveBeenCalledTimes(2);
+      expect(clearIntervalSpy).toHaveBeenCalledTimes(2);
+
+      setIntervalSpy.mockRestore();
+      clearIntervalSpy.mockRestore();
+    });
+
+    it("updates displayed data correctly during rapid sensor updates", async () => {
+      vi.useFakeTimers();
+
+      const { container } = renderApp({ latest: defaultCalibration });
+      await screen.findByText(/Weight:\s*1250\s*g/);
+
+      mockDb.latest = {
+        ...defaultCalibration,
+        weight_g: 500,
+        created_at: "2026-03-01T00:00:00.000Z",
+      };
+      await vi.advanceTimersByTimeAsync(5000);
+
+      await screen.findByText(/Weight:\s*500\s*g/);
+
+      mockDb.latest = {
+        ...defaultCalibration,
+        weight_g: 2800,
+        created_at: "2026-03-01T00:00:05.000Z",
+      };
+      await vi.advanceTimersByTimeAsync(5000);
+
+      await screen.findByText(/Weight:\s*2800\s*g/);
+      expectPercentFill(container, 100);
     });
   });
 
