@@ -5,9 +5,14 @@ import {
   calibrationUpserts,
   customCalibration,
   defaultCalibration,
+  edgeClampCalibration,
+  invalidRangeCalibration,
+  readAboveFull,
+  readBelowEmpty,
   readCalibrationActions,
   readCustomCalibration,
   readEmpty,
+  readInvalidRange,
   thresholdCalibration,
 } from "./sampleWaterValues";
 
@@ -136,10 +141,47 @@ describe("App", () => {
       ).toBeInTheDocument();
     });
 
+    // Weight at or below empty calibration should show "Pitcher empty"
     it("shows empty status when weight is at or below empty calibration", async () => {
       renderApp({ latest: readEmpty, calibration: thresholdCalibration });
 
       expect(await screen.findByText("Pitcher empty")).toBeInTheDocument();
+    });
+
+    // Edge case: reading below empty calibration should clamp to 0%
+    it("clamps displayed percentage to 0% when reading is below empty calibration", async () => {
+      const { container } = renderApp({
+        latest: readBelowEmpty,
+        calibration: edgeClampCalibration,
+      });
+
+      await screen.findByText("Pitcher empty");
+
+      expectPercentFill(container, 0);
+    });
+
+    // Edge case: reading above full calibration should clamp to 100%
+    it("clamps displayed percentage to 100% when reading is above full calibration", async () => {
+      const { container } = renderApp({
+        latest: readAboveFull,
+        calibration: edgeClampCalibration,
+      });
+
+      await screen.findByText("Water in pitcher");
+
+      expectPercentFill(container, 100);
+    });
+
+    // Edge case: full calibration at or below empty calibration
+    it("shows 0% when calibration range is invalid (full <= empty)", async () => {
+      const { container } = renderApp({
+        latest: readInvalidRange,
+        calibration: invalidRangeCalibration,
+      });
+
+      await screen.findByText("Pitcher empty");
+
+      expectPercentFill(container, 0);
     });
   });
 
