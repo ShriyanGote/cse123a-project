@@ -1,13 +1,18 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
 import {
   calibrationUpserts,
   customCalibration,
   defaultCalibration,
+  edgeClampCalibration,
+  invalidRangeCalibration,
+  readAboveFull,
+  readBelowEmpty,
   readCalibrationActions,
   readCustomCalibration,
   readEmpty,
+  readInvalidRange,
   thresholdCalibration,
 } from "./sampleWaterValues";
 
@@ -31,6 +36,16 @@ const mockDb = vi.hoisted(() => ({
   calibration: null,
   upsertCalls: [],
 }));
+
+const originalNotification = Object.getOwnPropertyDescriptor(
+  window,
+  "Notification"
+);
+const originalServiceWorker = Object.getOwnPropertyDescriptor(
+  navigator,
+  "serviceWorker"
+);
+const originalFetch = global.fetch;
 
 vi.mock("../supabase", () => ({
   supabase: {
@@ -84,11 +99,73 @@ function expectPercentFill(container, expectedPercent) {
   expect(water).toHaveStyle({ height: `${expectedPercent}%` });
 }
 
+// Mock Notification API behavior
+function setNotificationMock({ permission = "default", requestPermission } = {}) {
+  const notification = {
+    permission,
+    requestPermission:
+      requestPermission ?? vi.fn(async () => permission),
+  };
+
+  Object.defineProperty(window, "Notification", {
+    configurable: true,
+    value: notification,
+  });
+
+  return notification;
+}
+
+// Mock service worker registration and push subscription behavior
+function setServiceWorkerMock({
+  existingSubscription = null,
+  subscribeResult = { endpoint: "https://example.com/subscription" },
+} = {}) {
+  const getSubscription = vi.fn(async () => existingSubscription);
+  const subscribe = vi.fn(async () => subscribeResult);
+  const register = vi.fn(async () => ({
+    pushManager: {
+      getSubscription,
+      subscribe,
+    },
+  }));
+
+  Object.defineProperty(navigator, "serviceWorker", {
+    configurable: true,
+    value: { register },
+  });
+
+  return { register, getSubscription, subscribe };
+}
+
+// Restore original browser APIs after tests to avoid side effects
+function restoreBrowserNotificationApis() {
+  if (originalNotification) {
+    Object.defineProperty(window, "Notification", originalNotification);
+  } else {
+    delete window.Notification;
+  }
+
+  if (originalServiceWorker) {
+    Object.defineProperty(navigator, "serviceWorker", originalServiceWorker);
+  } else {
+    delete navigator.serviceWorker;
+  }
+
+  global.fetch = originalFetch;
+}
+
 describe("App", () => {
   beforeEach(() => {
     mockDb.latest = null;
     mockDb.calibration = null;
     mockDb.upsertCalls = [];
+    vi.unstubAllEnvs();
+    restoreBrowserNotificationApis();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    restoreBrowserNotificationApis();
   });
 
   // Empty-state rendering
@@ -136,15 +213,54 @@ describe("App", () => {
       ).toBeInTheDocument();
     });
 
+    // Weight at or below empty calibration should show "Pitcher empty"
     it("shows empty status when weight is at or below empty calibration", async () => {
       renderApp({ latest: readEmpty, calibration: thresholdCalibration });
 
       expect(await screen.findByText("Pitcher empty")).toBeInTheDocument();
     });
+
+    // Edge case: reading below empty calibration should clamp to 0%
+    it("clamps displayed percentage to 0% when reading is below empty calibration", async () => {
+      const { container } = renderApp({
+        latest: readBelowEmpty,
+        calibration: edgeClampCalibration,
+      });
+
+      await screen.findByText("Pitcher empty");
+
+      expectPercentFill(container, 0);
+    });
+
+    // Edge case: reading above full calibration should clamp to 100%
+    it("clamps displayed percentage to 100% when reading is above full calibration", async () => {
+      const { container } = renderApp({
+        latest: readAboveFull,
+        calibration: edgeClampCalibration,
+      });
+
+      await screen.findByText("Water in pitcher");
+
+      expectPercentFill(container, 100);
+    });
+
+    // Edge case: full calibration at or below empty calibration
+    it("shows 0% when calibration range is invalid (full <= empty)", async () => {
+      const { container } = renderApp({
+        latest: readInvalidRange,
+        calibration: invalidRangeCalibration,
+      });
+
+      await screen.findByText("Pitcher empty");
+
+      expectPercentFill(container, 0);
+    });
   });
 
   // Calibration button actions
   describe("Calibration actions", () => {
+
+    // Verify that clicking calibration buttons results in correct upsert calls to the database
     it("saves calibration values when calibration buttons are clicked", async () => {
       const user = userEvent.setup();
       renderApp({ latest: readCalibrationActions });
@@ -169,6 +285,109 @@ describe("App", () => {
         expect(mockDb.upsertCalls).toHaveLength(3);
       });
       expect(mockDb.upsertCalls).toEqual(calibrationUpserts);
+    });
+
+    it("handles pressing calibration buttons several times", async () => {
+      const user = userEvent.setup();
+      renderApp({ latest: readCalibrationActions });
+
+      await screen.findByText("Water in pitcher");
+
+      const calibrateEmptyButton = screen.getByRole("button", {
+        name: "Calibrate empty",
+      });
+
+      await user.click(calibrateEmptyButton);
+      await user.click(calibrateEmptyButton);
+      await user.click(calibrateEmptyButton);
+
+      await waitFor(() => {
+        expect(mockDb.upsertCalls).toHaveLength(3);
+      });
+
+      expect(mockDb.upsertCalls).toEqual([
+        { id: 1, empty: readCalibrationActions.weight_g, full: null },
+        { id: 1, empty: readCalibrationActions.weight_g, full: null },
+        { id: 1, empty: readCalibrationActions.weight_g, full: null },
+      ]);
+    });
+  });
+
+  // Notification enablement behavior
+  describe("Notification logic", () => {
+
+    // If Notification API or Service Worker API is unavailable, show unsupported message and do not show enable button
+    it("shows unsupported message when notification APIs are unavailable", async () => {
+      delete window.Notification;
+      delete navigator.serviceWorker;
+
+      renderApp({ latest: defaultCalibration });
+
+      expect(
+        await screen.findByText("Push notifications are not supported in this browser.")
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Enable notifications" })
+      ).not.toBeInTheDocument();
+    });
+
+    // Show blocked status if permission is denied, and do not attempt to register service worker
+    it("shows blocked status when permission is denied", async () => {
+      const user = userEvent.setup();
+      vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQAB");
+      const requestPermission = vi.fn(async () => "denied");
+      const { register } = setServiceWorkerMock();
+      setNotificationMock({ permission: "default", requestPermission });
+
+      renderApp({ latest: defaultCalibration });
+
+      await user.click(
+        await screen.findByRole("button", { name: "Enable notifications" })
+      );
+
+      expect(
+        await screen.findByText(
+          "Notifications are blocked. Enable them in browser settings."
+        )
+      ).toBeInTheDocument();
+      expect(requestPermission).toHaveBeenCalledTimes(1);
+      expect(register).not.toHaveBeenCalled();
+    });
+
+    // Permission granted, service worker registered, subscription created, and token sent to server
+    it("subscribes and reports enabled status when permission is granted", async () => {
+      const user = userEvent.setup();
+      vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQAB");
+      setNotificationMock({
+        permission: "default",
+        requestPermission: vi.fn(async () => "granted"),
+      });
+      const { register, subscribe } = setServiceWorkerMock({
+        existingSubscription: null,
+      });
+      global.fetch = vi.fn(async () => ({ ok: true }));
+
+      renderApp({ latest: defaultCalibration });
+
+      await user.click(
+        await screen.findByRole("button", { name: "Enable notifications" })
+      );
+
+      expect(
+        await screen.findByText("Notifications are enabled.")
+      ).toBeInTheDocument();
+
+      expect(register).toHaveBeenCalledWith("/push-sw.js");
+      expect(subscribe).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userVisibleOnly: true,
+          applicationServerKey: expect.any(Uint8Array),
+        })
+      );
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/register-token",
+        expect.objectContaining({ method: "POST" })
+      );
     });
   });
 });

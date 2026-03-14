@@ -38,6 +38,39 @@ export const thresholdCalibration = {
   full: 1800,
 };
 
+export const edgeClampCalibration = {
+  id: 1,
+  empty: 200,
+  full: 1800,
+};
+
+export const readBelowEmpty = {
+  device_id: "sensor-1",
+  weight_g: 150,
+  battery_mv: 3700,
+  created_at: "2026-02-27T01:02:03.000Z",
+};
+
+export const readAboveFull = {
+  device_id: "sensor-1",
+  weight_g: 2800,
+  battery_mv: 3700,
+  created_at: "2026-02-27T01:02:03.000Z",
+};
+
+export const invalidRangeCalibration = {
+  id: 1,
+  empty: 1200,
+  full: 1200,
+};
+
+export const readInvalidRange = {
+  device_id: "sensor-1",
+  weight_g: 900,
+  battery_mv: 3700,
+  created_at: "2026-02-27T01:02:03.000Z",
+};
+
 export const calibrationUpserts = [
   { id: 1, empty: 1600, full: null },
   { id: 1, empty: 1600, full: 1600 },

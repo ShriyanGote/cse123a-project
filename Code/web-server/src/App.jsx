@@ -234,7 +234,7 @@ export default function App() {
         <p className="brita-demo-banner">Demo mode — showing fake data</p>
       )}
       <header className="brita-header">
-        <h1>Brita Water Level</h1>
+        <h1>Water Filter Level</h1>
         <div className="status-row">
           <span
             className={`status-dot ${waterPresent ? "status-dot--full" : "status-dot--empty"}`}
@@ -245,22 +245,6 @@ export default function App() {
             {waterPresent ? "Water in pitcher" : "Pitcher empty"}
           </span>
         </div>
-        {notificationSupported && notificationPermission !== "granted" && (
-          <div className="brita-calibration" style={{ marginTop: 12 }}>
-            <p className="brita-calibration__hint">
-              Enable notifications to get low-water alerts.
-            </p>
-            <button
-              className="brita-calibration__button brita-calibration__button--primary"
-              type="button"
-              onClick={() => subscribeToPush({ requestPermission: true })}
-              disabled={isSubscribingPush}
-            >
-              {isSubscribingPush ? "Enabling..." : "Enable notifications"}
-            </button>
-          </div>
-        )}
-        {pushStatus && <p className="brita-calibration__hint">{pushStatus}</p>}
       </header>
 
       {!display ? (

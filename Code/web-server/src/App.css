@@ -196,6 +196,14 @@
   text-align: left;
 }
 
+.brita-calibration--push {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .brita-calibration__row {
   display: flex;
   flex-wrap: wrap;
