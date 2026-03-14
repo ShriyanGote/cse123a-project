@@ -13,7 +13,7 @@
 
 /* Run ipconfig in terminal on device that is
 *  running test_server.py to find it */
-#define TEST_SERVER_IP "192.168.1.104"
+#define TEST_SERVER_IP "172.20.10.7"
 
 static const char *TAG = "MAIN";
 
@@ -22,7 +22,7 @@ static const char *TAG = "MAIN";
 void app_main(void)
 {
     init_wifi();
-    connect_to_wifi("Reid's iPhone 17", "fortnite67");
+    connect_to_wifi("ESPTEST", "uc2025sc");
     vTaskDelay(1000 / portTICK_PERIOD_MS); // wait for connection
 
 

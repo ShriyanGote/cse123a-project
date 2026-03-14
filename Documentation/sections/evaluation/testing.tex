@@ -8,10 +8,6 @@ for combined components, and end-to-end testing for the entire system.
 % Needs to include the unit tests of for the esp wifi connection, data sensing, and data transmission.
 \subsubsection{Microcontroller}
 
-% Write about the testing of the web application
-% Needs to include the unit tests for frontend components like in App.test.js (Basic rendering, calibration buttons, push notifications)
-% Also needs to include testing for the API endpoints
-
 When creating the tests for the microcontroller code, it's important to consider what a user behavior might look like, but also important to understand what level the behavior could get to. How likely is it that a user is putting a full filter on, then an empty one, and back to full, in a matter of milliseconds? How capable is this controller of dealing with sharp spikes and changes? The testing plan covers both simulated behavior for quick and sharp event behavior, as well as a more practical testing plan for typical user behavior. 
 
 In order to verify the function of the code reading from the Wheatstone bridge sensor, we must verify that the logic itself works the way we think. There are multiple parts that require logical verification. 
@@ -25,7 +21,10 @@ To test the behavior that would be seen for a typical user, we must have standar
 
 \subsubsection{Web Application}
 
-Testing the web application involves verifying both the frontend components and the backend API endpoints. Unit tests are written for individual React components, 
-such as the calibration buttons and push notification functionality, to ensure they render correctly and respond to user interactions as expected. Integration tests 
-are conducted to verify that the frontend correctly communicates with the backend API endpoints, such as registering push notification tokens and ingesting sensor data. 
-End-to-end tests simulate user behavior, including calibrating the system, viewing water level updates, and receiving notifications, to ensure the entire application functions as intended.
+When testing the web application, we focus on both normal use and edge cases. A normal flow is a user opening the app, calibrating once, and checking the water level. Edge cases include repeated page refreshes, pressing calibration buttons several times, or receiving rapid updates from the sensor. We also test edge cases like if the water level goes beyond expected limits. We want to ensure the app can handle these scenarios without crashing or showing incorrect information.
+
+For frontend unit tests, we check important UI parts one at a time, such as calibration buttons, status messages, and notification prompts. These tests verify that components render correctly, user clicks update state as expected, and displayed values stay consistent with incoming data. Because sensor readings can change often, we also check that the UI updates smoothly and does not show stale values.
+
+For integration testing, we verify that the frontend and backend communicate correctly. The app sends requests for actions like token registration and sensor data ingestion, and we check that the API returns the expected results. We test both valid and invalid payloads to make sure errors are handled clearly and data is not updated incorrectly.
+
+Finally, end-to-end tests cover complete user workflows from start to finish. These include loading the app, calibrating, monitoring water-level changes, and receiving notifications at threshold events. If these tests pass under both normal and adverse conditions, we can conclude the web application meets functional testing goals.

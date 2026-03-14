@@ -390,4 +390,82 @@ describe("App", () => {
       );
     });
   });
+
+  // Notification enablement behavior
+  describe("Notification logic", () => {
+
+    // If Notification API or Service Worker API is unavailable, show unsupported message and do not show enable button
+    it("shows unsupported message when notification APIs are unavailable", async () => {
+      delete window.Notification;
+      delete navigator.serviceWorker;
+
+      renderApp({ latest: defaultCalibration });
+
+      expect(
+        await screen.findByText("Push notifications are not supported in this browser.")
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Enable notifications" })
+      ).not.toBeInTheDocument();
+    });
+
+    // Show blocked status if permission is denied, and do not attempt to register service worker
+    it("shows blocked status when permission is denied", async () => {
+      const user = userEvent.setup();
+      vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQAB");
+      const requestPermission = vi.fn(async () => "denied");
+      const { register } = setServiceWorkerMock();
+      setNotificationMock({ permission: "default", requestPermission });
+
+      renderApp({ latest: defaultCalibration });
+
+      await user.click(
+        await screen.findByRole("button", { name: "Enable notifications" })
+      );
+
+      expect(
+        await screen.findByText(
+          "Notifications are blocked. Enable them in browser settings."
+        )
+      ).toBeInTheDocument();
+      expect(requestPermission).toHaveBeenCalledTimes(1);
+      expect(register).not.toHaveBeenCalled();
+    });
+
+    // Permission granted, service worker registered, subscription created, and token sent to server
+    it("subscribes and reports enabled status when permission is granted", async () => {
+      const user = userEvent.setup();
+      vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQAB");
+      setNotificationMock({
+        permission: "default",
+        requestPermission: vi.fn(async () => "granted"),
+      });
+      const { register, subscribe } = setServiceWorkerMock({
+        existingSubscription: null,
+      });
+      global.fetch = vi.fn(async () => ({ ok: true }));
+
+      renderApp({ latest: defaultCalibration });
+
+      await user.click(
+        await screen.findByRole("button", { name: "Enable notifications" })
+      );
+
+      expect(
+        await screen.findByText("Notifications are enabled.")
+      ).toBeInTheDocument();
+
+      expect(register).toHaveBeenCalledWith("/push-sw.js");
+      expect(subscribe).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userVisibleOnly: true,
+          applicationServerKey: expect.any(Uint8Array),
+        })
+      );
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/register-token",
+        expect.objectContaining({ method: "POST" })
+      );
+    });
+  });
 });

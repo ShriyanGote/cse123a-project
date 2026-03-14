@@ -1,21 +1,26 @@
 \subsection{Division of Labor}
 
 \noindent\textbf{Dev Chodavadiya}:
-\\
+I focused on the physical hardware design and documentation. For hardware, I designed and 3D-printed the base plates for the load cell mount in the BELS lab, iterating on multiple versions to fix flatness and hole alignment issues. I also created the CAD models and engineering drawings for all of the 3D-printed parts. On the documentation side, I contributed to writing and organizing the design document and weekly status reports.\\
 
 \noindent\textbf{Logan Bossuwe}:
-Handle Load Cell and HX711 sensor hardware to the microntroller. Code weight readings and integrate all ESP32 files\\
+I handled the Load Cell and HX711 sensor hardware to the microcontroller. I soldered and worked on the plate assembly. For the software, I implemented collecting 24bit readings from the HX711 sensor and calibrated it to output grams to be sent via HTTP.
+I reduced raw reading noise by average values. In addition, I contributed to documentation with conceptualizing design ideas with a decision table and focused on proper documentation of HX711 sensor. I also organized the microconntroller's code to integrating sensor readings with the HTTP POST and wifi provisioning.\\
 
 \noindent\textbf{Pieter Nauwelaerts}:
-\\
+My main contributions came in the form of test code for the microcontroller. I created the test system code that would emulate the physical sensor in order to test the controller logic. I also created CAD diagrams to represent the system in its many forms as we designed and tested, figuring out what worked best and what we could expect to present at the end of the term. I contributed to the design document including sections on the microcontroller code design, and the appendix sections about initial concepts. I also prepared the battery system to power our prototype, but ultimately did not implement it as it would conflict with the initial presentation which provides power through the USB connection. \\
 
 \noindent\textbf{Reid Graham}:
 I mainly worked on the microcontroller code and hardware. I helped with physical assembly of the device, including soldering and plate assembly. On the software side, I implemented the WiFi provisioning system, which allows the device to host a Wifi access point and an HTTP server for users to input their WiFi credentials. I also implemented the HTTP functionality for the microcontroller, which allows it to send weight data to the web application. 
 
-In the overall project, I helped to organize our planning using the GitLab repository and the general outline of the design document. I also contributed to the planning the higher level organization of the system through the architecture diagram and organizing the work into discrete modules.
+In the overall project, I helped to organize our planning using the GitLab repository and the general outline of the design document. I also contributed to the planning the higher level organization of the system through the architecture diagram and organizing the work into discrete modules.\\
 
 \noindent\textbf{Sam Lai}:
-\\
+I mainly worked on the web application development and testing. Specifically, I implemented the notification system that allows users to receive alerts on their laptops and phones when the water level of the 
+water pitcher is low. I created the UI that allows users to subscribe to notifications on the frontend and also created a table in Supabase to store user subscription data. I implemented two API endpoints to 
+handle subscription management and notification sending. Additionally, I assisted Shriyan in testing the overall web application by creating and conducting unit tests for each functional part on the UI to ensure 
+everything works as intended and is reliable. In terms of the design document, I contributed to writing and organizing the web application code and test sections. I also proposed the idea of using a weight sensor 
+and wrote down brainstorming ideas for the design. \\
 
 \noindent\textbf{Shriyan Gote}:
-I mainly worked on the web application frontend and deployment. I designed and implemented the Brita water level dashboard UI, including the pitcher graphic, animated water fill, percentage display, last-updated time, and calibration controls (calibrate empty/full) that store values in Supabase. I set up Supabase Realtime so the page updates when new sensor data is posted, and wrote C code to test the server connection using POST HTTP requests from the microcontroller. I also wrote documentation for the web app code and configured deployment (Vercel, environment variables) and kept the repository in sync between the UCSC GitLab and GitHub remotes.\\
+\noindent

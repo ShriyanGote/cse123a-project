@@ -74,24 +74,8 @@ export default function App() {
   useEffect(() => {
     load();
     loadCalibration();
-
-    // Subscribe to realtime changes so we update immediately when new data is inserted
-    const channel = supabase
-      .channel("water_readings_changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "water_readings" },
-        () => load()
-      )
-      .subscribe();
-
-    // Fallback poll every 10s in case Realtime isn't configured for the table
-    const t = setInterval(load, 10000);
-
-    return () => {
-      supabase.removeChannel(channel);
-      clearInterval(t);
-    };
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
   }, []);
 
   const subscribeToPush = useCallback(async ({ requestPermission = false } = {}) => {
@@ -245,6 +229,22 @@ export default function App() {
             {waterPresent ? "Water in pitcher" : "Pitcher empty"}
           </span>
         </div>
+        {notificationSupported && notificationPermission !== "granted" && (
+          <div className="brita-calibration brita-calibration--push" style={{ marginTop: 12 }}>
+            <p className="brita-calibration__hint">
+              Enable notifications to get low-water alerts.
+            </p>
+            <button
+              className="brita-calibration__button brita-calibration__button--primary"
+              type="button"
+              onClick={() => subscribeToPush({ requestPermission: true })}
+              disabled={isSubscribingPush}
+            >
+              {isSubscribingPush ? "Enabling..." : "Enable notifications"}
+            </button>
+          </div>
+        )}
+        {pushStatus && <p className="brita-calibration__hint">{pushStatus}</p>}
       </header>
 
       {!display ? (
