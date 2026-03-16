@@ -21,9 +21,11 @@
 % \fancyfoot[R]{\thepage}
 
 %% --------------------------------------------------------
-\section*{Part 1: Introduction }
+\section*{Part 1: Introduction}
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} 30 seconds
 
-\textbf{Action:} Hold up or gesture toward the water pitcher.
+\noindent\textbf{Action:} Hold up or gesture toward the water pitcher.
 
 \bigskip
 \noindent\textit{Script:}
@@ -34,11 +36,36 @@ This is a common problem in shared living spaces---dorms, family homes, offices.
 Our project solves this. We built a smart water level monitoring system that sits underneath your water filter pitcher, continuously tracking how much water is left, and sends a notification to everyone in the household when it's time to refill.''
 \end{quote}
 
+%% --------------------------------------------------------
+\section*{Part 2: Overview }
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} 1 minute
+
+\noindent\textbf{Action:} Point at the various system components as they are mentioned.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+``Our design has three main components: the smart base, the web server, and the mobile app.
+
+The smart base sits beneath the water pitcher and measures the weight of the pitcher to determine how much water is left. This data is sent to our web server over WiFi using HTTP packets, where it's stored in a database and processed. 
+
+The mobile app is connected to the web server and receives push notifications when the water level drops below a certain threshold. The app also allows users to view the current water level and configure various settings.
+
+\textit{[Switch to prototype diagram.]}
+Today, we will be demonstrating the prototype of our design. We are simulating the connection between the smart base and the web server through two laptops: one connected to the microcontroller to read the sensor data, and another sending simulated weight data to the web server. Our mobile app is currently in the form of a webapp on a laptop, but the functionality is the same as a mobile app would be.'' 
+
+
+''
+\end{quote}
 
 %% --------------------------------------------------------
-\section*{Part 2: The Hardware }
+\section*{Part 3: The Hardware }
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO
 
-\textbf{Action:} Pick up the prototype base and point out each component as mentioning it.
+\noindent\textbf{Action:} Pick up the prototype base and point out each component as mentioning it.
 
 \bigskip
 \noindent\textit{Script:}
@@ -50,14 +77,16 @@ Our project solves this. We built a smart water level monitoring system that sit
 
 \textbf{Second, the microcontroller.} This is the brain of our system. It reads the weight data from the HX711, converts it into a water level percentage, and sends that data over WiFi to our cloud server.
 
-\textbf{Third, the mounting base.} We designed and 3D-printed two circular plates, that sandwich the load cell. The pitcher sits on top. We designed these with M4 screw holes so everything stays secure and aligned.
+\textbf{Third, the mounting base.} We designed and 3D-printed two circular plates, that sandwich the load cell. The pitcher sits on top. We designed these with M4 screw holes so everything stays secure and aligned.''
 \end{quote}
 
 
 %% --------------------------------------------------------
-\section*{Part 3: Live Demo -- Weighing }
+\section*{Part 4: Live Demo -- Weighing }
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO
 
-\textbf{Action:} Place the pitcher on the platform. Have the a computer open showing the readings of the sensor.
+\noindent\textbf{Action:} Place the pitcher on the platform. Have the a computer open showing the readings of the sensor.
 
 \bigskip
 \noindent\textit{Script:}
@@ -81,9 +110,11 @@ Watch the dashboard---you can see the percentage dropping as I pour. The system 
 
 % show how software works
 
-\section*{Part 4: Software Demo}
+\section*{Part 5: Software Demo}
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO
 
-\textbf{Action:} Open laptop to the web server to demonstrate navigating the page
+\noindent\textbf{Action:} Open laptop to the web server to demonstrate navigating the page
 
 \bigskip
 \noindent\textit{Script:}
@@ -99,9 +130,11 @@ When the values are calibrated, the system is able to use the data sent by the m
 \end{quote}
 
 % show how notifications work
-\section*{Part 5: Notification Demo}
+\section*{Part 6: Notification Demo}
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO
 
-\textbf{Action:} Keep the dashboard visible and reset the water level to above the low-water threshold 20\%.
+\noindent\textbf{Action:} Keep the dashboard visible and reset the water level to above the low-water threshold 20\%.
 
 \bigskip
 \noindent\textit{Script:}
@@ -123,9 +156,11 @@ The message says that the filter is running low and needs to be refilled. After 
 
 % Q&A
 
-\section*{Part 6: Questions}
+\section*{Part 7: Questions}
+\noindent\textbf{Presenter:} TODO (prof suggested same as intro person)\\  
+\noindent\textbf{Estimated Time:} TODO
 
-\textbf{Action:} Leave all components visible on the center of the demo table, ready to be moved or pointed at for any questions regarding hardware. 
+\noindent\textbf{Action:} Leave all components visible on the center of the demo table, ready to be moved or pointed at for any questions regarding hardware. 
 
 
 % conclusion
