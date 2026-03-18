@@ -140,18 +140,25 @@ When the values are calibrated, the system is able to use the data sent by the m
 \noindent\textit{Script:}
 
 \begin{quote}
-``Now we will demonstrate the notification feature and how we can subscribe to alerts for when the water level is running low.
+``Now we will demonstrate the push notification feature and how we can subscribe to notifications for when the water level is running low.
 
 \textit{[Point to the current percentage on the dashboard.]}
-Right now, our low-water threshold is set to 20\% and the pitcher level is above the low-water threshold, so no alert is sent. Once the level drops below that value, the app will trigger a push notification to subscribed devices. But first, we have to subscribe to notifications. 
+As you can see here on the dashboard, right now, the water level is at [read water level value]. Our low-water threshold is currently set to 20\% and as you can see, the pitcher level is above 20\% right now, so no notifications will be sent. 
+Once the level drops below that threshold, the web app will trigger a push notification to subscribed devices. But to see this happen, we have to first subscribe to notifications. 
 
-\textit{[Point to "Enable Notifications" button on the dashboard.]} This button will prompt you to allow notifications for our web app. Once you allow that, your device will be subscribed and ready to receive alerts.
+\textit{[Point to "Enable Notifications" button on the dashboard.]} Once you click on this button here that says "Enable Notifications", it will prompt you to allow notifications for our web app. Once you press allow on the prompt, your device will be subscribed and ready to receive notifications.
+Now lets try clicking on the button and allowing notifications.
 
-\textit{[Click on "Enable Notifications" button and allow]} Now, we will measure the pitcher when it is near empty. 
+\textit{[Click on "Enable Notifications" button and allow]} Ok, now that we have enabled notifications, you can see on the dashboard under the Water Pitcher Status that it says "Notifications are enabled".
+Now, we can test it out by first measuring the pitcher when it is near empty. [Water Refiller Person] will now pour out water from the pitcher until it is almost empty and put it back on the base. 
 
-\textit{[Simulate water level to less than 20\%]} You can see the dashboard now reads [read value below 20\%]. Within a few seconds, the notification should appear on the top right corner of your screen.
+\textit{[Pour out water from the pitcher]} And since our base is currently not integrated with the webapp, we will simulate this change by manually sending a low weight value to the web server to trigger the notification. Once the low weight value is sent, 
+you should see the dashboard update to show the new water level and you will also be able to see the push notification appear on the top right corner of the screen, so please watch closely. We will now send the low weight value.
 
-The message says that the filter is running low and needs to be refilled. After the pitcher is refilled and the percentage rises, the system returns to normal and waits for the next low-water event.''
+\textit{[Simulate water level to less than 20\%]} As you can see on the dashboard, it now reads [read value below 20\%]. You should've also seen the push notification pop up on the top right corner of the screen. If you were paying attention, you would've seen that the message payload in the notification 
+showed that the filter is running low and needs to be refilled. It also showed the current water level percentage. Now [Water Refiller Person] will refill the pitcher to a percentage that is above the low-water threshold. 
+
+\textit{[Refill the pitcher to above the low-water threshold and put on base]} After the pitcher is refilled and the percentage rises, the system returns to normal and waits for the next low-water event.''
 \end{quote}
 
 % Q&A
