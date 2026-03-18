@@ -91,8 +91,7 @@ export default async function handler(req, res) {
     const currentPercent = getLevelPercent(Number(weight_g));
     const previousPercent = getLevelPercent(previousReading?.weight_g);
     const crossedBelowThreshold =
-      currentPercent < LOW_WATER_THRESHOLD_PERCENT &&
-      (!previousReading || previousPercent >= LOW_WATER_THRESHOLD_PERCENT);
+      currentPercent < LOW_WATER_THRESHOLD_PERCENT;
 
     const debug = {
       currentPercent,
