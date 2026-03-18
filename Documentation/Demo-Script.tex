@@ -60,51 +60,55 @@ Today, we will be demonstrating the prototype of our design. We are simulating t
 ''
 \end{quote}
 
-%% --------------------------------------------------------
-\section*{Part 3: The Hardware }
-\noindent\textbf{Presenter:} Logan\\  
+
+%% ------------------------
+\section*{Part 3: Hardware \& Live Demo}
+\noindent\textbf{Presenters:} Dev \& Logan\\  
 \noindent\textbf{Estimated Time:} TODO
 
-\noindent\textbf{Action:} Pick up the prototype base and point out each component as mentioning it.
+\noindent\textbf{Action:} Dev places the pitcher on the platform with the terminal open on the connected laptop. Logan picks up or points to each hardware component as he explains it.
 
 \bigskip
 \noindent\textit{Script:}
 
+\medskip
+\noindent\textbf{Dev:}
 \begin{quote}
-``Let's start with the hardware. The system has three main components:
+``Let me set up the live demo first. I'm going to place this empty water pitcher on the sensor base. Over here on the laptop we have the terminal open, where you can see the raw weight readings coming in from the microcontroller via USB. The load cell is now measuring the weight of the pitcher.
+
+While this sits on base, Logan is going to walk you through the hardware that makes this work.''
+\end{quote}
+
+\medskip
+\noindent\textbf{Logan:}
+\begin{quote}
+So let me break down what's going on inside this base. The system has three main components:
 
 \textbf{First, the load cell.} This is a strain-gauge weight sensor. When weight is applied, it bends slightly, and that bending changes its electrical resistance. The change is very tiny---so we use the \textbf{HX711 amplifier board} to boost the signal into something our microcontroller can read. The HX711 gives us 24-bit resolution, which means we can detect very small changes in weight.
 
-\textbf{Second, the microcontroller.} This is the brain of our system. It reads the weight data from the HX711, converts it into a water level percentage, and sends that data over WiFi to our cloud server.
+\textbf{Second, the microcontroller.} This is the brain of our system. It reads the weight data from the HX711 and outputs the readings to the terminal you see on the laptop.
 
-\textbf{Third, the mounting base.} We designed and 3D-printed two circular plates, that sandwich the load cell. The pitcher sits on top. We designed these with M4 screw holes so everything stays secure and aligned.''
+\textbf{Third, the mounting base.} We designed and 3D-printed two circular plates that sandwich the load cell. The pitcher sits on top. We designed these with M4 screw holes so everything stays secure and aligned.''
 \end{quote}
 
-
-%% --------------------------------------------------------
-\section*{Part 4: Live Demo -- Weighing }
-\noindent\textbf{Presenter:} Dev\\  
-\noindent\textbf{Estimated Time:} TODO
-
-\noindent\textbf{Action:} Place the pitcher on the platform. Have the a computer open showing the readings of the sensor.
-
-\bigskip
-\noindent\textit{Script:}
-
+\medskip
+\noindent\textbf{Dev:}
 \begin{quote}
-``Now let's see it in action.
-% maybe add calibration before?
-I'm going to place this water pitcher on the sensor base. The load cell is now measuring the total weight. Our microcontroller reads that value, subtracts the known weight of the empty pitcher, and calculates the percentage of water remaining.
+``Now that you know how the hardware works, let me show you how it reads in action. So right now the terminal is showing the current weight value with the pitcher on the base.
 
-\textit{[Point to the web dashboard.]}
-% ( with fake data)
-Over here on our web dashboard, you can see the water level updating. Right now it's showing [read current percentage]. The pitcher graphic fills up to match the actual level, and you can see the exact percentage and the last time the reading was updated.
+So now let me pour some water in to simulate a user putting water in the pitcher.
 
-Let me pour some water out to simulate usage.
+\textit{[Pour water into the pitcher.]}
 
+Now if you watch the terminal, you can see the weight values increasing as we pour water into the pitcher. The microcontroller is reading the load cell continuously, so the changes show up right away.''
+Now let me pour some water out to simulate someone using the pitcher throughout the day.
+
+
+Now let me pour some water out to simulate a user using some of the water from the pitcher.
 \textit{[Pour water out of the pitcher into a cup.]}
-% fake data 
-Watch the dashboard---you can see the percentage dropping as I pour. The system polls the database every five seconds, so there's a short delay, but it tracks the change.''
+ 
+And just like before, you can see the values in terminal drop as the water after we put the pitcher back on the base.
+
 \end{quote}
 
 
