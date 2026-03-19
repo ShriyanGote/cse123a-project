@@ -49,15 +49,13 @@ Our project solves this. We built a smart water level monitoring system that sit
 \begin{quote}
 ``Our design has three main components: the smart base, the web server, and the mobile app.
 
-The smart base sits beneath the water pitcher and measures the weight of the pitcher to determine how much water is left. This data is sent to our web server over WiFi using HTTP packets, where it's stored in a database and processed. 
+The smart base sits beneath the water pitcher and measures the weight of the pitcher, which can be used later to determine how much water is left. This weight data is sent to our web server over WiFi using HTTP packets, where it's stored in a database and processed. 
 
-The mobile app is connected to the web server and receives push notifications when the water level drops below a certain threshold. The app also allows users to view the current water level and configure various settings.
+The mobile app is connected to the web server and is able to access this weight data. When the water level drops below a certain threshold, the mobile app will send push notifications to the users. The app also allows users to view the current water level and configure various settings.
 
 \textit{[Switch to prototype diagram.]}
-Today, we will be demonstrating the prototype of our design. We are simulating the connection between the smart base and the web server through two laptops: one connected to the microcontroller to read the sensor data, and another sending simulated weight data to the web server. Our mobile app is currently in the form of a webapp on a laptop, but the functionality is the same as a mobile app would be.'' 
+Today, we will be demonstrating the prototype of our design. We are simulating the connection between the smart base and the web server through two laptops: one connected to the microcontroller to read the sensor data, and another sending simulated weight data to the web server. Our mobile app is currently in the form of a webapp on a laptop, but still has the core functionality that the mobile app would have.'' 
 
-
-''
 \end{quote}
 
 
