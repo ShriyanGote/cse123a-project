@@ -112,27 +112,44 @@ And just like before, you can see the values in terminal drop as the water after
 
 % show how software works
 
-\section*{Part 5: Software Demo}
+\section*{Part 4: Software Demo}
 \noindent\textbf{Presenter:} Shriyan\\  
 \noindent\textbf{Estimated Time:} TODO
 
-\noindent\textbf{Action:} Open laptop to the web server to demonstrate navigating the page
+\textbf{Action:} Open laptop to the web server to demonstrate navigating the page
 
 \bigskip
 \noindent\textit{Script:}
 
 \begin{quote}
-``The initial prototype uses a web dashboard to display important device information. This dashboard is also where the initial configuration of the product happens. When a user first starts up this device, they need to calibrate it with empty and full weights. 
+``Now that we have a way to detect the Brita status, we need an interface that is easy for a user to understand. That's why we built a web app to display the current water level of the filter.
 
-\textit{[Highlight calibration buttons]} Both an empty and a full value are required for the product to work as intended. In the startup sequence the user will be prompted for an empty pitcher of water to be placed on the base. After pressing the calibration button they will be asked to fill it up and return it to the base to calibrate the full value. 
+\textit{[Point to the web app/dashboard.]}
 
-Full and empty values are adjustable and configurable at any time, so if a user buys a new filter that holds a larger quantity of water, they can simply change the calibration values and continue using the device as intended. 
+Let's see how it works. We are going to simulate the HTTP POST request that the microcontroller would normally send, using the local webpage shown here.
 
-When the values are calibrated, the system is able to use the data sent by the microcontroller to adjust the visible water level."
+Dev over here will first put the Brita with some water on the base. The console shows the weight around [X grams], and we will send that X grams to our server through this local webpage.
+
+Cool—now we can see that value being displayed on the web app! The user can look at the pitcher graphic and the percentage to know when the Brita is empty versus full.
+
+But before we do all of that, we need to configure the website with calibration values.
+\textit{[Highlight calibration buttons]} When a user first receives the microcontroller, they need to set both the empty and full fields.
+
+First, Dev places an EMPTY Brita on the base. We send the current reading to the server and press `Calibrate empty`.
+
+Now we do the same for full: Dev fills the Brita to the FULL level, sends the updated reading, and presses `Calibrate full`.
+
+Now the user is fully set up.
+
+Next, we simulate someone drinking some water and not refilling the Brita. Dev pours out about half the water, puts it back on the base, and sends the new reading to the server.
+
+As you can see, the web app updates right away.
+
+So how does the user know the Brita levels are low without staring at this page? That's where notifications come in, and Sam will explain that part.''
 \end{quote}
 
 % show how notifications work
-\section*{Part 6: Notification Demo}
+\section*{Part 5: Notification Demo}
 \noindent\textbf{Presenter:} Sam\\  
 \noindent\textbf{Estimated Time:} TODO
 
@@ -165,7 +182,7 @@ showed that the filter is running low and needs to be refilled. It also showed t
 
 % Q&A
 
-\section*{Part 7: Questions}
+\section*{Part 6: Questions}
 \noindent\textbf{Presenter:} Pieter (prof suggested same as intro person)\\  
 \noindent\textbf{Estimated Time:} 5 minutes
 
