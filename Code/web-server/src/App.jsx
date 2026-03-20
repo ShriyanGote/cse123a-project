@@ -74,7 +74,10 @@ export default function App() {
   useEffect(() => {
     load();
     loadCalibration();
-    const t = setInterval(load, 5000);
+    const t = setInterval(() => {
+      load();
+      loadCalibration();
+    }, 5000);
     return () => clearInterval(t);
   }, []);
 

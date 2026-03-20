@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 
-const MAX_WEIGHT_G = 2500;
-const EMPTY_WEIGHT_G = 0;
+const DEFAULT_FULL_G = 2500; // ~2.5L of water
+const DEFAULT_EMPTY_G = 0;
 const LOW_WATER_THRESHOLD_PERCENT = 20;
 
 const supabase = createClient(
@@ -54,10 +54,16 @@ function parseSubscriptionToken(token) {
   return null;
 }
 
-function getLevelPercent(weightG) {
-  if (weightG == null || weightG <= EMPTY_WEIGHT_G) return 0;
-  const range = MAX_WEIGHT_G - EMPTY_WEIGHT_G;
-  const value = ((weightG - EMPTY_WEIGHT_G) / range) * 100;
+function getLevelPercent(weightG, calibration) {
+  if (weightG == null) return 0;
+
+  const empty = calibration?.empty ?? DEFAULT_EMPTY_G;
+  const full = calibration?.full ?? DEFAULT_FULL_G;
+
+  if (full <= empty || weightG <= empty) return 0;
+
+  const range = full - empty;
+  const value = ((weightG - empty) / range) * 100;
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
@@ -82,17 +88,23 @@ export default async function handler(req, res) {
 
     if (previousError) return res.status(500).json({ error: previousError.message });
 
+    const { data: calibrationData, error: calibrationError } = await supabase
+      .from("calibration")
+      .select("empty, full")
+      .maybeSingle();
+
+    if (calibrationError) console.error("Failed to read calibration", calibrationError);
+
     const { error } = await supabase.from("water_readings").insert([
       { device_id, weight_g, battery_mv }
     ]);
 
     if (error) return res.status(500).json({ error: error.message });
 
-    const currentPercent = getLevelPercent(Number(weight_g));
-    const previousPercent = getLevelPercent(previousReading?.weight_g);
+    const currentPercent = getLevelPercent(Number(weight_g), calibrationData);
+    const previousPercent = getLevelPercent(previousReading?.weight_g, calibrationData);
     const crossedBelowThreshold =
-      currentPercent < LOW_WATER_THRESHOLD_PERCENT &&
-      (!previousReading || previousPercent >= LOW_WATER_THRESHOLD_PERCENT);
+      currentPercent < LOW_WATER_THRESHOLD_PERCENT;
 
     const debug = {
       currentPercent,
