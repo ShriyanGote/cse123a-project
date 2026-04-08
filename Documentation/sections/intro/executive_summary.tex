@@ -4,7 +4,7 @@ This design document covers the creation of a our Smart Water Filter Base, which
 
 Shared environments, including roommates, families, and offices, often rely on a single water filter. This can often lead to frustration if users frequently discover that the container is empty when they try to use it. This causes inconvenience, wasted time, and frustration.\\
 
-Our proposed solution is a smart base that is placed under the filter and continuously measures the weight. This weight is converted into a fullness level and sent to users through a mobile app, notifying them if it gets low. \\
+Our proposed solution is a smart base that is placed under the filter and continuously measures the weight. This weight is converted into a percentage level and sent to users through a mobile app, notifying them if it gets low. \\
 
 
 \noindent{}The system is composed of hardware, software, and web components.\\
@@ -12,15 +12,17 @@ Our proposed solution is a smart base that is placed under the filter and contin
 \noindent{}\textbf{Hardware:} 
 \begin{itemize}
     \item Load cell for measuring weight
-    \item HX711 amplifier for sensor communication
+    \item Amplifier for sensor communication
     \item WiFi-enabled microcontroller for processing and communication
+    \item Lithium battery for long term power\\
 \end{itemize}
 
 \noindent{}\textbf{Software:} 
 \begin{itemize}
     \item Microcontroller firmware for reading sensor data and sending notifications
     \item HTTP server for communication between the microcontroller and the mobile app
-    \item Mobile app for displaying water level and notifications\\
+    \item Website for initial setup instructions
+    \item Mobile app for displaying water level, group, and notifications\\
 \end{itemize}
 
 The Smart Water Filter Base is a simple, practical solution for monitoring water filter levels. It is easy to use and install, working with existing water filter pitchers without requiring any modifications. By providing real-time updates on water levels, it helps users avoid the inconvenience of discovering an empty pitcher when they need water.

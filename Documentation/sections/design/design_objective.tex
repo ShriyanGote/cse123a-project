@@ -1,4 +1,5 @@
 \subsection{Design Objective}
+
 Through the goal statement, it is needed that water level is known at all times to the user.
 To approach the goal, two parts needed being what hardware is needed to get accurate readings and what software is needed to communicate
 the information to the user.
@@ -7,10 +8,11 @@ the information to the user.
 We will be using weight as the solution to getting accurate readings for water levels. To measure weight, the hardware would be a load cell, amplifier and a microcontroller.
 For each hardware, there are design choices made based off of the product.
 
-\subsubsection{Load Cell + HX711 Amplifier + Microcontroller}
+\subsubsection{Load Cell +  Amplifier + Microcontroller}
 Here are the choices made for the load cell we chose:
 \begin{itemize}
-    \item Using a 20kg Load Cell, it gives sufficient room for most commerical water filter pitchers
+    \item Using a 20kg Load Cell, it gives sufficient room for most consumer water filter pitchers
     \item HX711 is a high resolution 24-bit analog to digital converter. The amplifier is specifically built for load cells.
     \item Microcontroller will have functionalities of Wifi, 2 Pins, GND, 3.3V VCC as essential components.
+    \item Small footprint provided by microcontroller paired with a load cell means saving space and weight.
 \end{itemize}
