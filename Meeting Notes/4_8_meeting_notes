@@ -1,0 +1,29 @@
+
+David Harrison
+4:08 PM (23 minutes ago)
+
+Hello Everyone,
+
+Good session this afternoon, some things to get into your plan and assign issues for include:
+
+Initial version of the Mobile App
+Keep it simple, just something that show some raw data coming from your unauthenticated API
+If you get stuck getting it from your Macs to you iPhones, let me know or arrange a session with Karan
+Fully Functional User API
+Signup of new users
+Registration of new bases
+Invitations to join a “base group”
+Transfer of base “ownership” between users
+Fully Functional Base API
+Send changes in jug weight
+Receive configuration changes
+Take part in the registration / setup work flow
+Download and install new firmware (stretch goal for prototype, but needs to be in design)
+Complete version of the base code
+All workflows functioning
+Secure & Authenticated use of the Base API
+Complete version of the Mobile App
+All workflows functioning
+Secure & Authenticated use of the User API
+
+And don’t forget, all code committed to the repository needs its own comprehensive tests.
