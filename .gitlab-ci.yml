@@ -4,6 +4,7 @@ stages:
 weekly_report:
   stage: report
   script:
-    - bash git-contribution-report.sh
-  only:
-    - schedules
+    - git-contribution-report.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: manual
