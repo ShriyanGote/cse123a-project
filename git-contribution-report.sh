@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 SINCE="1 week ago"
 UNTIL="now"
@@ -7,10 +7,10 @@ echo "Git Contribution Report"
 echo "From: $SINCE to $UNTIL"
 echo "-----------------------------------"
 
-# Get unique authors (handles spaces in names)
+# Get unique authors safely (no CRLF issues, no heredoc tricks)
 authors=$(git log --since="$SINCE" --until="$UNTIL" --format='%aN' | sort -u)
 
-while IFS= read -r author; do
+echo "$authors" | while IFS= read -r author; do
     echo ""
     echo "==================================="
     echo "Author: $author"
@@ -22,6 +22,7 @@ while IFS= read -r author; do
 
     echo ""
     echo "Commit Messages:"
+
     git log --since="$SINCE" --until="$UNTIL" --author="$author" \
         --pretty=format:"- %s"
 
@@ -30,16 +31,15 @@ while IFS= read -r author; do
     echo "Files Changed + Line Stats:"
 
     git log --since="$SINCE" --until="$UNTIL" --author="$author" \
-        --numstat --pretty=format:"" | \
-    awk '
+        --numstat --pretty=format:"" | awk '
     NF==3 {
         added += $1
         removed += $2
         files[$3]++
     }
     END {
-        print "Total lines added:", added
-        print "Total lines removed:", removed
+        print "Total lines added:", (added+0)
+        print "Total lines removed:", (removed+0)
         print ""
         print "Files touched:"
         for (f in files) {
@@ -47,4 +47,4 @@ while IFS= read -r author; do
         }
     }'
 
-done <<< "$authors"
+done
