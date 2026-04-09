@@ -3,6 +3,10 @@ stages:
 
 weekly_report:
   stage: report
+  image: ubuntu:22.04
+  before_script:
+    - apt-get update
+    - apt-get install -y git
   script:
     - bash ./git-contribution-report.sh
   rules:
