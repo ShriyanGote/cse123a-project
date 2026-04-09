@@ -1,0 +1,9 @@
+stages:
+  - report
+
+weekly_report:
+  stage: report
+  script:
+    - bash git-contribution-report.sh
+  only:
+    - schedules
