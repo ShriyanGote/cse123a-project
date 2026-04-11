@@ -1,0 +1,5 @@
+The charging component of the product requires an IC or a power management module. The following module was selected for testing. I chose this module because eval boards are available and we could solder one for the prototype if necessary. I also reached out to the professor to ask if we need to implement the charging function in the prototype as it would be difficult to fully represent the capabilities as is. 
+
+The best way would be to implement this on the custom PCB, but since we're not printing one for manufacturing an EVAL board will do the trick if we absolutely have to. 
+
+Microchip's MCP73871 is the IC I chose. There are eval boards available on Digikey and I could purchase a USB port that we can wire with jumper cables. This would sit between the battery and the ESP. The ESP is the circuit load and is protected when going through the IC. Without the IC there would be no protection for the load if we were to splice in a charger. 
