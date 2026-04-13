@@ -1,4 +1,9 @@
 \subsection{Design for Manufacture}
+
+The design is intended for large scale manufacturing using a custom PCB. This custom PCB includes all required components such as the CPU, RAM, and Flash storage required to function as a microcontroller. It will also include power contacts for the battery, a power management unit for charging the included battery, and components like the WiFi antenna. The PCB design is an outline of what is required. Selected components can be changed and the circuitry altered as required if parts are unavailable.
+
+The PCB will be mounted inside the 3D printed base and all other components will be contained within the base or related plates. The product is intended to be useable, and rechargeable without having to take apart or disconnect any internal components. 
+
 \subsubsection{3D-Printed Base Plates}
 
 The top and bottom plates are 3D-printed in PLA at a 0.2mm layer height. Each plate is 110mm in diameter and 8mm thick with M4 screw holes and racetrack-shaped countersink pockets. The plates went through multiple print iterations to resolve a flatness issue where the bottom surface was slightly slanted, which affected the stability of the load cell. This was fixed by adjusting bed leveling and print orientation to ensure a flat bottom surface.
@@ -13,3 +18,10 @@ The 75mm bar-type strain gauge load cell is sandwiched between the two plates us
 
 The electronics will be contained inside a separate section of the 3D Printed base. The top section contains the load cell. The bottom section will have all of the mounting for the PCB, battery, and amplifier board. The wires for the selected load cell will come down through the bottom mounted plate through a small hole, then be soldered onto the contacts for the amplifier board. Other wiring will be self-contained in the bottom section. 
 
+\subsubsection{Power}
+
+A battery is the best method of providing power for this product. In order to keep the user from having to repeatedly charge it and remove it from their fridge, a battery with a sufficiently large storage of milli-amp hours is necessary. Also included in the design is some method of charging the battery that does not require taking the device apart. 
+
+To do this, the best method is by including a power management chip capable of keeping the device powered while also charging the battery. The power management chip must keep the circuit load isolated from the battery to prevent power surges or breaking the internal components. The PCB we have designed includes a power management unit selected for this exact purpose. It also includes a USB port connected via a jumper wire that can be connected to from outside of the base. This method keeps the device fully constructed while also allowing a user to charge it at any time.
+
+The software must also include methods of detecting low battery. Implementing this can be done by detecting the voltage passing through the contacts, or by estimating the elapsed time the device has been powered. These will both be assumptions, but can help provide users with some metric to reference for when to charge it. 

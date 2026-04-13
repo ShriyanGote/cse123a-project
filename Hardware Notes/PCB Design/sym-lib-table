@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "esp32-c3-mini-1") (type "KiCad") (uri "C:/Users/Pieter/Downloads/esp32-c3-mini-1.kicad_sym") (options "") (descr ""))
+)

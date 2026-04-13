@@ -1,0 +1,107 @@
+Info: Processing symbol '3.7v1:'.
+Info: Processing symbol '4.1:'.
+Info: Processing symbol '4.2:'.
+Info: Processing symbol '4.3:'.
+Info: Processing symbol '4.4:'.
+Info: Processing symbol '4.5:'.
+Info: Processing symbol '4.6:'.
+Info: Processing symbol '4.7:'.
+Info: Processing symbol 'J1:'.
+Info: Processing symbol 'L1:'.
+Info: Processing symbol 'R1:'.
+Info: Processing symbol 'R2:'.
+Info: Processing symbol 'R3:'.
+Info: Processing symbol 'R4:'.
+Info: Processing symbol 'U1:Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm'.
+Info: Processing symbol 'U2:'.
+Info: Processing symbol 'U3:Package_SO:SOIC-16_3.9x9.9mm_P1.27mm'.
+Changed U1 value from QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm to MCP73871.
+Updated U1 symbol association from  to /b3683d0f-a161-44e6-8180-e48fbe466e83.
+Updated U1 fields.
+Updated U1 sheetname to '/'.
+Updated U1 sheetfile to '123-pcb-design.kicad_sch'.
+Updated U1 footprint filters to 'QFN*4x4mm*P0.5mm*'.
+Add net Net-(J1-CC1).
+Connected U1 pin 18 to Net-(J1-CC1).
+Add net unconnected-(U1-CE-Pad17).
+Connected U1 pin 17 to unconnected-(U1-CE-Pad17).
+Add net unconnected-(U1-PROG2-Pad4).
+Connected U1 pin 4 to unconnected-(U1-PROG2-Pad4).
+Add net unconnected-(U1-~{PG}-Pad6).
+Connected U1 pin 6 to unconnected-(U1-~{PG}-Pad6).
+Add net Net-(U2-IO6).
+Connected U1 pin 20 to Net-(U2-IO6).
+Add net unconnected-(U1-PROG1-Pad13).
+Connected U1 pin 13 to unconnected-(U1-PROG1-Pad13).
+Add net unconnected-(U1-STAT1/~{LBO}-Pad8).
+Connected U1 pin 8 to unconnected-(U1-STAT1/~{LBO}-Pad8).
+Add net unconnected-(U1-SEL-Pad3).
+Connected U1 pin 3 to unconnected-(U1-SEL-Pad3).
+Connected U1 pin 1 to Net-(U2-IO6).
+Add net unconnected-(U1-THERM-Pad5).
+Connected U1 pin 5 to unconnected-(U1-THERM-Pad5).
+Add net Net-(U1-V_{SS}-Pad10).
+Connected U1 pin 10 to Net-(U1-V_{SS}-Pad10).
+Add net Net-(3.7v1-+).
+Connected U1 pin 15 to Net-(3.7v1-+).
+Connected U1 pin 14 to Net-(3.7v1-+).
+Connected U1 pin 21 to Net-(U1-V_{SS}-Pad10).
+Add net unconnected-(U1-STAT2-Pad7).
+Connected U1 pin 7 to unconnected-(U1-STAT2-Pad7).
+Add net unconnected-(U1-PROG3-Pad12).
+Connected U1 pin 12 to unconnected-(U1-PROG3-Pad12).
+Add net unconnected-(U1-V_{BAT_SENSE}-Pad16).
+Connected U1 pin 16 to unconnected-(U1-V_{BAT_SENSE}-Pad16).
+Add net unconnected-(U1-VPCC-Pad2).
+Connected U1 pin 2 to unconnected-(U1-VPCC-Pad2).
+Connected U1 pin 11 to Net-(U1-V_{SS}-Pad10).
+Add net unconnected-(U1-~{TE}-Pad9).
+Connected U1 pin 9 to unconnected-(U1-~{TE}-Pad9).
+Connected U1 pin 19 to Net-(J1-CC1).
+Updated U1 unit metadata.
+Added U1 (footprint 'Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm').
+Changed REF** reference designator to U1.
+Added U3 (footprint 'Package_SO:SOIC-16_3.9x9.9mm_P1.27mm').
+Changed REF** reference designator to U3.
+Changed U3 value from SOIC-16_3.9x9.9mm_P1.27mm to HX711.
+Updated U3 symbol association from  to /539b080a-a2a2-44ba-a118-466ed1deb788.
+Updated U3 fields.
+Updated U3 sheetname to '/'.
+Updated U3 sheetfile to '123-pcb-design.kicad_sch'.
+Updated U3 footprint filters to '*SO*3.9x9.9mm*P1.27mm*'.
+Add net E-.
+Connected U3 pin 5 to E-.
+Add net GPIO_4/ADC_1.
+Connected U3 pin 12 to GPIO_4/ADC_1.
+Add net unconnected-(U3-RATE-Pad15).
+Connected U3 pin 15 to unconnected-(U3-RATE-Pad15).
+Add net unconnected-(U3-XI-Pad14).
+Connected U3 pin 14 to unconnected-(U3-XI-Pad14).
+Add net unconnected-(U3-XO-Pad13).
+Connected U3 pin 13 to unconnected-(U3-XO-Pad13).
+Add net unconnected-(U3-BASE-Pad2).
+Connected U3 pin 2 to unconnected-(U3-BASE-Pad2).
+Add net unconnected-(U3-INB+-Pad10).
+Connected U3 pin 10 to unconnected-(U3-INB+-Pad10).
+Add net Net-(U3-AVDD).
+Connected U3 pin 3 to Net-(U3-AVDD).
+Add net unconnected-(U3-DVDD-Pad16).
+Connected U3 pin 16 to unconnected-(U3-DVDD-Pad16).
+Add net Net-(U3-INA-).
+Connected U3 pin 7 to Net-(U3-INA-).
+Add net Net-(U3-VBG).
+Connected U3 pin 6 to Net-(U3-VBG).
+Add net VSUP.
+Connected U3 pin 1 to VSUP.
+Add net Net-(U3-VFB).
+Connected U3 pin 4 to Net-(U3-VFB).
+Add net unconnected-(U3-INB--Pad9).
+Connected U3 pin 9 to unconnected-(U3-INB--Pad9).
+Add net GPIO_5/ADC_2.
+Connected U3 pin 11 to GPIO_5/ADC_2.
+Add net Net-(U3-INA+).
+Connected U3 pin 8 to Net-(U3-INA+).
+Updated U3 unit metadata.
+
+
+Info: Total warnings: 0, errors: 0.
