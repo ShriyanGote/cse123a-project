@@ -1,0 +1,10 @@
+- design vs prototype - separate much more in design document
+    - specifications for design should say capabilities, not specific implementations
+    - shorter section for prototype - what sensors, mcu, etc to implement design
+    - each design section should also include the capabilities to test
+- fix contradiction - remove section that says self-hosted
+- change wifi provisioning to use bluetooth instead of wifi soft ap
+    - bluetooth better for low power devices, used more often for modern devices
+    - soft ap better for sending more data/flexible format data
+    - couldnt find any other reasons online to use bluetooth
+- create log script for progress reports (completed, in pipeline or can run .sh file from repo)
