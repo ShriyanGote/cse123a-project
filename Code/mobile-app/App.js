@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { isSupabaseConfigured, supabase } from "./src/supabase";
+import { fetchAppState, postCalibration } from "./src/api";
 
 const DEFAULT_FULL_G = 2500;
 const DEFAULT_EMPTY_G = 0;
@@ -66,53 +66,21 @@ export default function App() {
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    if (!supabase) return;
-    const { data, error: loadError } = await supabase
-      .from("water_readings")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (loadError) {
-      setError(loadError.message);
-      return;
+    try {
+      const { reading, calibration: cal } = await fetchAppState();
+      setLatest(reading ?? null);
+      setCalibration(cal ?? null);
+      setError("");
+    } catch (e) {
+      setError(e.message ?? String(e));
     }
-
-    setLatest(data ?? null);
-    setError("");
-  }, []);
-
-  const loadCalibration = useCallback(async () => {
-    if (!supabase) return;
-    const { data, error: calibrationError } = await supabase
-      .from("calibration")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (calibrationError) {
-      setError(calibrationError.message);
-      return;
-    }
-
-    setCalibration(data ?? null);
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setIsLoading(false);
-      setError(
-        "Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env, then restart Expo."
-      );
-      return;
-    }
-
     let mounted = true;
 
     async function boot() {
-      await Promise.all([load(), loadCalibration()]);
+      await load();
       if (mounted) setIsLoading(false);
     }
 
@@ -120,14 +88,13 @@ export default function App() {
 
     const timer = setInterval(() => {
       load();
-      loadCalibration();
     }, 5000);
 
     return () => {
       mounted = false;
       clearInterval(timer);
     };
-  }, [load, loadCalibration]);
+  }, [load]);
 
   const display = latest;
   const percent = useMemo(
@@ -138,27 +105,16 @@ export default function App() {
   const lastUpdated = display?.created_at ? new Date(display.created_at) : null;
 
   async function upsertCalibration(nextFields) {
-    if (!supabase) return;
     setIsSavingCalibration(true);
-    const base = calibration ?? {};
-    const payload = {
-      id: base.id ?? 1,
-      empty: "empty" in nextFields ? nextFields.empty : base.empty ?? null,
-      full: "full" in nextFields ? nextFields.full : base.full ?? null,
-    };
-
-    const { error: saveError } = await supabase
-      .from("calibration")
-      .upsert(payload, { onConflict: "id" });
-
-    if (saveError) {
-      setError(saveError.message);
+    try {
+      await postCalibration(nextFields);
+      await load();
+      setError("");
+    } catch (e) {
+      setError(e.message ?? String(e));
+    } finally {
       setIsSavingCalibration(false);
-      return;
     }
-
-    await loadCalibration();
-    setIsSavingCalibration(false);
   }
 
   async function calibrateEmpty() {

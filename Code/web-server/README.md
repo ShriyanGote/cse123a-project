@@ -7,6 +7,15 @@ Our Webserver Github Repo: https://github.com/ShriyanGote/cse123a-project/tree/5
 This app shows your latest pitcher level from Supabase and receives new sensor readings through `api/ingest.js`.
 It can also send Web Push notifications when the water level is below 20%.
 
+### Mobile / server API (Vercel)
+
+The React Native app calls these routes instead of Supabase directly:
+
+- `GET /api/app-state` — JSON `{ reading, calibration }` (latest row from `water_readings` and `calibration`).
+- `POST /api/calibration` — JSON body may include any of `id`, `empty`, `full`; omitted fields are merged with the latest calibration row (same behavior as the web UI buttons).
+
+Set `EXPO_PUBLIC_API_BASE_URL` in the Expo app (optional; defaults to the production URL in `src/api.js`).
+
 ## Local dev
 
 Install dependencies:
