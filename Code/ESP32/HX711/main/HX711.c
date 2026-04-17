@@ -25,9 +25,22 @@
 static const char *TAG = "HX711";
 
 // Calibration parameters
-static int32_t g_offset = 0; // tare offset
-static float   g_scale  = -100.3f; // counts per gram, will change for calibration
+RTC_DATA_ATTR static int32_t g_offset = 0; // tare offset
+RTC_DATA_ATTR static float   g_scale  = -100.3f; // counts per gram, will change for calibration
 
+void hx711_power_down(void)
+{
+    hx711_set_sck(0);
+    esp_rom_delay_us(1);
+    hx711_set_sck(1);
+    esp_rom_delay_us(70); // >60us required
+}
+
+void hx711_power_up(void)
+{
+    hx711_set_sck(0);
+    vTaskDelay(pdMS_TO_TICKS(100)); // allow stabilization
+}
 
 void sensor_init(void){
     gpio_config_t io = {0};  
@@ -103,8 +116,14 @@ void tare(int samples){
     g_offset = get_raw_weight(samples);
 }
 
-float get_grams(int32_t raw){
-    return (raw - g_offset) / g_scale;
+int32_t get_grams(int32_t raw){
+    float tempGrams = (raw - g_offset) / g_scale;
+    if(tempGrams >= 0){
+        tempGrams += 0.5f;
+    } else{
+        tempGrams -= 0.5f;
+    }
+    return (int32_t)tempGrams;
 }
 
 int32_t getRawChange(int rawWeight){
