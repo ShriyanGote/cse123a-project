@@ -84,7 +84,7 @@ void tare(int samples){
     offset = get_raw_weight(samples);
 }
 
-float get_grams(int32_t raw){
+int32_t get_grams(int32_t raw){
     return (raw - offset) / scale;
 }
 
@@ -112,14 +112,14 @@ int main(void) {
         sim_set_weight(expected);
 
         int32_t raw = get_raw_weight(10);
-        float measured = get_grams(raw);
+        int32_t measured = get_grams(raw);
 
         float error = fabs(measured - expected);
         
         if (error > TOLERANCE) {
-            printf("FAIL: Expected %.2f. Measured %.2f. Error %.2f\n", expected, measured, error);
+            printf("FAIL: Expected %.2f. Measured %d. Error %.2f\n", expected, measured, error);
         } else {
-            printf("PASS: Expected %.2f. Measured %.2f\n", expected, measured);
+            printf("PASS: Expected %.2f. Measured %df\n", expected, measured);
         }
     }
     printf("\nTests Complete\n");
