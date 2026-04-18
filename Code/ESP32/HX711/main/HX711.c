@@ -3,12 +3,51 @@
 #include <string.h>
 #include <inttypes.h>
 
+#ifndef UNIT_TEST
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_rom_sys.h"
 #include "esp_log.h"
 #include "freertos/portmacro.h"
+#endif
+
+#ifdef UNIT_TEST
+
+#define RTC_DATA_ATTR
+
+#define vTaskDelay(x)
+#define pdMS_TO_TICKS(x) (x)
+#define esp_rom_delay_us(x)
+#define ESP_LOGW(tag, msg)
+#define ESP_LOGI(tag, fmt, ...)
+#define ESP_ERROR_CHECK(x)
+
+
+typedef int gpio_num_t;
+
+typedef struct {
+    unsigned long long pin_bit_mask;
+    int mode;
+    int pull_up_en;
+    int pull_down_en;
+    int intr_type;
+} gpio_config_t;
+
+#define GPIO_MODE_OUTPUT 1
+#define GPIO_MODE_INPUT  0
+#define GPIO_PULLUP_DISABLE 0
+#define GPIO_PULLDOWN_DISABLE 0
+#define GPIO_INTR_DISABLE 0
+
+static inline int gpio_config(const gpio_config_t *io) { (void)io; return 0; }
+static inline void gpio_set_level(int pin, int level) { (void)pin; (void)level; }
+static inline int gpio_get_level(int pin) { (void)pin; return 0; }
+
+#define GPIO_NUM_4 4
+#define GPIO_NUM_5 5
+
+#endif
 
 #include "HX711.h"
 
@@ -116,20 +155,36 @@ void tare(int samples){
     g_offset = get_raw_weight(samples);
 }
 
-int32_t get_grams(int32_t raw){
-    float tempGrams = (raw - g_offset) / g_scale;
-    if(tempGrams >= 0){
+//Raw covert to int grams
+int32_t raw_to_grams(int32_t raw, int32_t offset, float scale)
+{
+    float tempGrams = (raw - offset) / scale;
+    if (tempGrams >= 0) {
         tempGrams += 0.5f;
-    } else{
+    } else {
         tempGrams -= 0.5f;
     }
     return (int32_t)tempGrams;
 }
 
-int32_t getRawChange(int rawWeight){
-    return rawWeight - g_offset;
+int32_t get_grams(int32_t raw)
+{
+    return raw_to_grams(raw, g_offset, g_scale);
 }
 
+
+//RawChange
+int32_t hx711_raw_change(int32_t raw, int32_t offset)
+{
+    return raw - offset;
+}
+
+int32_t getRawChange(int32_t raw)
+{
+    return hx711_raw_change(raw, g_offset);
+}
+
+//Offset
 int32_t hx711_get_offset(void)
 {
     return g_offset;
