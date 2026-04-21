@@ -1,0 +1,28 @@
+\subsection{Custom Design PCB}
+
+In order to produce large amounts of product, the cheapest and fastest method is to use a custom circuit board. This circuit board would ideally integrate all necessary components with as little extra work as possible. We provide an example design using available components. These components can be swapped with other similar types, as long as their main functionality is still met. 
+
+\subsubsection{Processor}
+
+The selected processor is the ESP32-C3-MINI-1. This processor is widely available and was selected for the following reasons. It includes 2.4GHz Wi-Fi and Bluetooth antennas in the packaging. This is ideal for our design as it reduces the number of required components. Adding a separate antenna is possible but would require a different chip selection that includes the required pins for Wi-Fi and Bluetooth. 
+
+The pins we use are the GPIO 4 and 5 pins. On this specific chip they are the ADC channels 0 and 4 respectively. These pins allow us to read data from our amplifier chip, and through the code we are able to interpret that as a weight value. These pins are required for this setup. Using another method like I2C or UART might be possible but would require a complete redesign to match our requirements. Analog to Digital pins are the simplest method for this design. 
+
+The power supply for the chip is provided through the 3.3v pin. We selected a power method that was capable of powering both the amplifier board and the ESP chip. Both can be powered with 3.3 volts. For most of their operational time, the ESP chip will be in standby mode which consumes very little power. The most power intensive time is when transmitting via WiFi as that has a tendency to spike the power consumption. In order to handle this, a power management circuit is required to prevent spikes in current. 
+
+\subsubsection{Power Components}
+
+For this design we selected the MCP73871. This is a power management IC that is capable of switching between a USB or AC/DC power source, and a lithium ion battery. When the USB or AC/DC source is providing power, it will power the circuit load and charge the lithium ion battery. This chip selection includes a lot more features than our design takes advantage of, meaning room for expansion of features if desired. 
+
+The requirements a selected chip needs to include are the following. First, it needs to output the correct voltage for the selected amplifier and CPU combo. If not using an amplifier but some other method of data collection, then it needs to be able to output the required power for that method. Second, it needs to take two inputs, a USB or AC/DC input, and a lithium ion battery input. Third, it needs to be capable of charging the lithium ion battery, otherwise the product will only last a single charge and then not be useful to the customer. 
+
+Our selection for this design is to use a USB-C charging receptacle. 
+
+\subsubsection{Load Cell Amplifier}
+
+The load cell amplifier used in this circuit is the HX711. This amplifier was selected because of the capabilities it provides. 
+
+\subsubsection{Load Cell}
+
+Change the test points to a 4 pin connector. Test points should not be used for soldering. Also, change the USB-C to attach using a similar method, we don't want loose wires 
+
