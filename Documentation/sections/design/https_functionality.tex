@@ -1,0 +1,15 @@
+\subsection{HTTPS Capabilities}
+The smart base must be able to securely communicate with a remote server or cloud service using HTTPS. This is necessary to send data about the water level, device identication data, and authentication data. It also must be able to recieve authentication data or tokens from the server, which it will use for future communications.
+
+The smart base must support:
+\begin{itemize}
+    \item HTTPS client connections using TLS 1.2 or higher
+    \item standard HTTP methods for bi-directional communication (e.g. GET, POST)
+    \item server certificate validation to ensure secure communication
+    \item reliable error handling for failed connections or invalid certificates
+    \item ability to reestablish connections if the network is temporarily unavailable
+    \item secure storage of any necessary credentials (e.g. API keys) for authenticating with remote servers
+    \item DNS resolution to connect to servers by hostname rather than IP address
+\end{itemize}
+
+The smart base must be able to securely transmit data to a remote server or cloud service for storage and analysis. This requires secure HTTPS client functionality, with the ability to both send and recieve data. Additionally, the smart base should be able to handle common network issues or errors. Although DNS resolution is not strictly required depending on the implementation, it is strongly encouraged to allow for flexibility and scalability in the system design.
