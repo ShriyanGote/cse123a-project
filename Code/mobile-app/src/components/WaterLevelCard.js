@@ -1,7 +1,15 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { getLevelPercent, hasWater } from "../lib/water";
 
-export default function WaterLevelCard({ waterState }) {
+export default function WaterLevelCard({
+  waterState,
+  showCalibrationButtons = false,
+  onCalibrateEmpty,
+  onCalibrateFull,
+  onResetCalibration,
+  isCalibrating = false,
+  errorMessage = "",
+}) {
   const percent = getLevelPercent(
     waterState?.weight_g,
     waterState?.empty_g,
@@ -51,6 +59,32 @@ export default function WaterLevelCard({ waterState }) {
           ? new Date(waterState.updated_at || waterState.created_at).toLocaleString()
           : "--"}
       </Text>
+      {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+      {showCalibrationButtons ? (
+        <View style={styles.calibrationRow}>
+          <Pressable
+            style={[styles.calibrationButton, isCalibrating && styles.disabledButton]}
+            onPress={onCalibrateEmpty}
+            disabled={isCalibrating}
+          >
+            <Text style={styles.calibrationButtonText}>Calibrate empty</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.calibrationButton, isCalibrating && styles.disabledButton]}
+            onPress={onCalibrateFull}
+            disabled={isCalibrating}
+          >
+            <Text style={styles.calibrationButtonText}>Calibrate full</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.calibrationButton, isCalibrating && styles.disabledButton]}
+            onPress={onResetCalibration}
+            disabled={isCalibrating}
+          >
+            <Text style={styles.calibrationButtonText}>Reset</Text>
+          </Pressable>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -160,6 +194,34 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 12,
     color: "#64748b",
+    textAlign: "center",
+  },
+  calibrationRow: {
+    marginTop: 6,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+  },
+  calibrationButton: {
+    borderWidth: 1,
+    borderColor: "#bae6fd",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#f0f9ff",
+  },
+  calibrationButtonText: {
+    color: "#0369a1",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  errorText: {
+    fontSize: 12,
+    color: "#b91c1c",
     textAlign: "center",
   },
 });

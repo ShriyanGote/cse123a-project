@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
+  Keyboard,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "../supabase";
 import { generateInviteCode } from "../lib/inviteCode";
 
@@ -17,7 +19,9 @@ export default function DashboardScreen({ user, navigation }) {
   const [groups, setGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState("");
+  const [generalError, setGeneralError] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [joinError, setJoinError] = useState("");
 
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDeviceId, setNewGroupDeviceId] = useState("");
@@ -45,10 +49,12 @@ export default function DashboardScreen({ user, navigation }) {
 
   const refresh = useCallback(async () => {
     try {
-      setError("");
+      setGeneralError("");
+      setCreateError("");
+      setJoinError("");
       await loadGroups();
     } catch (e) {
-      setError(e.message ?? "Failed to load groups.");
+      setGeneralError(e.message ?? "Failed to load groups.");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -59,16 +65,23 @@ export default function DashboardScreen({ user, navigation }) {
     refresh();
   }, [refresh]);
 
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
   async function handleCreateGroup() {
+    Keyboard.dismiss();
+    setCreateError("");
     const name = newGroupName.trim();
     if (!name) {
-      setError("Please enter a group name.");
+      setCreateError("Please enter a group name.");
       return;
     }
 
     setIsBusy(true);
     try {
-      setError("");
       const inviteCode = generateInviteCode(6);
       const { error: rpcError } = await supabase.rpc("create_group_with_owner", {
         group_name: name,
@@ -81,22 +94,23 @@ export default function DashboardScreen({ user, navigation }) {
       setNewGroupDeviceId("");
       await refresh();
     } catch (e) {
-      setError(e.message ?? "Could not create group.");
+      setCreateError(e.message ?? "Could not create group.");
     } finally {
       setIsBusy(false);
     }
   }
 
   async function handleJoinGroup() {
+    Keyboard.dismiss();
+    setJoinError("");
     const code = joinCode.trim().toUpperCase();
     if (!code) {
-      setError("Please enter an invite code.");
+      setJoinError("Please enter an invite code.");
       return;
     }
 
     setIsBusy(true);
     try {
-      setError("");
       const { error: joinError } = await supabase.rpc("join_group_by_invite", {
         invite: code,
       });
@@ -104,7 +118,7 @@ export default function DashboardScreen({ user, navigation }) {
       setJoinCode("");
       await refresh();
     } catch (e) {
-      setError(e.message ?? "Could not join group.");
+      setJoinError(e.message ?? "Could not join group.");
     } finally {
       setIsBusy(false);
     }
@@ -113,7 +127,7 @@ export default function DashboardScreen({ user, navigation }) {
   async function handleSignOut() {
     const { error: signOutError } = await supabase.auth.signOut();
     if (signOutError) {
-      setError(signOutError.message ?? "Could not sign out.");
+      setGeneralError(signOutError.message ?? "Could not sign out.");
     }
   }
 
@@ -124,7 +138,13 @@ export default function DashboardScreen({ user, navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
             <Text style={styles.title}>My Groups</Text>
@@ -161,6 +181,7 @@ export default function DashboardScreen({ user, navigation }) {
           >
             <Text style={styles.primaryButtonText}>Create Group</Text>
           </Pressable>
+          {!!createError && <Text style={styles.cardErrorText}>{createError}</Text>}
         </View>
 
         <View style={styles.card}>
@@ -183,29 +204,24 @@ export default function DashboardScreen({ user, navigation }) {
           >
             <Text style={styles.primaryButtonText}>Join Group</Text>
           </Pressable>
+          {!!joinError && <Text style={styles.cardErrorText}>{joinError}</Text>}
         </View>
 
-        {!!error && <Text style={styles.errorText}>{error}</Text>}
+        {!!generalError && <Text style={styles.errorText}>{generalError}</Text>}
 
         {isLoading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color="#0ea5e9" />
           </View>
+        ) : groups.length === 0 ? (
+          <Text style={styles.emptyText}>
+            No groups yet. Create one or join with a code.
+          </Text>
         ) : (
-          <FlatList
-            data={groups}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.groupList}
-            refreshControl={
-              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>
-                No groups yet. Create one or join with a code.
-              </Text>
-            }
-            renderItem={({ item }) => (
+          <View style={styles.groupList}>
+            {groups.map((item) => (
               <Pressable
+                key={item.id}
                 onPress={() =>
                   navigation.navigate("Group", { groupId: item.id, groupName: item.name })
                 }
@@ -219,10 +235,10 @@ export default function DashboardScreen({ user, navigation }) {
                 <Text style={styles.groupMeta}>Device: {item.device_id || "Not set"}</Text>
                 <Text style={styles.groupMeta}>Role: {item.role}</Text>
               </Pressable>
-            )}
-          />
+            ))}
+          </View>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -233,9 +249,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
   },
   container: {
-    flex: 1,
     padding: 16,
     gap: 12,
+    paddingBottom: 24,
   },
   headerRow: {
     flexDirection: "row",
@@ -335,6 +351,10 @@ const styles = StyleSheet.create({
     color: "#b91c1c",
     textAlign: "center",
     fontSize: 13,
+  },
+  cardErrorText: {
+    color: "#b91c1c",
+    fontSize: 12,
   },
   pressed: {
     opacity: 0.86,

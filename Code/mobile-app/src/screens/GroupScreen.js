@@ -1,25 +1,36 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
+  Modal,
   Pressable,
   RefreshControl,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import WaterLevelCard from "../components/WaterLevelCard";
 import { supabase } from "../supabase";
 
-export default function GroupScreen({ route, user }) {
+export default function GroupScreen({ route, user, navigation }) {
   const { groupId } = route.params;
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState("");
+  const [generalError, setGeneralError] = useState("");
+  const [editError, setEditError] = useState("");
+  const [waterError, setWaterError] = useState("");
   const [group, setGroup] = useState(null);
   const [latestReading, setLatestReading] = useState(null);
   const [members, setMembers] = useState([]);
+  const [editName, setEditName] = useState("");
+  const [editDeviceId, setEditDeviceId] = useState("");
+  const [isSavingGroup, setIsSavingGroup] = useState(false);
+  const [isDeletingGroup, setIsDeletingGroup] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isCalibrating, setIsCalibrating] = useState(false);
 
   const myMembership = useMemo(
     () => members.find((member) => member.user_id === user.id),
@@ -27,6 +38,8 @@ export default function GroupScreen({ route, user }) {
   );
   const canManageUsers =
     myMembership?.role === "owner" || myMembership?.role === "admin";
+  const canEditGroup = myMembership?.role === "owner";
+  const canDeleteGroup = myMembership?.role === "owner";
 
   const loadGroup = useCallback(async () => {
     const { data: groupData, error: groupError } = await supabase
@@ -72,16 +85,18 @@ export default function GroupScreen({ route, user }) {
     }));
 
     setGroup(groupData);
+    setEditName(groupData.name ?? "");
+    setEditDeviceId(groupData.device_id ?? "");
     setLatestReading(reading);
     setMembers(mergedMembers);
   }, [groupId]);
 
   const refresh = useCallback(async () => {
     try {
-      setError("");
+      setGeneralError("");
       await loadGroup();
     } catch (e) {
-      setError(e.message ?? "Could not load group details.");
+      setGeneralError(e.message ?? "Could not load group details.");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -93,9 +108,9 @@ export default function GroupScreen({ route, user }) {
   }, [refresh]);
 
   async function updateMemberRole(targetUserId, nextRole) {
-    if (!canManageUsers) return;
+    if (!canEditGroup) return;
     try {
-      setError("");
+      setGeneralError("");
       const { error: updateError } = await supabase
         .from("group_members")
         .update({ role: nextRole })
@@ -104,18 +119,18 @@ export default function GroupScreen({ route, user }) {
       if (updateError) throw updateError;
       await refresh();
     } catch (e) {
-      setError(e.message ?? "Could not update member role.");
+      setGeneralError(e.message ?? "Could not update member role.");
     }
   }
 
   async function removeMember(targetUserId) {
     if (!canManageUsers) return;
     if (targetUserId === user.id && myMembership?.role === "owner") {
-      setError("Owner cannot remove themselves.");
+      setGeneralError("Owner cannot remove themselves.");
       return;
     }
     try {
-      setError("");
+      setGeneralError("");
       const { error: removeError } = await supabase
         .from("group_members")
         .delete()
@@ -124,7 +139,95 @@ export default function GroupScreen({ route, user }) {
       if (removeError) throw removeError;
       await refresh();
     } catch (e) {
-      setError(e.message ?? "Could not remove member.");
+      setGeneralError(e.message ?? "Could not remove member.");
+    }
+  }
+
+  async function saveGroupEdits() {
+    if (!canEditGroup) return;
+    const trimmedName = editName.trim();
+    if (!trimmedName) {
+      setEditError("Group name cannot be empty.");
+      return;
+    }
+
+    setIsSavingGroup(true);
+    try {
+      setEditError("");
+      const { error: updateError } = await supabase
+        .from("groups")
+        .update({
+          name: trimmedName,
+          device_id: editDeviceId.trim() || null,
+        })
+        .eq("id", groupId);
+      if (updateError) throw updateError;
+      setIsEditModalVisible(false);
+      await refresh();
+    } catch (e) {
+      setEditError(e.message ?? "Could not save group details.");
+    } finally {
+      setIsSavingGroup(false);
+    }
+  }
+
+  function confirmDeleteGroup() {
+    if (!canDeleteGroup) return;
+    Alert.alert(
+      "Delete Group",
+      "This will permanently delete the group and all memberships. Continue?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeletingGroup(true);
+            try {
+              setGeneralError("");
+              const { error: deleteError } = await supabase
+                .from("groups")
+                .delete()
+                .eq("id", groupId);
+              if (deleteError) throw deleteError;
+              navigation.goBack();
+            } catch (e) {
+              setGeneralError(e.message ?? "Could not delete group.");
+            } finally {
+              setIsDeletingGroup(false);
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  async function calibrateGroup(field) {
+    if (!canEditGroup) return;
+    if (!latestReading?.weight_g && latestReading?.weight_g !== 0) {
+      setWaterError("No sensor reading available for calibration.");
+      return;
+    }
+
+    setIsCalibrating(true);
+    try {
+      setWaterError("");
+      const payload =
+        field === "reset"
+          ? { empty_g: 0, full_g: 2500 }
+          : field === "empty"
+            ? { empty_g: latestReading.weight_g }
+            : { full_g: latestReading.weight_g };
+      const { error: updateError } = await supabase
+        .from("groups")
+        .update(payload)
+        .eq("id", groupId);
+      if (updateError) throw updateError;
+      await refresh();
+    } catch (e) {
+      setWaterError(e.message ?? "Could not calibrate water filter.");
+    } finally {
+      setIsCalibrating(false);
     }
   }
 
@@ -153,11 +256,28 @@ export default function GroupScreen({ route, user }) {
         ListHeaderComponent={
           <>
             <View style={styles.headerCard}>
-              <Text style={styles.groupName}>{group?.name ?? "Group"}</Text>
+              <View style={styles.headerTopRow}>
+                <Text style={styles.groupName}>{group?.name ?? "Group"}</Text>
+                {canEditGroup ? (
+                  <Pressable
+                    style={[
+                      styles.editHeaderButton,
+                      (isSavingGroup || isDeletingGroup) && styles.disabledButton,
+                    ]}
+                    onPress={() => {
+                      setEditError("");
+                      setIsEditModalVisible(true);
+                    }}
+                    disabled={isSavingGroup || isDeletingGroup}
+                  >
+                    <Text style={styles.editHeaderButtonText}>Edit</Text>
+                  </Pressable>
+                ) : null}
+              </View>
               <Text style={styles.groupMeta}>Invite code: {group?.invite_code ?? "--"}</Text>
               <Text style={styles.groupMeta}>Device: {group?.device_id ?? "Not set"}</Text>
               <Text style={styles.groupMeta}>Your role: {myMembership?.role ?? "--"}</Text>
-              {!!error && <Text style={styles.errorText}>{error}</Text>}
+              {!!generalError && <Text style={styles.errorText}>{generalError}</Text>}
             </View>
             <WaterLevelCard
               waterState={
@@ -176,6 +296,12 @@ export default function GroupScreen({ route, user }) {
                       updated_at: null,
                     }
               }
+              showCalibrationButtons={canEditGroup}
+              onCalibrateEmpty={() => calibrateGroup("empty")}
+              onCalibrateFull={() => calibrateGroup("full")}
+              onResetCalibration={() => calibrateGroup("reset")}
+              isCalibrating={isCalibrating}
+              errorMessage={waterError}
             />
             <Text style={styles.memberTitle}>Members</Text>
           </>
@@ -218,6 +344,64 @@ export default function GroupScreen({ route, user }) {
           );
         }}
       />
+      <Modal
+        visible={isEditModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.editTitle}>Edit Group</Text>
+            <TextInput
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Group name"
+              style={styles.input}
+            />
+            <TextInput
+              value={editDeviceId}
+              onChangeText={setEditDeviceId}
+              placeholder="Device ID"
+              autoCapitalize="none"
+              style={styles.input}
+            />
+            {!!editError && <Text style={styles.modalErrorText}>{editError}</Text>}
+            <Pressable
+              style={[
+                styles.actionButton,
+                (isSavingGroup || isDeletingGroup) && styles.disabledButton,
+              ]}
+              onPress={saveGroupEdits}
+              disabled={isSavingGroup || isDeletingGroup}
+            >
+              <Text style={styles.actionButtonText}>
+                {isSavingGroup ? "Saving..." : "Save changes"}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.secondaryAction}
+              onPress={() => setIsEditModalVisible(false)}
+            >
+              <Text style={styles.secondaryActionText}>Cancel</Text>
+            </Pressable>
+            {canDeleteGroup ? (
+              <Pressable
+                style={[
+                  styles.deleteButton,
+                  (isSavingGroup || isDeletingGroup) && styles.disabledButton,
+                ]}
+                onPress={confirmDeleteGroup}
+                disabled={isSavingGroup || isDeletingGroup}
+              >
+                <Text style={styles.deleteButtonText}>
+                  {isDeletingGroup ? "Deleting..." : "Delete group"}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -244,6 +428,89 @@ const styles = StyleSheet.create({
     borderColor: "#dbeafe",
     padding: 14,
     gap: 4,
+  },
+  headerTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  editHeaderButton: {
+    borderWidth: 1,
+    borderColor: "#bae6fd",
+    backgroundColor: "#f0f9ff",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  editHeaderButtonText: {
+    color: "#0369a1",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  editTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+  },
+  actionButton: {
+    backgroundColor: "#0ea5e9",
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  actionButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  secondaryAction: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: "#fff",
+  },
+  secondaryActionText: {
+    color: "#334155",
+    fontWeight: "600",
+  },
+  deleteButton: {
+    borderColor: "#fecaca",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+    backgroundColor: "#fff1f2",
+  },
+  deleteButtonText: {
+    color: "#be123c",
+    fontWeight: "700",
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15,23,42,0.35)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    borderColor: "#dbeafe",
+    borderWidth: 1,
+    padding: 16,
+    gap: 10,
   },
   groupName: {
     fontSize: 22,
@@ -306,6 +573,10 @@ const styles = StyleSheet.create({
   },
   errorText: {
     marginTop: 6,
+    color: "#b91c1c",
+    fontSize: 12,
+  },
+  modalErrorText: {
     color: "#b91c1c",
     fontSize: 12,
   },
