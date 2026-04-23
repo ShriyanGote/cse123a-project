@@ -12,17 +12,24 @@ The power supply for the chip is provided through the 3.3v pin. We selected a po
 
 \subsubsection{Power Components}
 
-For this design we selected the MCP73871. This is a power management IC that is capable of switching between a USB or AC/DC power source, and a lithium ion battery. When the USB or AC/DC source is providing power, it will power the circuit load and charge the lithium ion battery. This chip selection includes a lot more features than our design takes advantage of, meaning room for expansion of features if desired. 
+For this design we provide the MCP73871 as an example chip selection. This is a power management IC that is capable of switching between a USB or AC/DC power source, and a lithium ion battery. When the USB or AC/DC source is providing power, it will power the circuit load and charge the lithium ion battery. This chip selection includes a lot more features than our design takes advantage of, meaning room for expansion of features if desired. 
 
 The requirements a selected chip needs to include are the following. First, it needs to output the correct voltage for the selected amplifier and CPU combo. If not using an amplifier but some other method of data collection, then it needs to be able to output the required power for that method. Second, it needs to take two inputs, a USB or AC/DC input, and a lithium ion battery input. Third, it needs to be capable of charging the lithium ion battery, otherwise the product will only last a single charge and then not be useful to the customer. 
 
-Our selection for this design is to use a USB-C charging receptacle. 
+Our selection for this design is to use a USB-C charging receptacle. This would allow us to place a floating port anywhere on the base that would be cheap to supply the cables to users. USB-C is a simple standard that can supply enough power if selecting a part that has only power pins enabled. The selected USB-C port in our designs contains the positive and negative power pins and nothing else. This meets the requirements for the selected power management chip. In order to use the design the way we intend you must select a USB-C or other power method that provides a positive and negative feed to the power chip. 
 
 \subsubsection{Load Cell Amplifier}
 
-The load cell amplifier used in this circuit is the HX711. This amplifier was selected because of the capabilities it provides. 
+The load cell amplifier is a required component for this specific design. Changing the design significantly to where it uses a different load cell than we had intended will require a redesign of this specific circuit component as it is only required for the load cell method selected. The load cell we describe requires a board which amplifies the microvolt output it provides. This chip selection is very important for processing the sensitive weight data produced by a load cell. 
+
+The amplifier board must be powered from the same circuitry as the main chip to keep compatibility. In this design we specify 3.3 volts as the power source, but selecting a chip with a 5 volt or higher input would mean the selected amplifier chip must also be capable of 5 volt power, or wired up using a voltage divider circuit to get the required voltage.
+
+The output of the amplifier board is used by the main CPU and program to determine the current weight placed on the sensor. In our design we specify that output going to analog to digital converter pins meaning the output of this device must be an analog signal, or something that can be interpreted by GPIO pins. 
+
+The inputs for this board come from four pins. We have designed the board so that it can be connected through a 4 pin JST connector. Any four pin connector that is small in form factor and can be soldered to the board horizontally, to lower the height requirements, is the best choice for this design. Keeping the height of the board minimal will mean the plastic base can be smaller and take up less space in a customers fridge. A 4 pin connector keeps the product from requiring soldering wires directly to a board, rather the wires for the load cell can be placed in a connector housing and plugged in directly. In order to seal the product well and prevent movement during shipping, a connector with a locking mechanism is the best choice for the design. 
 
 \subsubsection{Load Cell}
 
-Change the test points to a 4 pin connector. Test points should not be used for soldering. Also, change the USB-C to attach using a similar method, we don't want loose wires
+The load cell selection makes a big difference in how much the product can handle. For our prototype and our design we selected a 10 kilogram load cell which should be capable of weighing almost all commercial water filter pitchers. This selection means the most compatibility for the most consumers. Selecting a smaller load cell would limit the number of customers who can purchase it if they have larger pitchers capable of holding more than 4 liters of water. Even if the majority of consumers have smaller pitchers, we hope to provide the most availability. 
 
+The load cell in our design uses four wires to provide readings through a load cell amplifier. The design involves connecting the four wires of the load cell to the board using a 4 pin JST connector. The specific connector choice is described in the amplifier section. The boards will be physically separated by plates that have a small hole for cable routing. The cables should run from the load cell, through the hole, to the pin connection point on the custom PCB. 

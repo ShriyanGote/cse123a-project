@@ -4,15 +4,34 @@ Through the goal statement, it is needed that water level is known at all times 
 To approach the goal, two parts needed being what hardware is needed to get accurate readings and what software is needed to communicate
 the information to the user.
 
-\noindent\textbf{Hardware}
-We will be using weight as the solution to getting accurate readings for water levels. To measure weight, the hardware would be a load cell, amplifier and a microcontroller.
-For each hardware, there are design choices made based off of the product.
+\subsubsection{Hardware}
+We will be collecting data from the users through the weight of their water filters. All of the hardware will be contained in a plastic base which the filter will be set on. This will provide space for all of the internal electronics to be enclosed and kept dry in the humid refrigerator environment. The internal components will need to be sealed in completely to prevent them from getting wet. 
 
-\subsubsection{Load Cell +  Amplifier + Microcontroller}
-Here are the choices made for the load cell we chose:
+The internal hardware components need to complete a few simple tasks. Detail about specific design choices will be explained in later sections focusing on specific component requirements. The following is a list of requirements for the hardware:
+
 \begin{itemize}
-    \item Using a 20kg Load Cell, it gives sufficient room for most consumer water filter pitchers
-    \item HX711 is a high resolution 24-bit analog to digital converter. The amplifier is specifically built for load cells.
-    \item Microcontroller will have functionalities of Wifi, 2 Pins, GND, 3.3V VCC as essential components.
-    \item Small footprint provided by microcontroller paired with a load cell means saving space and weight.
+	\item Collect real time weight data
+	\item Package weight data in an HTTPS packet and send it through Wi-Fi
+	\item Work on battery power for long periods of time
+	\item Charge the internal battery using a power port
+	\item Have Wi-Fi and Bluetooth for initial setup and active use. 
 \end{itemize}
+
+With these requirements in mind, our design uses a few internal components. Most components can be mounted to a custom designed circuit board. Others are connected with built in pins to the circuit board. 
+
+%\subsubsection{Load Cell +  Amplifier + Microcontroller}
+%Here are the choices made for the load cell we chose:
+%\begin{itemize}
+%    \item Using a 20kg Load Cell, it gives sufficient room for most consumer water filter pitchers
+%    \item HX711 is a high resolution 24-bit analog to digital converter. The amplifier is specifically built for load cells.
+%    \item Microcontroller will have functionalities of Wifi, 2 Pins, GND, 3.3V VCC as essential components.
+%    \item Small footprint provided by microcontroller paired with a load cell means saving space and weight.
+%\end{itemize}
+
+\subsubsection{Software}
+
+The requirements for the software design involve a few segments. They can be split into categories based on which components they interface with. Starting with the microcontroller code, this code needs to be capable of reading in values from the amplifier which provides serial data through an analog to digital converter. This serial data needs to be converted to a weight value and sent to the data collection server using a secure protocol. The microcontroller should also be capable of sending battery status values including a percentage estimate of the battery charge. 
+
+The software from the microcontroller will send packets containing info to the data collection server. This server must be capable of mapping incoming data to related user accounts that are subscribed to the specific device. Using a unique device ID, incoming data can be assigned to the correct point. This device ID should be sent at the time of setup and will not change through	operation. The server should keep tables containing users and their subscribed devices. This server needs to be secure and able to handle the traffic of a large number of devices communicating in real time. 
+
+Once the data is at the server, the mobile application used by users should get up to date information about the status of their filter and active fill value. This data should be updated close to real time in order for features such as notifications to work as intended. The mobile application must be capable of authenticating users using username and passwords unique to the user. The application must include information about each subscribed base, and have accurate information about their status. The app should include a notifications system that will alert users that the fill value has passed below the threshold. The application should communicate using secure protocols to prevent user data from being sent unsafely. 
