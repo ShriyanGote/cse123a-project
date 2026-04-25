@@ -1,58 +1,11 @@
-\subsection{HX711}
-In order to get readings for weight from the load cell, we use the HX711 Amplifer that converts analog to digital converter.
+\subsection{Amplifier}
+In order to get readings for weight from the load cell, it is most likely required to use an amplifer if the chosen load cell is analog.
 
-\subsubsection{SCK}
-    \begin{itemize}
-        \item SCK is the clock line.
-        \item Controls when bits are shifted out of DOUT, each pulse moves the next data bit to the output.
-        \item SCK LOW->HIGH - Shifts out one bit
-        \item SCK being HIGH for some time - Power down mode
-        \item LOW after power down - Sensor wakes up and converts data
-    \end{itemize}
-
-\subsubsection{DOUT}
-    \begin{itemize}
-        \item DOUT is the data output that sends 24-bit measurement to microcontroller
-        \item DOUT when HIGH - HX711 currently converting data not ready
-        \item DOUT when LOW - Data is ready to read
-    \end{itemize}
-
-\subsubsection{Pins}
-    \begin{itemize}
-        \item VCC - power supply around 2.7-5.5V
-        \item GND - Ground
-        \item E+ - Positive excitation voltage
-        \item E- - Negative excitation voltage
-        \item A+ - Positive signal input, Chanel A
-        \item A- - Negative signal input, Chanel A
-        \item B+ - Positive signal input, Chanel B
-        \item B- - Negative signal input, Chanel B
-    \end{itemize}
-
-\subsubsection{Read Data}
-The HX711 Sensor is a 24-bit analog to digital converter. To read data, DOUT gives raw 24bits that need be read on pulses.
-Since SCK is a pulse that will shift 1 bit each time, you need to do this 24 times for the full
-number. Additionally, there are extra pulses needed for the HX711 to select chanel.
-Create a delay when waiting for DOUT to go low again, sometimes it might stay high.
+\subsubsection{Digital Converter}
+Software will need to be implemented in order to read data, analog gives the signals in terms of bits that need to read and converted to either raw data of calibrate straight to grams.
 
 \subsubsection{Average Sampling}
 Sampling without averaging can lead to lots of noise. Average sampling allows the accuracy of weight to be more accurate.
 
-\subsubsection{Calibration}
-The Sensor gives raw data, as counts. From testing, have a hard coded number that when using to calculate the grams from the raw data, 
-divide raw by the hard coded number. Use known weights to calibrate accurately.
-
 \subsubsection{Tare}
-For handling offset, tare function will take the current weight to zero. Whenever an object is placed later, the weight displays is sampling - offset.
-Sampling gives total weight, offset allows to remove the pre-existing weight to display the objects true weight.
-
-\subsubsection{Debug}
-Print statements every second each signal/number:
-\begin{itemize}
-    \item SCK
-    \item DOUT
-    \item Raw Sample
-    \item Offset
-    \item Grams
-\end{itemize}
-Allows to bugs/problems code or hardware.
+For handling offset, it is required to create to create a baseline state value that represents an empty pitcher. It means future data is can be compared to the baseline value to get the water weight readings.
