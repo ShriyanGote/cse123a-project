@@ -1,7 +1,7 @@
-- must run idf.py erase-flash to reset for provisioning, since wifi details carries over reflashes
 - for now uses espressif provisioning app
-- remove qr code section
-- check notes from before on this
-- delete config stuff, extra files, etc
+- remove qr code section (depending on security used, maybe print onto box)
 - security 1 vs 2 - ask since sec 2 requires per device credentials (salt needs to be generated w verifier, not just random numbers, very complicated to make)
 - per device things - derive from mac addr
+- add try reconnect 5 times, then try every 30 sec while provisioning is active
+    - do it yourself, chatGPT makes it worse every time
+        - add state, esp_timer, reconnect, reuse prov code/turn it into a function
