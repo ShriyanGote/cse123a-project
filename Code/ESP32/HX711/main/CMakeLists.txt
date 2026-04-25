@@ -1,4 +1,4 @@
 idf_component_register(
-    SRCS "main.c" "HX711.c" "http_utils.c" "wifi_provisioning.c"
+    SRCS "main.c" "HX711.c" "https_client.c" "wifi_manager.c"
     INCLUDE_DIRS "."
 )

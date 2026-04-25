@@ -2,8 +2,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
-#include "http_utils.h"
-#include "wifi_provisioning.h"
+#include "https_client.h"
+#include "wifi_manager.h"
 #include "nvs_flash.h"
 #include "esp_netif.h"
 #include "esp_event.h"
@@ -20,7 +20,7 @@ RTC_DATA_ATTR static bool tareDone = false;
 RTC_DATA_ATTR static bool notFirstBoot = false;
 RTC_DATA_ATTR static int32_t gramBefore = 0;
 
-#define TEST_SERVER_IP "10.0.0.46"
+#define TEST_SERVER_URL "https://httpbin.org/post"
 
 static const char *TAG = "MAIN";
 
@@ -49,14 +49,20 @@ void app_main(void)
         notFirstBoot = true;
     } else if ((grams > gramBefore + 15) || (grams < gramBefore - 15)) {
             ESP_LOGI(TAG, "Weight changed, connecting Wi-Fi");
-
-            init_wifi();
-            connect_to_wifi("ESPTEST", "uc2025sc");
+            wifi_init();
+        
+            wifi_connect("ESPTEST", "uc2025sc");
+            wifi_wait_connected(); //check
+            
             vTaskDelay(pdMS_TO_TICKS(1000));
 
             char post_data[64];
             snprintf(post_data, sizeof(post_data), "weight=%" PRId32, grams);
-            send_http_post(post_data, TEST_SERVER_IP, "1234", "/api/ingest");
+            ESP_LOGI(TAG, "POST DATA: %s", post_data);
+            esp_err_t err = https_post(TEST_SERVER_URL, post_data);
+            if(err != ESP_OK){
+                ESP_LOGE(TAG, "HTTP POST FAILED: %s", esp_err_to_name(err));
+            }
 
             gramBefore = (int32_t)grams;
         } else{
