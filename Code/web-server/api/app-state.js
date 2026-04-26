@@ -1,14 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+import { requireUserAuth } from "./_lib/auth.js";
+import { supabaseAdmin } from "./_lib/supabaseAdmin.js";
 
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 }
 
 export default async function handler(req, res) {
@@ -22,8 +18,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Use GET" });
   }
 
+  const auth = await requireUserAuth(req, res);
+  if (!auth) return;
+
   try {
-    const { data: reading, error: readingError } = await supabase
+    const { data: reading, error: readingError } = await supabaseAdmin
       .from("water_readings")
       .select("*")
       .order("created_at", { ascending: false })
@@ -34,7 +33,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: readingError.message });
     }
 
-    const { data: calibration, error: calibrationError } = await supabase
+    const { data: calibration, error: calibrationError } = await supabaseAdmin
       .from("calibration")
       .select("*")
       .order("created_at", { ascending: false })

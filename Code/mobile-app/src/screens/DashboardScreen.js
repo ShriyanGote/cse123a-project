@@ -150,9 +150,25 @@ export default function DashboardScreen({ user, navigation }) {
             <Text style={styles.title}>My Groups</Text>
             <Text style={styles.subtitle}>{user.email}</Text>
           </View>
-          <Pressable style={styles.secondaryButton} onPress={handleSignOut}>
-            <Text style={styles.secondaryButtonText}>Sign out</Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate("ProvisionDevice")}
+            >
+              <Text style={styles.secondaryButtonText}>Provision</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryButton} onPress={handleSignOut}>
+              <Text style={styles.secondaryButtonText}>Sign out</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>Device onboarding</Text>
+          <Text style={styles.infoBody}>
+            Sign in, open Provision, connect to ESP via Bluetooth, then bind the generated
+            device token to your account.
+          </Text>
         </View>
 
         <View style={styles.card}>
@@ -262,6 +278,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 8,
   },
+  headerActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
   title: {
     fontSize: 28,
     fontWeight: "700",
@@ -270,6 +290,24 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#64748b",
     marginTop: 2,
+  },
+  infoCard: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    gap: 4,
+  },
+  infoTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1d4ed8",
+  },
+  infoBody: {
+    fontSize: 12,
+    color: "#1e3a8a",
+    lineHeight: 18,
   },
   card: {
     backgroundColor: "#fff",

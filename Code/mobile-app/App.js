@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import AuthScreen from "./src/screens/AuthScreen";
 import DashboardScreen from "./src/screens/DashboardScreen";
 import GroupScreen from "./src/screens/GroupScreen";
+import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
 
 const Stack = createNativeStackNavigator();
@@ -81,26 +83,34 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <StatusBar style="dark" />
-      {!session?.user ? (
-        <AuthScreen />
-      ) : (
-        <Stack.Navigator>
-          <Stack.Screen name="Dashboard" options={{ title: "Dashboard" }}>
-            {(props) => <DashboardScreen {...props} user={session.user} />}
-          </Stack.Screen>
-          <Stack.Screen
-            name="Group"
-            options={({ route }) => ({
-              title: route.params?.groupName ?? "Group",
-            })}
-          >
-            {(props) => <GroupScreen {...props} user={session.user} />}
-          </Stack.Screen>
-        </Stack.Navigator>
-      )}
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
+        {!session?.user ? (
+          <AuthScreen />
+        ) : (
+          <Stack.Navigator>
+            <Stack.Screen name="Dashboard" options={{ title: "Dashboard" }}>
+              {(props) => <DashboardScreen {...props} user={session.user} />}
+            </Stack.Screen>
+            <Stack.Screen
+              name="ProvisionDevice"
+              options={{ title: "Provision Device" }}
+            >
+              {(props) => <ProvisionDeviceScreen {...props} user={session.user} />}
+            </Stack.Screen>
+            <Stack.Screen
+              name="Group"
+              options={({ route }) => ({
+                title: route.params?.groupName ?? "Group",
+              })}
+            >
+              {(props) => <GroupScreen {...props} user={session.user} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        )}
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

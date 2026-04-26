@@ -1,14 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
+import { requireDeviceAuth } from "./_lib/auth.js";
+import { supabaseAdmin } from "./_lib/supabaseAdmin.js";
 
 const DEFAULT_FULL_G = 2500; // ~2.5L of water
 const DEFAULT_EMPTY_G = 0;
 const LOW_WATER_THRESHOLD_PERCENT = 20;
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
 
 let webPushConfigured = false;
 
@@ -73,13 +69,16 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Use POST" });
     }
 
-    if (req.headers["x-api-key"] !== process.env.INGEST_API_KEY) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const auth = await requireDeviceAuth(req, res);
+    if (!auth) return;
 
     const { device_id, weight_g, battery_mv } = req.body || {};
+    const resolvedDeviceId = device_id ?? auth.device.deviceId;
+    if (!resolvedDeviceId) {
+      return res.status(400).json({ error: "Missing device_id." });
+    }
 
-    const { data: previousReading, error: previousError } = await supabase
+    const { data: previousReading, error: previousError } = await supabaseAdmin
       .from("water_readings")
       .select("weight_g")
       .order("created_at", { ascending: false })
@@ -88,15 +87,15 @@ export default async function handler(req, res) {
 
     if (previousError) return res.status(500).json({ error: previousError.message });
 
-    const { data: calibrationData, error: calibrationError } = await supabase
+    const { data: calibrationData, error: calibrationError } = await supabaseAdmin
       .from("calibration")
       .select("empty, full")
       .maybeSingle();
 
     if (calibrationError) console.error("Failed to read calibration", calibrationError);
 
-    const { error } = await supabase.from("water_readings").insert([
-      { device_id, weight_g, battery_mv }
+    const { error } = await supabaseAdmin.from("water_readings").insert([
+      { device_id: resolvedDeviceId, weight_g, battery_mv }
     ]);
 
     if (error) return res.status(500).json({ error: error.message });
@@ -121,7 +120,7 @@ export default async function handler(req, res) {
     if (crossedBelowThreshold) {
       debug.missingVapidEnvVars = getMissingVapidEnvVars();
 
-      const { data: subscriptionRows, error: subscriptionError } = await supabase
+      const { data: subscriptionRows, error: subscriptionError } = await supabaseAdmin
         .from("notification_tokens")
         .select("token");
 
@@ -184,7 +183,7 @@ export default async function handler(req, res) {
             ));
 
             if (expiredSubscriptions.length > 0) {
-              await supabase
+              await supabaseAdmin
                 .from("notification_tokens")
                 .delete()
                 .in("token", expiredSubscriptions);

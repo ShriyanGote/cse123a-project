@@ -10,6 +10,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../supabase";
 
+const DEFAULT_AUTH_REDIRECT_URL = "https://cse123a-project-6a3s.vercel.app";
+const authRedirectUrl =
+  process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL || DEFAULT_AUTH_REDIRECT_URL;
+
 export default function AuthScreen() {
   const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
@@ -32,6 +36,9 @@ export default function AuthScreen() {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
+          options: {
+            emailRedirectTo: authRedirectUrl,
+          },
         });
         if (error) throw error;
 
@@ -60,6 +67,18 @@ export default function AuthScreen() {
         <Text style={styles.subtitle}>
           {mode === "signin" ? "Sign in to continue" : "Create your account"}
         </Text>
+        <View style={styles.instructionsBox}>
+          <Text style={styles.instructionsTitle}>Setup flow</Text>
+          <Text style={styles.instructionsText}>
+            1) Create/sign in to your account.
+          </Text>
+          <Text style={styles.instructionsText}>
+            2) Connect the ESP device over Bluetooth in Provision Device.
+          </Text>
+          <Text style={styles.instructionsText}>
+            3) Send generated device token and device ID to complete secure setup.
+          </Text>
+        </View>
 
         {mode === "signup" ? (
           <TextInput
@@ -139,6 +158,25 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: "center",
     color: "#64748b",
+  },
+  instructionsBox: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    gap: 2,
+  },
+  instructionsTitle: {
+    fontWeight: "700",
+    color: "#1d4ed8",
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  instructionsText: {
+    fontSize: 12,
+    color: "#1e3a8a",
+    lineHeight: 17,
   },
   input: {
     borderWidth: 1,
