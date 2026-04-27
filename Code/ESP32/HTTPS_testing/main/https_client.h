@@ -12,16 +12,10 @@
  * 
  * @example
  * ```c
- * // Perform a GET request
- * if (https_get("https://api.example.com/data") == ESP_OK) {
- *     ESP_LOGI(TAG, "GET request successful");
- * }
- * 
- * // Perform a POST request with JSON data
- * const char *json_data = "{\"key\": \"value\"}";
- * if (https_post("https://api.example.com/submit", json_data) == ESP_OK) {
- *     ESP_LOGI(TAG, "POST request successful");
- * }
+ *  https_get("https://httpbin.org/get");
+ *
+ *  https_post("https://httpbin.org/post",
+ *           "{\"msg\":\"hello from esp32\"}");
  * ```
  */
 
