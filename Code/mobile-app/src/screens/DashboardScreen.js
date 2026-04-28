@@ -15,7 +15,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "../supabase";
 import { generateInviteCode } from "../lib/inviteCode";
 
-export default function DashboardScreen({ user, navigation }) {
+export default function DashboardScreen({ user, navigation, onOpenIntro }) {
   const [groups, setGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);

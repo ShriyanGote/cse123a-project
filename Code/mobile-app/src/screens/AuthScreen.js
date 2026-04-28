@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
+  PanResponder,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,17 +18,49 @@ const DEFAULT_AUTH_REDIRECT_URL = "https://cse123a-project-6a3s.vercel.app";
 const authRedirectUrl =
   process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL || DEFAULT_AUTH_REDIRECT_URL;
 
-export default function AuthScreen() {
+export default function AuthScreen({ onOpenIntro }) {
   const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [authError, setAuthError] = useState("");
+  const cardAnim = useRef(new Animated.Value(0)).current;
+  const formAnim = useRef(new Animated.Value(0)).current;
+  const signupFieldAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(cardAnim, {
+        toValue: 1,
+        duration: 350,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(formAnim, {
+        toValue: 1,
+        duration: 420,
+        delay: 100,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [cardAnim, formAnim]);
+
+  useEffect(() => {
+    Animated.timing(signupFieldAnim, {
+      toValue: mode === "signup" ? 1 : 0,
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [mode, signupFieldAnim]);
 
   async function handleAuth() {
     setIsLoading(true);
     setMessage("");
+    setAuthError("");
     try {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({
@@ -54,82 +90,182 @@ export default function AuthScreen() {
         setMode("signin");
       }
     } catch (e) {
-      setMessage(e.message ?? "Authentication failed.");
+      const errorMessage = e?.message ?? "Authentication failed.";
+      const isInvalidCredentials =
+        mode === "signin" &&
+        /invalid login credentials|invalid credentials|invalid password|wrong password/i.test(
+          errorMessage
+        );
+
+      if (isInvalidCredentials) {
+        setAuthError("Incorrect email or password.");
+      } else {
+        setMessage(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
   }
 
+  const swipeToIntroResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          gestureState.dx > 28 &&
+          Math.abs(gestureState.dy) < 18 &&
+          Math.abs(gestureState.vx) > 0.08,
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx > 72 && Math.abs(gestureState.dy) < 28) {
+            onOpenIntro?.();
+          }
+        },
+      }),
+    [onOpenIntro]
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Water Group Dashboard</Text>
-        <Text style={styles.subtitle}>
-          {mode === "signin" ? "Sign in to continue" : "Create your account"}
-        </Text>
-        <View style={styles.instructionsBox}>
-          <Text style={styles.instructionsTitle}>Setup flow</Text>
-          <Text style={styles.instructionsText}>
-            1) Create/sign in to your account.
-          </Text>
-          <Text style={styles.instructionsText}>
-            2) Connect the ESP device over Bluetooth in Provision Device.
-          </Text>
-          <Text style={styles.instructionsText}>
-            3) Send generated device token and device ID to complete secure setup.
-          </Text>
-        </View>
-
-        {mode === "signup" ? (
-          <TextInput
-            value={displayName}
-            onChangeText={setDisplayName}
-            placeholder="Display name"
-            autoCapitalize="words"
-            style={styles.input}
-          />
-        ) : null}
-
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          style={styles.input}
-        />
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password"
-          secureTextEntry
-          style={styles.input}
-        />
-
-        <Pressable
-          style={({ pressed }) => [styles.ctaButton, pressed && styles.pressed]}
-          onPress={handleAuth}
-          disabled={isLoading}
+    <SafeAreaView style={styles.safeArea} {...swipeToIntroResponder.panHandlers}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View
+          style={[
+            styles.card,
+            {
+              opacity: cardAnim,
+              transform: [
+                {
+                  translateY: cardAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
         >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.ctaText}>
-              {mode === "signin" ? "Sign In" : "Create Account"}
-            </Text>
-          )}
-        </Pressable>
-
-        <Pressable onPress={() => setMode(mode === "signin" ? "signup" : "signin")}>
-          <Text style={styles.switchText}>
-            {mode === "signin"
-              ? "Need an account? Sign up"
-              : "Already have an account? Sign in"}
+          <Text style={styles.title}>Water Group Dashboard</Text>
+          <Text style={styles.subtitle}>
+            {mode === "signin" ? "Sign in to continue" : "Create your account"}
           </Text>
-        </Pressable>
+          <Text style={styles.swipeHint}>Swipe right to view introduction</Text>
+          <View style={styles.instructionsBox}>
+            <Text style={styles.instructionsTitle}>Setup flow</Text>
+            <Text style={styles.instructionsText}>
+              1) Create/sign in to your account.
+            </Text>
+            <Text style={styles.instructionsText}>
+              2) Connect the ESP device over Bluetooth in Provision Device.
+            </Text>
+            <Text style={styles.instructionsText}>
+              3) Send generated device token and device ID to complete secure setup.
+            </Text>
+          </View>
 
-        {!!message && <Text style={styles.message}>{message}</Text>}
-      </View>
+          <Animated.View
+            style={{
+              opacity: formAnim,
+              transform: [
+                {
+                  translateY: formAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [14, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <View style={styles.formStack}>
+              <Animated.View
+                style={{
+                  opacity: signupFieldAnim,
+                  maxHeight: signupFieldAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 72],
+                  }),
+                  transform: [
+                    {
+                      translateY: signupFieldAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [-8, 0],
+                      }),
+                    },
+                  ],
+                  overflow: "hidden",
+                }}
+              >
+                {mode === "signup" ? (
+                  <TextInput
+                    value={displayName}
+                    onChangeText={setDisplayName}
+                    placeholder="Display name"
+                    autoCapitalize="words"
+                    style={styles.input}
+                  />
+                ) : null}
+              </Animated.View>
+
+              {!!authError && (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{authError}</Text>
+                </View>
+              )}
+              <TextInput
+                value={email}
+                onChangeText={(value) => {
+                  setEmail(value);
+                  if (authError) setAuthError("");
+                }}
+                placeholder="Email"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                style={styles.input}
+              />
+              <TextInput
+                value={password}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  if (authError) setAuthError("");
+                }}
+                placeholder="Password"
+                secureTextEntry
+                style={styles.input}
+              />
+
+              <Pressable
+                style={({ pressed }) => [styles.ctaButton, pressed && styles.pressed]}
+                onPress={handleAuth}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.ctaText}>
+                    {mode === "signin" ? "Sign In" : "Create Account"}
+                  </Text>
+                )}
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  setAuthError("");
+                  setMode(mode === "signin" ? "signup" : "signin");
+                }}
+              >
+                <Text style={styles.switchText}>
+                  {mode === "signin"
+                    ? "Need an account? Sign up"
+                    : "Already have an account? Sign in"}
+                </Text>
+              </Pressable>
+
+              {!!message && <Text style={styles.message}>{message}</Text>}
+            </View>
+          </Animated.View>
+        </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -137,9 +273,12 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "#f8fafc",
   },
   card: {
     backgroundColor: "#fff",
@@ -158,6 +297,12 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: "center",
     color: "#64748b",
+  },
+  swipeHint: {
+    textAlign: "center",
+    color: "#0284c7",
+    fontSize: 12,
+    marginTop: -2,
   },
   instructionsBox: {
     backgroundColor: "#eff6ff",
@@ -178,6 +323,10 @@ const styles = StyleSheet.create({
     color: "#1e3a8a",
     lineHeight: 17,
   },
+  formStack: {
+    gap: 10,
+    marginTop: 8,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#cbd5e1",
@@ -186,6 +335,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
     backgroundColor: "#fff",
+  },
+  errorBox: {
+    borderWidth: 1,
+    borderColor: "#ef4444",
+    backgroundColor: "#fef2f2",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  errorText: {
+    color: "#b91c1c",
+    fontSize: 12,
+    fontWeight: "600",
   },
   ctaButton: {
     marginTop: 4,
