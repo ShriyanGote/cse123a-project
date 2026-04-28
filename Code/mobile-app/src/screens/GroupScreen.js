@@ -79,10 +79,15 @@ export default function GroupScreen({ route, user, navigation }) {
       if (profileError) throw profileError;
       profileMap = new Map((profileData ?? []).map((row) => [row.id, row.display_name]));
     }
-    const mergedMembers = (memberData ?? []).map((member) => ({
-      ...member,
-      display_name: profileMap.get(member.user_id) ?? null,
-    }));
+    const mergedMembers = (memberData ?? []).map((member) => {
+      const rawDisplayName = profileMap.get(member.user_id);
+      const normalizedDisplayName =
+        typeof rawDisplayName === "string" ? rawDisplayName.trim() : "";
+      return {
+        ...member,
+        display_name: normalizedDisplayName || null,
+      };
+    });
 
     setGroup(groupData);
     setEditName(groupData.name ?? "");
@@ -307,7 +312,9 @@ export default function GroupScreen({ route, user, navigation }) {
           </>
         }
         renderItem={({ item }) => {
-          const displayName = item.display_name || item.user_id;
+          const isCurrentUser = item.user_id === user.id;
+          const baseName = item.display_name?.trim() || "Group member";
+          const displayName = isCurrentUser ? `${baseName} (You)` : baseName;
           const isOwner = item.role === "owner";
           const canEdit = canManageUsers && !isOwner;
 
@@ -315,7 +322,6 @@ export default function GroupScreen({ route, user, navigation }) {
             <View style={styles.memberCard}>
               <View style={styles.memberInfo}>
                 <Text style={styles.memberName}>{displayName}</Text>
-                <Text style={styles.memberMeta}>{item.user_id}</Text>
                 <Text style={styles.memberMeta}>Role: {item.role}</Text>
               </View>
               {canEdit ? (
