@@ -69,22 +69,17 @@ export default function AuthScreen({ onOpenIntro }) {
         });
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
             emailRedirectTo: authRedirectUrl,
+            data: {
+              display_name: displayName.trim() || email.trim().split("@")[0],
+            },
           },
         });
         if (error) throw error;
-
-        if (data.user) {
-          const { error: profileError } = await supabase.from("profiles").upsert({
-            id: data.user.id,
-            display_name: displayName.trim() || email.split("@")[0],
-          });
-          if (profileError) throw profileError;
-        }
 
         setMessage("Account created. Please sign in.");
         setMode("signin");

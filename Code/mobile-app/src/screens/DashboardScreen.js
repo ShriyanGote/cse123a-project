@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "../supabase";
-import { generateInviteCode } from "../lib/inviteCode";
+import { createGroup, fetchMyGroups, joinGroupByInvite } from "../api";
 
 export default function DashboardScreen({ user, navigation, onOpenIntro }) {
   const [groups, setGroups] = useState([]);
@@ -29,23 +29,9 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
   const [isBusy, setIsBusy] = useState(false);
 
   const loadGroups = useCallback(async () => {
-    const { data, error: loadError } = await supabase
-      .from("group_members")
-      .select(
-        "role, groups:group_id(id, name, invite_code, device_id, created_by, created_at)"
-      )
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (loadError) throw loadError;
-    const mapped = (data ?? [])
-      .map((row) => ({
-        role: row.role,
-        ...(row.groups ?? {}),
-      }))
-      .filter((group) => group?.id);
-    setGroups(mapped);
-  }, [user.id]);
+    const response = await fetchMyGroups();
+    setGroups(response.groups ?? []);
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -82,13 +68,10 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
 
     setIsBusy(true);
     try {
-      const inviteCode = generateInviteCode(6);
-      const { error: rpcError } = await supabase.rpc("create_group_with_owner", {
-        group_name: name,
-        invite: inviteCode,
-        device: newGroupDeviceId.trim() || null,
+      await createGroup({
+        name,
+        device_id: newGroupDeviceId.trim() || null,
       });
-      if (rpcError) throw rpcError;
 
       setNewGroupName("");
       setNewGroupDeviceId("");
@@ -111,10 +94,7 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
 
     setIsBusy(true);
     try {
-      const { error: joinError } = await supabase.rpc("join_group_by_invite", {
-        invite: code,
-      });
-      if (joinError) throw joinError;
+      await joinGroupByInvite(code);
       setJoinCode("");
       await refresh();
     } catch (e) {

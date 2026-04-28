@@ -13,7 +13,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import WaterLevelCard from "../components/WaterLevelCard";
-import { supabase } from "../supabase";
+import {
+  calibrateGroup as calibrateGroupApi,
+  deleteGroup as deleteGroupApi,
+  fetchGroupDetails,
+  removeGroupMember,
+  updateGroup,
+  updateGroupMemberRole,
+} from "../api";
 
 export default function GroupScreen({ route, user, navigation }) {
   const { groupId } = route.params;
@@ -42,58 +49,12 @@ export default function GroupScreen({ route, user, navigation }) {
   const canDeleteGroup = myMembership?.role === "owner";
 
   const loadGroup = useCallback(async () => {
-    const { data: groupData, error: groupError } = await supabase
-      .from("groups")
-      .select("id, name, invite_code, device_id, empty_g, full_g, created_by, created_at")
-      .eq("id", groupId)
-      .single();
-    if (groupError) throw groupError;
-
-    let reading = null;
-    if (groupData.device_id) {
-      const { data: readingData, error: readingError } = await supabase
-        .from("water_readings")
-        .select("weight_g, battery_mv, created_at")
-        .eq("device_id", groupData.device_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (readingError) throw readingError;
-      reading = readingData ?? null;
-    }
-
-    const { data: memberData, error: membersError } = await supabase
-      .from("group_members")
-      .select("group_id, user_id, role, created_at")
-      .eq("group_id", groupId)
-      .order("created_at", { ascending: true });
-    if (membersError) throw membersError;
-
-    const userIds = (memberData ?? []).map((member) => member.user_id);
-    let profileMap = new Map();
-    if (userIds.length > 0) {
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", userIds);
-      if (profileError) throw profileError;
-      profileMap = new Map((profileData ?? []).map((row) => [row.id, row.display_name]));
-    }
-    const mergedMembers = (memberData ?? []).map((member) => {
-      const rawDisplayName = profileMap.get(member.user_id);
-      const normalizedDisplayName =
-        typeof rawDisplayName === "string" ? rawDisplayName.trim() : "";
-      return {
-        ...member,
-        display_name: normalizedDisplayName || null,
-      };
-    });
-
-    setGroup(groupData);
-    setEditName(groupData.name ?? "");
-    setEditDeviceId(groupData.device_id ?? "");
-    setLatestReading(reading);
-    setMembers(mergedMembers);
+    const response = await fetchGroupDetails(groupId);
+    setGroup(response.group ?? null);
+    setEditName(response.group?.name ?? "");
+    setEditDeviceId(response.group?.device_id ?? "");
+    setLatestReading(response.latestReading ?? null);
+    setMembers(response.members ?? []);
   }, [groupId]);
 
   const refresh = useCallback(async () => {
@@ -116,12 +77,7 @@ export default function GroupScreen({ route, user, navigation }) {
     if (!canEditGroup) return;
     try {
       setGeneralError("");
-      const { error: updateError } = await supabase
-        .from("group_members")
-        .update({ role: nextRole })
-        .eq("group_id", groupId)
-        .eq("user_id", targetUserId);
-      if (updateError) throw updateError;
+      await updateGroupMemberRole(groupId, targetUserId, nextRole);
       await refresh();
     } catch (e) {
       setGeneralError(e.message ?? "Could not update member role.");
@@ -136,12 +92,7 @@ export default function GroupScreen({ route, user, navigation }) {
     }
     try {
       setGeneralError("");
-      const { error: removeError } = await supabase
-        .from("group_members")
-        .delete()
-        .eq("group_id", groupId)
-        .eq("user_id", targetUserId);
-      if (removeError) throw removeError;
+      await removeGroupMember(groupId, targetUserId);
       await refresh();
     } catch (e) {
       setGeneralError(e.message ?? "Could not remove member.");
@@ -159,14 +110,10 @@ export default function GroupScreen({ route, user, navigation }) {
     setIsSavingGroup(true);
     try {
       setEditError("");
-      const { error: updateError } = await supabase
-        .from("groups")
-        .update({
-          name: trimmedName,
-          device_id: editDeviceId.trim() || null,
-        })
-        .eq("id", groupId);
-      if (updateError) throw updateError;
+      await updateGroup(groupId, {
+        name: trimmedName,
+        device_id: editDeviceId.trim() || null,
+      });
       setIsEditModalVisible(false);
       await refresh();
     } catch (e) {
@@ -190,11 +137,7 @@ export default function GroupScreen({ route, user, navigation }) {
             setIsDeletingGroup(true);
             try {
               setGeneralError("");
-              const { error: deleteError } = await supabase
-                .from("groups")
-                .delete()
-                .eq("id", groupId);
-              if (deleteError) throw deleteError;
+              await deleteGroupApi(groupId);
               navigation.goBack();
             } catch (e) {
               setGeneralError(e.message ?? "Could not delete group.");
@@ -218,16 +161,8 @@ export default function GroupScreen({ route, user, navigation }) {
     try {
       setWaterError("");
       const payload =
-        field === "reset"
-          ? { empty_g: 0, full_g: 2500 }
-          : field === "empty"
-            ? { empty_g: latestReading.weight_g }
-            : { full_g: latestReading.weight_g };
-      const { error: updateError } = await supabase
-        .from("groups")
-        .update(payload)
-        .eq("id", groupId);
-      if (updateError) throw updateError;
+        field === "reset" ? "reset" : field === "empty" ? "empty" : "full";
+      await calibrateGroupApi(groupId, payload);
       await refresh();
     } catch (e) {
       setWaterError(e.message ?? "Could not calibrate water filter.");

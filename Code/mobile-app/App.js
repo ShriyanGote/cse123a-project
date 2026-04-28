@@ -10,6 +10,7 @@ import DashboardScreen from "./src/screens/DashboardScreen";
 import GroupScreen from "./src/screens/GroupScreen";
 import IntroScreen from "./src/screens/IntroScreen";
 import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
+import { ensureMyProfile } from "./src/api";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
 
 const Stack = createNativeStackNavigator();
@@ -64,15 +65,13 @@ export default function App() {
     async function ensureProfile() {
       if (!session?.user || !isSupabaseConfigured) return;
       try {
-        await supabase.from("profiles").upsert({
-          id: session.user.id,
-          display_name:
-            session.user.user_metadata?.display_name ||
-            session.user.email?.split("@")[0] ||
-            "User",
-        });
+        await ensureMyProfile(session.user.user_metadata?.display_name ?? null);
       } catch (error) {
-        console.warn("Failed to upsert profile:", error?.message ?? error);
+        const message = error?.message ?? String(error);
+        if (/API route not found/i.test(message)) {
+          return;
+        }
+        console.warn("Failed to upsert profile:", message);
       }
     }
 
