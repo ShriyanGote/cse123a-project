@@ -34,14 +34,24 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Invite code not found." });
     }
 
-    const { error: joinError } = await supabaseAdmin.from("group_members").upsert(
-      {
-        group_id: group.id,
-        user_id: auth.user.id,
-        role: "member",
-      },
-      { onConflict: "group_id,user_id" }
-    );
+    const { data: existingMembership, error: membershipError } = await supabaseAdmin
+      .from("group_members")
+      .select("group_id")
+      .eq("group_id", group.id)
+      .eq("user_id", auth.user.id)
+      .maybeSingle();
+    if (membershipError) {
+      return res.status(500).json({ error: membershipError.message });
+    }
+    if (existingMembership) {
+      return res.status(409).json({ error: "You are already a member of this group." });
+    }
+
+    const { error: joinError } = await supabaseAdmin.from("group_members").insert({
+      group_id: group.id,
+      user_id: auth.user.id,
+      role: "member",
+    });
     if (joinError) {
       return res.status(500).json({ error: joinError.message });
     }

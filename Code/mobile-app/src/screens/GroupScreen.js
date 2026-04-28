@@ -43,8 +43,7 @@ export default function GroupScreen({ route, user, navigation }) {
     () => members.find((member) => member.user_id === user.id),
     [members, user.id]
   );
-  const canManageUsers =
-    myMembership?.role === "owner" || myMembership?.role === "admin";
+  const canManageUsers = myMembership?.role === "owner";
   const canEditGroup = myMembership?.role === "owner";
   const canDeleteGroup = myMembership?.role === "owner";
 
@@ -97,6 +96,29 @@ export default function GroupScreen({ route, user, navigation }) {
     } catch (e) {
       setGeneralError(e.message ?? "Could not remove member.");
     }
+  }
+
+  function confirmTransferOwnership(targetUserId, targetDisplayName) {
+    if (!canEditGroup) return;
+    Alert.alert(
+      "Transfer ownership?",
+      `Set ${targetDisplayName} as the new owner? You will become a member.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Transfer",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setGeneralError("");
+              await updateMemberRole(targetUserId, "owner");
+            } catch (e) {
+              setGeneralError(e.message ?? "Could not transfer ownership.");
+            }
+          },
+        },
+      ]
+    );
   }
 
   async function saveGroupEdits() {
@@ -251,7 +273,8 @@ export default function GroupScreen({ route, user, navigation }) {
           const baseName = item.display_name?.trim() || "Group member";
           const displayName = isCurrentUser ? `${baseName} (You)` : baseName;
           const isOwner = item.role === "owner";
-          const canEdit = canManageUsers && !isOwner;
+          const canRemoveMember = canManageUsers && !isOwner;
+          const canTransferOwnership = canEditGroup && !isOwner;
 
           return (
             <View style={styles.memberCard}>
@@ -259,26 +282,26 @@ export default function GroupScreen({ route, user, navigation }) {
                 <Text style={styles.memberName}>{displayName}</Text>
                 <Text style={styles.memberMeta}>Role: {item.role}</Text>
               </View>
-              {canEdit ? (
+              {canRemoveMember || canTransferOwnership ? (
                 <View style={styles.memberActions}>
-                  <Pressable
-                    onPress={() =>
-                      updateMemberRole(item.user_id, item.role === "admin" ? "member" : "admin")
-                    }
-                    style={styles.smallButton}
-                  >
-                    <Text style={styles.smallButtonText}>
-                      {item.role === "admin" ? "Set member" : "Set admin"}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => removeMember(item.user_id)}
-                    style={[styles.smallButton, styles.smallButtonDanger]}
-                  >
-                    <Text style={[styles.smallButtonText, styles.smallButtonDangerText]}>
-                      Remove
-                    </Text>
-                  </Pressable>
+                  {canTransferOwnership ? (
+                    <Pressable
+                      onPress={() => confirmTransferOwnership(item.user_id, baseName)}
+                      style={styles.smallButton}
+                    >
+                      <Text style={styles.smallButtonText}>Set owner</Text>
+                    </Pressable>
+                  ) : null}
+                  {canRemoveMember ? (
+                    <Pressable
+                      onPress={() => removeMember(item.user_id)}
+                      style={[styles.smallButton, styles.smallButtonDanger]}
+                    >
+                      <Text style={[styles.smallButtonText, styles.smallButtonDangerText]}>
+                        Remove
+                      </Text>
+                    </Pressable>
+                  ) : null}
                 </View>
               ) : null}
             </View>

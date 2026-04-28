@@ -91,6 +91,13 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
       setJoinError("Please enter an invite code.");
       return;
     }
+    const alreadyInGroup = groups.some(
+      (group) => (group.invite_code ?? "").toUpperCase() === code
+    );
+    if (alreadyInGroup) {
+      setJoinError("You are already in this group.");
+      return;
+    }
 
     setIsBusy(true);
     try {

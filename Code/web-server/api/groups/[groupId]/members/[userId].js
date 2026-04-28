@@ -1,6 +1,6 @@
-import { requireUserAuth } from "../../../../_lib/auth.js";
-import { normalizeParam, requireMembership, setCors } from "../../../../_lib/groups.js";
-import { supabaseAdmin } from "../../../../_lib/supabaseAdmin.js";
+import { requireUserAuth } from "../../../_lib/auth.js";
+import { normalizeParam, requireMembership, setCors } from "../../../_lib/groups.js";
+import { supabaseAdmin } from "../../../_lib/supabaseAdmin.js";
 
 export default async function handler(req, res) {
   setCors(res, "PATCH, DELETE, OPTIONS");
@@ -33,13 +33,43 @@ export default async function handler(req, res) {
       if (actorMembership.role !== "owner") {
         return res.status(403).json({ error: "Only owner can update member roles." });
       }
-      if (targetMembership.role === "owner") {
-        return res.status(400).json({ error: "Owner role cannot be changed." });
-      }
 
       const role = typeof req.body?.role === "string" ? req.body.role : "";
-      if (!["member", "admin"].includes(role)) {
-        return res.status(400).json({ error: "Role must be member or admin." });
+      if (!["member", "owner"].includes(role)) {
+        return res.status(400).json({ error: "Role must be member or owner." });
+      }
+
+      if (role === "owner") {
+        if (targetMembership.role === "owner") {
+          return res.status(400).json({ error: "This member is already the owner." });
+        }
+
+        const { error: promoteError } = await supabaseAdmin
+          .from("group_members")
+          .update({ role: "owner" })
+          .eq("group_id", groupId)
+          .eq("user_id", targetUserId);
+        if (promoteError) return res.status(500).json({ error: promoteError.message });
+
+        const { error: demoteError } = await supabaseAdmin
+          .from("group_members")
+          .update({ role: "member" })
+          .eq("group_id", groupId)
+          .eq("user_id", auth.user.id);
+        if (demoteError) {
+          await supabaseAdmin
+            .from("group_members")
+            .update({ role: targetMembership.role })
+            .eq("group_id", groupId)
+            .eq("user_id", targetUserId);
+          return res.status(500).json({ error: demoteError.message });
+        }
+
+        return res.status(200).json({ ok: true });
+      }
+
+      if (targetMembership.role === "owner") {
+        return res.status(400).json({ error: "Owner role cannot be changed." });
       }
 
       const { error } = await supabaseAdmin
@@ -52,8 +82,8 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "DELETE") {
-      if (!["owner", "admin"].includes(actorMembership.role)) {
-        return res.status(403).json({ error: "Only owner or admin can remove members." });
+      if (actorMembership.role !== "owner") {
+        return res.status(403).json({ error: "Only owner can remove members." });
       }
       if (targetMembership.role === "owner") {
         return res.status(400).json({ error: "Owner cannot be removed." });
