@@ -3,8 +3,8 @@
 
 # How to run code
 
-## ESP32
-The ESP32 code is located under [Code/ESP32/HX711](Code/ESP32/HX711).
+## ESP32c3
+The ESP32c3 code is located under [Code/ESP32/HX711](Code/ESP32/HX711).
 
 To run this code:
 - download ESP-IDF
