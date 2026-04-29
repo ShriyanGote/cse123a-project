@@ -3,5 +3,17 @@
 - security 1 vs 2 - ask since sec 2 requires per device credentials (salt needs to be generated w verifier, not just random numbers, very complicated to make)
 - per device things - derive from mac addr
 - add try reconnect 5 times, then try every 30 sec while provisioning is active
-    - do it yourself, chatGPT makes it worse every time
-        - add state, esp_timer, reconnect, reuse prov code/turn it into a function
+    - now functionalized
+    - attempt to reconnect every 30 seconds IF no wifi and no active ble connection
+        - or maybe just reboot? (must fix bug below)
+- ISSUE: if saved credentials fail on start, it just gives up, must enter provisioning instead
+
+- now clears credentials and reboots on wifi disconnect and cant reconnect
+    - but this ruins the save them and retry them, may have to track from CREDS FAIL event
+    - if CREDS FAIL and pass wrong (AUTH ERROR or smthn) clear and reboot, if disconnect just reboot
+
+    case WIFI_PROV_CRED_FAIL:
+    if (reason == WIFI_PROV_STA_AUTH_ERROR)
+
+
+- UPDATE: almost all working, just need to reboot every 30 sec if wifi disconnected and no ble connection

@@ -24,10 +24,10 @@
 // 1 = security 1 (X25519 + PoP)
 
 #define PROV_POP "abcd1234"   // for security1, should be unique per device
-#define PROV_RETRY_ATTEMPTS 5 // Number of times to retry WiFi connection before giving up
+#define PROV_RETRY_ATTEMPTS 2 // Number of times to retry WiFi connection before giving up
 #define PROV_RESET_ON_BOOT 1  // Set to 1 to reset provisioning data on every boot (for testing)
 #define PROV_SHOW_QR 1
-static const char *TAG = "app";
+static const char *TAG = "PROVISIONING";
 
 /////////for async listeners
 #define WIFI_CONNECTED_BIT BIT0
@@ -39,6 +39,7 @@ static const char *TAG = "app";
 static EventGroupHandle_t wifi_event_group;
 static int wifi_retry_count = 0;
 static bool provisioning_active = false;
+static bool ble_connected = false;
 
 /* =========================
  * QR CODE (SIMPLIFIED)
@@ -76,6 +77,12 @@ static void get_device_service_name(char *service_name, size_t max)
              mac[3], mac[4], mac[5]);
 }
 
+
+/* =========================
+ * MISC FUNCTIONS
+ * ========================= */
+void start_provisioning(void);
+
 /* =========================
  * WIFI EVENT HANDLER
  * ========================= */
@@ -102,18 +109,26 @@ static void event_handler(void *arg,
             case WIFI_PROV_CRED_FAIL: {
                 wifi_prov_sta_fail_reason_t *reason = (wifi_prov_sta_fail_reason_t *)event_data;
                 ESP_LOGE(TAG, "Provisioning failed!\n\tReason : %s"
-                         "\n\tPlease reset to factory and retry provisioning",
+                         "\n\tRebooting device...",
                          (*reason == WIFI_PROV_STA_AUTH_ERROR) ?
                          "Wi-Fi station authentication failed" : "Wi-Fi access-point not found");
+                if (*reason == WIFI_PROV_STA_AUTH_ERROR) {
+                    wifi_prov_mgr_reset_provisioning(); //reset credentials since pass is wrong
+                    wifi_prov_mgr_stop_provisioning();
+                    vTaskDelay(pdMS_TO_TICKS(2000)); //wait 
+                    esp_restart(); // Restart the device
+                }
                 break;
             }
             case WIFI_PROV_CRED_SUCCESS:
                 ESP_LOGI(TAG, "Provisioning successful");
                 break;
             case WIFI_PROV_END:
+                ESP_LOGI(TAG, "Provisioning ended");
                 provisioning_active = false;
                 /* De-initialize manager once provisioning is finished */
                 wifi_prov_mgr_deinit();
+                
                 break;
             default:
                 break;
@@ -123,6 +138,7 @@ static void event_handler(void *arg,
 
         if (event_id == WIFI_EVENT_STA_START)
         {
+            ESP_LOGI(TAG, "WiFi STA started");
             esp_wifi_connect();
         }
 
@@ -141,7 +157,10 @@ static void event_handler(void *arg,
             }
             else
             {
-                ESP_LOGE(TAG, "Max retries reached");
+                ESP_LOGE(TAG, "Max retries reached, keeping credentials and rebooting");
+                wifi_prov_mgr_stop_provisioning();
+                vTaskDelay(pdMS_TO_TICKS(2000)); //wait 
+                esp_restart(); // Restart the device
             }
         }
     }
@@ -152,22 +171,17 @@ static void event_handler(void *arg,
 
         wifi_retry_count = 0;
 
-        //BREAKS, change to if prov active and no bluetooth connection?
-        // //cancel provisioning if it's still running
-        // if (provisioning_active)
-        // {
-        //     wifi_prov_mgr_stop_provisioning();
-        // }
-
         xEventGroupSetBits(wifi_event_group, WIFI_CONNECTED_BIT);
     }
 
     else if (event_base == PROTOCOMM_TRANSPORT_BLE_EVENT) {
         switch (event_id) {
             case PROTOCOMM_TRANSPORT_BLE_CONNECTED:
+                ble_connected = true;
                 ESP_LOGI(TAG, "BLE transport: Connected!");
                 break;
             case PROTOCOMM_TRANSPORT_BLE_DISCONNECTED:
+                ble_connected = false;
                 ESP_LOGI(TAG, "BLE transport: Disconnected!");
                 break;
             default:
