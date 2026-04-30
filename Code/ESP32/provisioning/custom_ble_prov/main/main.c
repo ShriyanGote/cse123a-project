@@ -22,6 +22,8 @@
 
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
+#include "host/ble_att.h"
+#include "host/ble_gatt.h"
 #include "host/ble_hs.h"
 #include "host/ble_uuid.h"
 #include "host/util/util.h"
@@ -30,7 +32,6 @@
 #include "store/config/ble_store_config.h"
 
 #include "cJSON.h"
-#include "mbedtls/base64.h"
 #include "qrcode.h"
 
 static const char *TAG = "cse_ble_prov";
@@ -75,10 +76,10 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
             (struct ble_gatt_chr_def[]){
                 {.uuid = &chr_auth_uuid.u,
                  .access_cb = gatt_svr_chr_access,
-                 .flags = BLE_GATT_CHR_F_WRITE},
+                 .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP},
                 {.uuid = &chr_wifi_uuid.u,
                  .access_cb = gatt_svr_chr_access,
-                 .flags = BLE_GATT_CHR_F_WRITE},
+                 .flags = BLE_GATT_CHR_F_WRITE | BLE_GATT_CHR_F_WRITE_NO_RSP},
                 {.uuid = &chr_status_uuid.u,
                  .access_cb = gatt_svr_chr_access,
                  .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_NOTIFY,
@@ -113,95 +114,48 @@ static void notify_status(const char *msg)
     }
 }
 
-static int decode_b64_json(struct os_mbuf *om, char *json_out, size_t json_cap, size_t *json_len)
+static int handle_auth_write(struct os_mbuf *om)
 {
-    char b64[512];
     uint16_t pktlen = OS_MBUF_PKTLEN(om);
-    if (pktlen == 0 || pktlen >= sizeof b64) {
+    ESP_LOGI(TAG, "handle_auth_write called, pktlen=%d", pktlen);
+    if (pktlen == 0 || pktlen >= sizeof(s_auth_token)) {
         return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
     }
-    int rc = ble_hs_mbuf_to_flat(om, b64, pktlen, NULL);
+
+    int rc = ble_hs_mbuf_to_flat(om, s_auth_token, sizeof(s_auth_token) - 1, NULL);
     if (rc != 0) {
         return BLE_ATT_ERR_UNLIKELY;
     }
-    b64[pktlen] = '\0';
+    s_auth_token[pktlen] = '\0';
 
-    size_t raw_len = 0;
-    rc = mbedtls_base64_decode((unsigned char *)json_out, json_cap - 1, &raw_len,
-                               (unsigned char *)b64, strlen(b64));
-    if (rc != 0) {
-        return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
-    }
-    json_out[raw_len] = '\0';
-    if (json_len) {
-        *json_len = raw_len;
-    }
-    return 0;
-}
-
-static int handle_auth_write(struct os_mbuf *om)
-{
-    char json_buf[320];
-    size_t jlen = 0;
-    int err = decode_b64_json(om, json_buf, sizeof json_buf, &jlen);
-    if (err != 0) {
-        return err;
-    }
-
-    cJSON *root = cJSON_Parse(json_buf);
-    if (root && cJSON_IsObject(root)) {
-        cJSON *tok = cJSON_GetObjectItem(root, "auth_token");
-        if (cJSON_IsString(tok) && tok->valuestring) {
-            strncpy(s_auth_token, tok->valuestring, sizeof s_auth_token - 1);
-            s_auth_token[sizeof s_auth_token - 1] = '\0';
-        }
-        cJSON_Delete(root);
-    } else {
-        if (root) {
-            cJSON_Delete(root);
-        }
-        strncpy(s_auth_token, json_buf, sizeof s_auth_token - 1);
-        s_auth_token[sizeof s_auth_token - 1] = '\0';
-    }
-
-    if (s_auth_token[0] == '\0') {
-        return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
-    }
-    ESP_LOGI(TAG, "auth token stored (len=%d)", (int)strlen(s_auth_token));
+    ESP_LOGI(TAG, "auth token stored: %s (len=%d)", s_auth_token, pktlen);
     notify_status("auth_ok");
     return 0;
 }
 
 static int handle_wifi_write(struct os_mbuf *om)
 {
-    char json_buf[384];
-    int err = decode_b64_json(om, json_buf, sizeof json_buf, NULL);
-    if (err != 0) {
-        return err;
+    uint16_t pktlen = OS_MBUF_PKTLEN(om);
+    ESP_LOGI(TAG, "handle_wifi_write called, pktlen=%d", pktlen);
+    char wifi_str[256];
+    if (pktlen == 0 || pktlen >= sizeof(wifi_str)) {
+        return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
     }
+    int rc = ble_hs_mbuf_to_flat(om, wifi_str, sizeof(wifi_str) - 1, NULL);
+    if (rc != 0) return BLE_ATT_ERR_UNLIKELY;
+    wifi_str[pktlen] = '\0';
 
-    cJSON *root = cJSON_Parse(json_buf);
-    if (!root || !cJSON_IsObject(root)) {
-        if (root) {
-            cJSON_Delete(root);
-        }
-        return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
-    }
-    cJSON *jssid = cJSON_GetObjectItem(root, "ssid");
-    cJSON *jpass = cJSON_GetObjectItem(root, "password");
-    if (!cJSON_IsString(jssid) || !jssid->valuestring) {
-        cJSON_Delete(root);
-        return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
-    }
-    const char *pwd = "";
-    if (cJSON_IsString(jpass) && jpass->valuestring) {
-        pwd = jpass->valuestring;
-    }
+    ESP_LOGI(TAG, "wifi payload: %s", wifi_str);
+
+    char *colon = strchr(wifi_str, ':');
+    if (!colon) return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
+    *colon = '\0';
+    char *ssid = wifi_str;
+    char *pwd = colon + 1;
 
     wifi_config_t cfg = {0};
-    strncpy((char *)cfg.sta.ssid, jssid->valuestring, sizeof cfg.sta.ssid - 1);
+    strncpy((char *)cfg.sta.ssid, ssid, sizeof cfg.sta.ssid - 1);
     strncpy((char *)cfg.sta.password, pwd, sizeof cfg.sta.password - 1);
-    cJSON_Delete(root);
 
     notify_status("wifi_connecting");
     esp_err_t w = esp_wifi_set_config(WIFI_IF_STA, &cfg);
@@ -319,6 +273,8 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         if (event->connect.status == 0) {
             s_conn_handle = event->connect.conn_handle;
             ESP_LOGI(TAG, "connected handle=%d", s_conn_handle);
+            int mtu_rc = ble_gattc_exchange_mtu(s_conn_handle, NULL, NULL);
+            ESP_LOGI(TAG, "MTU exchange requested rc=%d", mtu_rc);
         } else {
             s_conn_handle = BLE_HS_CONN_HANDLE_NONE;
             ble_app_advertise();
@@ -331,6 +287,10 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         break;
     case BLE_GAP_EVENT_ADV_COMPLETE:
         ble_app_advertise();
+        break;
+    case BLE_GAP_EVENT_MTU:
+        ESP_LOGI(TAG, "MTU negotiated conn=%d mtu=%d",
+                 event->mtu.conn_handle, event->mtu.value);
         break;
     default:
         break;
@@ -382,6 +342,45 @@ static void show_qr_payload(void)
     esp_qrcode_generate(&cfg, payload);
 }
 
+static void do_ingest_task(void *arg)
+{
+    (void)arg;
+    char url[160];
+    snprintf(url, sizeof url, "%s/api/ingest", CSE123A_API_BASE);
+
+    esp_http_client_config_t cfg = {
+        .url = url,
+        .method = HTTP_METHOD_POST,
+        .timeout_ms = 15000,
+        .crt_bundle_attach = esp_crt_bundle_attach,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&cfg);
+    if (client == NULL) {
+        ESP_LOGE(TAG, "esp_http_client_init failed");
+        vTaskDelete(NULL);
+        return;
+    }
+
+    char auth_hdr[160];
+    snprintf(auth_hdr, sizeof auth_hdr, "Bearer %s", s_auth_token);
+    esp_http_client_set_header(client, "Authorization", auth_hdr);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    char body[192];
+    snprintf(body, sizeof body, "{\"device_id\":\"%s\",\"weight_g\":0,\"battery_mv\":0}",
+             s_device_id);
+    esp_http_client_set_post_field(client, body, strlen(body));
+
+    esp_err_t err = esp_http_client_perform(client);
+    if (err == ESP_OK) {
+        ESP_LOGI(TAG, "ingest HTTP %d", esp_http_client_get_status_code(client));
+    } else {
+        ESP_LOGE(TAG, "ingest failed: %s", esp_err_to_name(err));
+    }
+    esp_http_client_cleanup(client);
+    vTaskDelete(NULL);
+}
+
 static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
 {
     (void)arg;
@@ -400,34 +399,10 @@ static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, voi
             return;
         }
 
-        char url[160];
-        snprintf(url, sizeof url, "%s/api/ingest", CSE123A_API_BASE);
-
-        esp_http_client_config_t cfg = {
-            .url = url,
-            .method = HTTP_METHOD_POST,
-            .timeout_ms = 15000,
-            .crt_bundle_attach = esp_crt_bundle_attach,
-        };
-        esp_http_client_handle_t client = esp_http_client_init(&cfg);
-        char auth_hdr[160];
-        snprintf(auth_hdr, sizeof auth_hdr, "Bearer %s", s_auth_token);
-        esp_http_client_set_header(client, "Authorization", auth_hdr);
-        esp_http_client_set_header(client, "Content-Type", "application/json");
-
-        char body[192];
-        snprintf(body, sizeof body, "{\"device_id\":\"%s\",\"weight_g\":0,\"battery_mv\":0}",
-                 s_device_id);
-        esp_http_client_set_post_field(client, body, strlen(body));
-
-        esp_err_t err = esp_http_client_perform(client);
-        if (err == ESP_OK) {
-            int st = esp_http_client_get_status_code(client);
-            ESP_LOGI(TAG, "ingest HTTP %d", st);
-        } else {
-            ESP_LOGE(TAG, "ingest failed: %s", esp_err_to_name(err));
+        BaseType_t task_ok = xTaskCreate(do_ingest_task, "ingest", 8192, NULL, 5, NULL);
+        if (task_ok != pdPASS) {
+            ESP_LOGE(TAG, "failed to create ingest task");
         }
-        esp_http_client_cleanup(client);
     }
 }
 
@@ -464,6 +439,7 @@ void app_main(void)
     show_qr_payload();
 
     ESP_ERROR_CHECK(nimble_port_init());
+    ble_att_set_preferred_mtu(512);
 
     ble_hs_cfg.reset_cb = on_reset;
     ble_hs_cfg.sync_cb = on_sync;

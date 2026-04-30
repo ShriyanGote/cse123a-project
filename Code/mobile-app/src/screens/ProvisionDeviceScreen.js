@@ -20,6 +20,7 @@ const FALLBACK_SERVICE_UUID = "a0b40001-9267-4d61-a8c8-9f2f4b2c8e01";
 const FALLBACK_AUTH_CHAR_UUID = "a0b40002-9267-4d61-a8c8-9f2f4b2c8e01";
 const FALLBACK_WIFI_CHAR_UUID = "a0b40003-9267-4d61-a8c8-9f2f4b2c8e01";
 const FALLBACK_STATUS_CHAR_UUID = "a0b40004-9267-4d61-a8c8-9f2f4b2c8e01";
+console.log("Something to print\n");
 
 function resolveUuid(envValue, fallbackValue) {
   const value = typeof envValue === "string" ? envValue.trim() : "";
@@ -50,6 +51,10 @@ const DEFAULT_STATUS_CHAR_UUID = resolveUuid(
 
 function toBase64(jsonPayload) {
   return Buffer.from(JSON.stringify(jsonPayload), "utf8").toString("base64");
+}
+
+function toBase64Text(text) {
+  return Buffer.from(text, "utf8").toString("base64");
 }
 
 /** Avoid expo-crypto here: it requires native ExpoCryptoAES, which breaks in some runtimes (e.g. Expo Go / skewed builds). */
@@ -127,6 +132,7 @@ export default function ProvisionDeviceScreen() {
   const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
   const [isBleBusy, setIsBleBusy] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
+  const [isCameraReady, setIsCameraReady] = useState(false);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [authToken, setAuthToken] = useState("");
   const [espName, setEspName] = useState("");
@@ -143,11 +149,18 @@ export default function ProvisionDeviceScreen() {
   const [deviceNickname, setDeviceNickname] = useState("");
   const [lastBleStatus, setLastBleStatus] = useState("");
   const [lastQrRawValue, setLastQrRawValue] = useState("");
+  const [scanDebug, setScanDebug] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [bleUnavailableReason, setBleUnavailableReason] = useState("");
   const bleManagerRef = useRef(null);
   const connectedDeviceRef = useRef(null);
+  const hasHandledScanRef = useRef(false);
+  const isQrScanActiveRef = useRef(false);
+  const handleBarcodeScannedRef = useRef(null);
+  const stableBarcodeHandler = useRef(({ data }) => {
+    handleBarcodeScannedRef.current?.({ data });
+  }).current;
   const isIos = Platform.OS === "ios";
   const canUseNativeProvisioning = isIos;
 
@@ -213,15 +226,51 @@ export default function ProvisionDeviceScreen() {
 
   async function openQrScanner() {
     setError("");
+    setScanDebug("Opening camera...");
+    console.log("QR: open scanner tapped");
     if (!cameraPermission?.granted) {
+      console.log("QR: requesting camera permission");
       const result = await requestCameraPermission();
       if (!result.granted) {
         setError("Camera permission is required to scan ESP QR.");
+        setScanDebug("Camera permission denied.");
+        console.log("QR: camera permission denied");
         return;
       }
+      console.log("QR: camera permission granted");
     }
+    hasHandledScanRef.current = false;
+    isQrScanActiveRef.current = true;
+    setScanDebug("Scanner active. Point camera at QR.");
+    console.log("QR: scanner active");
     setCameraVisible(true);
   }
+
+  function closeQrScanner() {
+    console.log("QR: scanner closed");
+    isQrScanActiveRef.current = false;
+    setCameraVisible(false);
+    setIsCameraReady(false);
+    hasHandledScanRef.current = false;
+  }
+
+  handleBarcodeScannedRef.current = ({ data }) => {
+    console.log("🔍 onBarcodeScanned fired:", data?.slice(0, 80));
+    if (!data || hasHandledScanRef.current || !isQrScanActiveRef.current) {
+      console.log("🔍 guard blocked:", {
+        noData: !data,
+        alreadyHandled: hasHandledScanRef.current,
+        notActive: !isQrScanActiveRef.current,
+      });
+      return;
+    }
+    hasHandledScanRef.current = true;
+    isQrScanActiveRef.current = false;
+    setScanDebug(`Captured QR (${String(data).length} chars).`);
+    console.log("RAW QR DATA:", data);
+    applyQrData(data);
+    closeQrScanner();
+  };
 
   function applyQrData(rawData) {
     setLastQrRawValue(rawData ?? "");
@@ -298,11 +347,20 @@ export default function ProvisionDeviceScreen() {
     }
     const manager = bleManagerRef.current;
     if (!manager) throw new Error("BLE manager not initialized.");
+    const expected = espName.trim().toLowerCase();
+    const seenNames = new Set();
 
     const device = await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         manager.stopDeviceScan();
-        reject(new Error("BLE scan timed out. Ensure ESP is advertising."));
+        const sample = Array.from(seenNames).slice(0, 6).join(", ");
+        reject(
+          new Error(
+            sample
+              ? `BLE scan timed out. Looking for "${espName.trim()}". Seen: ${sample}`
+              : "BLE scan timed out. Ensure ESP is advertising."
+          )
+        );
       }, 20000);
 
       manager.startDeviceScan(null, null, (scanError, candidate) => {
@@ -313,7 +371,21 @@ export default function ProvisionDeviceScreen() {
           return;
         }
 
-        if (candidate?.name === espName.trim() || candidate?.localName === espName.trim()) {
+        const candidateName = (candidate?.name ?? "").trim();
+        const candidateLocalName = (candidate?.localName ?? "").trim();
+        if (candidateName) seenNames.add(candidateName);
+        if (candidateLocalName) seenNames.add(candidateLocalName);
+
+        const lowerName = candidateName.toLowerCase();
+        const lowerLocalName = candidateLocalName.toLowerCase();
+        const hasName = lowerName.length > 0;
+        const hasLocalName = lowerLocalName.length > 0;
+        const match =
+          (hasName && (lowerName === expected || lowerName.startsWith(expected))) ||
+          (hasLocalName &&
+            (lowerLocalName === expected || lowerLocalName.startsWith(expected)));
+
+        if (match) {
           clearTimeout(timeout);
           manager.stopDeviceScan();
           resolve(candidate);
@@ -323,6 +395,14 @@ export default function ProvisionDeviceScreen() {
 
     const connected = await device.connect();
     await connected.discoverAllServicesAndCharacteristics();
+    try {
+      await connected.requestMTU(512);
+      console.log("MTU requested from app side (512)");
+    } catch (mtuError) {
+      console.log("MTU request failed (non-fatal):", mtuError?.message ?? mtuError);
+    }
+    // Ble-plx can resolve discovery before iOS GATT cache is fully settled.
+    await new Promise((resolve) => setTimeout(resolve, 500));
     connectedDeviceRef.current = connected;
     return connected;
   }
@@ -350,23 +430,53 @@ export default function ProvisionDeviceScreen() {
       });
 
       const device = connectedDeviceRef.current ?? (await findAndConnectDevice());
+      const discoveredServices = await device.services();
+      console.log("GATT services:", discoveredServices.map((s) => s.uuid));
+      for (const svc of discoveredServices) {
+        try {
+          const chars = await svc.characteristics();
+          console.log(
+            `GATT chars for ${svc.uuid}:`,
+            chars.map((c) => c.uuid)
+          );
+        } catch (serviceError) {
+          console.log(
+            `GATT char read failed for ${svc.uuid}:`,
+            serviceError?.message ?? serviceError
+          );
+        }
+      }
 
-      const authPayload = { auth_token: authToken.trim() };
-      await device.writeCharacteristicWithResponseForService(
-        serviceUuid.trim(),
-        authCharUuid.trim(),
-        toBase64(authPayload)
-      );
+      const authB64 = toBase64Text(authToken.trim());
+      console.log("Auth payload b64 length:", authB64.length, "value:", authB64);
+      try {
+        console.log("About to write auth...");
+        await device.writeCharacteristicWithoutResponseForService(
+          serviceUuid.trim(),
+          authCharUuid.trim(),
+          authB64
+        );
+        console.log("Auth write done.");
+      } catch (e) {
+        console.log("AUTH WRITE ERROR:", e?.message ?? e, e?.errorCode);
+        throw e;
+      }
 
-      const wifiPayload = {
-        ssid: wifiSsid.trim(),
-        password: wifiPassword,
-      };
-      await device.writeCharacteristicWithResponseForService(
-        serviceUuid.trim(),
-        wifiCharUuid.trim(),
-        toBase64(wifiPayload)
-      );
+      const wifiCompact = `${wifiSsid.trim()}:${wifiPassword}`;
+      const wifiB64 = toBase64Text(wifiCompact);
+      console.log("WiFi payload b64 length:", wifiB64.length);
+      try {
+        console.log("About to write wifi...");
+        await device.writeCharacteristicWithoutResponseForService(
+          serviceUuid.trim(),
+          wifiCharUuid.trim(),
+          wifiB64
+        );
+        console.log("WiFi write done.");
+      } catch (e) {
+        console.log("WIFI WRITE ERROR:", e?.message ?? e, e?.errorCode);
+        throw e;
+      }
 
       if (statusCharUuid.trim()) {
         try {
@@ -556,33 +666,54 @@ export default function ProvisionDeviceScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={cameraVisible} animationType="slide">
-        <SafeAreaView style={styles.cameraSafeArea}>
-          <View style={styles.cameraHeader}>
-            <Text style={styles.cameraTitle}>Scan ESP Provisioning QR</Text>
-            <Pressable
-              style={styles.secondaryButton}
-              onPress={() => setCameraVisible(false)}
-            >
-              <Text style={styles.secondaryButtonText}>Close</Text>
-            </Pressable>
-          </View>
-          <CameraView
-            style={styles.cameraView}
-            barcodeScannerEnabled
-            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-            onBarcodeScanned={({ data }) => {
-              if (!data) return;
-              applyQrData(data);
-              setCameraVisible(false);
-            }}
-          />
-          <Text style={styles.cameraHint}>
-            Expected JSON: device_name, device_id (optional UUID overrides: service_uuid, auth_char_uuid,
-            wifi_char_uuid, status_char_uuid). Custom firmware uses fixed UUIDs if omitted.
-          </Text>
-        </SafeAreaView>
-      </Modal>
+      {cameraVisible ? (
+        <Modal
+          visible
+          animationType="slide"
+          onShow={() => {
+            console.log("QR: modal shown, activating camera");
+            setScanDebug("Camera mounted. Scanner ready.");
+            setIsCameraReady(true);
+          }}
+        >
+          <SafeAreaView style={styles.cameraSafeArea}>
+            <View style={styles.cameraHeader}>
+              <Text style={styles.cameraTitle}>Scan ESP Provisioning QR</Text>
+              <Pressable
+                style={[styles.secondaryButton, styles.cameraCloseButton]}
+                onPress={closeQrScanner}
+              >
+                <Text style={styles.secondaryButtonText}>Close</Text>
+              </Pressable>
+            </View>
+            {cameraPermission?.granted ? (
+              isCameraReady ? (
+                <CameraView
+                  style={styles.cameraView}
+                  barcodeScannerEnabled
+                  barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+                  onBarcodeScanned={stableBarcodeHandler}
+                />
+              ) : (
+                <View style={styles.cameraLoadingContainer}>
+                  <ActivityIndicator color="#38bdf8" size="large" />
+                </View>
+              )
+            ) : (
+              <View style={styles.cameraFallback}>
+                <Text style={styles.cameraHint}>
+                  Camera permission is not granted. Enable camera access in iOS Settings for this app.
+                </Text>
+              </View>
+            )}
+            {!!scanDebug && <Text style={styles.cameraDebugText}>{scanDebug}</Text>}
+            <Text style={styles.cameraHint}>
+              Expected JSON: device_name, device_id (optional UUID overrides: service_uuid, auth_char_uuid,
+              wifi_char_uuid, status_char_uuid). Custom firmware uses fixed UUIDs if omitted.
+            </Text>
+          </SafeAreaView>
+        </Modal>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -710,9 +841,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 22,
     paddingBottom: 10,
     backgroundColor: "#f8fafc",
+  },
+  cameraCloseButton: {
+    marginTop: 6,
   },
   cameraTitle: {
     fontSize: 16,
@@ -722,10 +856,27 @@ const styles = StyleSheet.create({
   cameraView: {
     flex: 1,
   },
+  cameraFallback: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  cameraLoadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   cameraHint: {
     fontSize: 12,
     color: "#e2e8f0",
     padding: 12,
     lineHeight: 18,
+  },
+  cameraDebugText: {
+    fontSize: 12,
+    color: "#38bdf8",
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
 });
