@@ -56,17 +56,6 @@ export async function postCalibration(partial) {
   });
 }
 
-export async function createProvisionSession() {
-  return apiFetch("/api/auth/provision-start", { method: "POST" });
-}
-
-export async function completeProvisionSession(payload) {
-  return apiFetch("/api/auth/provision-complete", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
 /** Simple BLE provisioning: register device_id + auth_token after the app has sent both over BLE. */
 export async function registerBleDevice(payload) {
   return apiFetch("/api/devices/ble-register", {
