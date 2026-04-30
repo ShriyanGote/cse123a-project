@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { compactDecrypt, importJWK, jwtVerify } from "jose";
 import { supabaseAdmin } from "./supabaseAdmin.js";
 
@@ -93,6 +94,33 @@ async function resolveDeviceVerificationKey(protectedHeader, payload) {
   return importJWK(data.public_jwk, "ES256");
 }
 
+function timingSafeEqualString(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const ba = Buffer.from(a, "utf8");
+  const bb = Buffer.from(b, "utf8");
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
+}
+
+async function tryProvisionTokenAuth(bearerToken, deviceId) {
+  if (!deviceId || typeof deviceId !== "string") return null;
+
+  const { data, error } = await supabaseAdmin
+    .from("devices")
+    .select("id, device_id, auth_token, status")
+    .eq("device_id", deviceId)
+    .maybeSingle();
+
+  if (error || !data?.auth_token || data.status === "revoked") return null;
+  if (!timingSafeEqualString(data.auth_token, bearerToken)) return null;
+
+  return {
+    deviceId: data.device_id,
+    rowId: data.id,
+    mode: "provision_token",
+  };
+}
+
 export async function verifyNestedDeviceToken(token) {
   const jwkJson = process.env.DEVICE_JWE_PRIVATE_JWK;
   if (!jwkJson) throw new Error("Server missing DEVICE_JWE_PRIVATE_JWK.");
@@ -154,6 +182,15 @@ export async function requireDeviceAuth(req, res) {
   if (!token) {
     toJson(res, 401, { error: "Missing Bearer token." });
     return null;
+  }
+
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const deviceId = body.device_id ?? null;
+
+  const provisionAuth = await tryProvisionTokenAuth(token, deviceId);
+  if (provisionAuth) {
+    req.auth = { type: "device", token, device: provisionAuth };
+    return req.auth;
   }
 
   try {

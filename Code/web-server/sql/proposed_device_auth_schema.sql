@@ -8,6 +8,8 @@ create table if not exists public.devices (
   device_id text not null unique,
   created_by uuid not null references auth.users(id) on delete cascade,
   status text not null default 'pending' check (status in ('pending', 'active', 'revoked')),
+  auth_token text,
+  device_name text,
   last_seen_at timestamptz,
   created_at timestamptz not null default now()
 );

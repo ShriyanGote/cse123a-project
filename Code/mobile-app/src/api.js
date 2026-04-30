@@ -67,6 +67,14 @@ export async function completeProvisionSession(payload) {
   });
 }
 
+/** Simple BLE provisioning: register device_id + auth_token after the app has sent both over BLE. */
+export async function registerBleDevice(payload) {
+  return apiFetch("/api/devices/ble-register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function ensureMyProfile(displayName) {
   return apiFetch("/api/profile/ensure", {
     method: "POST",
