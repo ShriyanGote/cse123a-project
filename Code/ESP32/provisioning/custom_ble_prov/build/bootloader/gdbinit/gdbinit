@@ -1,0 +1,2 @@
+source /Users/shriyangote/123a-project/Code/ESP32/provisioning/custom_ble_prov/build/bootloader/gdbinit/symbols
+source /Users/shriyangote/123a-project/Code/ESP32/provisioning/custom_ble_prov/build/bootloader/gdbinit/connect
