@@ -1,3 +1,6 @@
+
+//simulate api reesponse to the server 
+//Server goes to the devices (esp, phone)
 import { requireUserAuth } from "./_lib/auth.js";
 import { supabaseAdmin } from "./_lib/supabaseAdmin.js";
 
