@@ -13,10 +13,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { supabase } from "../supabase";
-import { createGroup, fetchMyGroups, joinGroupByInvite } from "../api";
+import { createGroup, fetchMyDevices, fetchMyGroups, joinGroupByInvite } from "../api";
 
 export default function DashboardScreen({ user, navigation, onOpenIntro }) {
   const [groups, setGroups] = useState([]);
+  const [devices, setDevices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [generalError, setGeneralError] = useState("");
@@ -24,7 +25,8 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
   const [joinError, setJoinError] = useState("");
 
   const [newGroupName, setNewGroupName] = useState("");
-  const [newGroupDeviceId, setNewGroupDeviceId] = useState("");
+  /** Selected hardware id (`devices.device_id`) for the new group, or "" for no device. */
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [isBusy, setIsBusy] = useState(false);
 
@@ -33,19 +35,29 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
     setGroups(response.groups ?? []);
   }, []);
 
+  const loadDevices = useCallback(async () => {
+    const response = await fetchMyDevices();
+    setDevices(response.devices ?? []);
+  }, []);
+
   const refresh = useCallback(async () => {
     try {
       setGeneralError("");
       setCreateError("");
       setJoinError("");
       await loadGroups();
+      try {
+        await loadDevices();
+      } catch {
+        setDevices([]);
+      }
     } catch (e) {
       setGeneralError(e.message ?? "Failed to load groups.");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [loadGroups]);
+  }, [loadGroups, loadDevices]);
 
   useEffect(() => {
     refresh();
@@ -70,11 +82,11 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
     try {
       await createGroup({
         name,
-        device_id: newGroupDeviceId.trim() || null,
+        device_id: selectedDeviceId.trim() || null,
       });
 
       setNewGroupName("");
-      setNewGroupDeviceId("");
+      setSelectedDeviceId("");
       await refresh();
     } catch (e) {
       setCreateError(e.message ?? "Could not create group.");
@@ -134,7 +146,7 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
       >
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
-            <Text style={styles.title}>My Groups</Text>
+            <Text style={styles.title}>Home</Text>
             <Text style={styles.subtitle}>{user.email}</Text>
           </View>
           <View style={styles.headerActions}>
@@ -159,18 +171,60 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Create Group</Text>
+          <Text style={styles.sectionTitle}>My devices</Text>
+          <Text style={styles.hintText}>
+            Tap a device to attach it when you create a group (you stay the group owner).
+          </Text>
+          {devices.length === 0 ? (
+            <Text style={styles.mutedText}>
+              No devices yet. Use Provision to register one, then it will appear here.
+            </Text>
+          ) : (
+            <View style={styles.deviceList}>
+              <Pressable
+                onPress={() => setSelectedDeviceId("")}
+                style={({ pressed }) => [
+                  styles.deviceRow,
+                  selectedDeviceId === "" && styles.deviceRowSelected,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.deviceRowTitle}>No device</Text>
+                <Text style={styles.deviceRowMeta}>Create a group without linking hardware.</Text>
+              </Pressable>
+              {devices.map((d) => {
+                const id = d.device_id ?? "";
+                const label = (d.device_name && String(d.device_name).trim()) || id;
+                const selected = selectedDeviceId === id;
+                return (
+                  <Pressable
+                    key={d.id}
+                    onPress={() => setSelectedDeviceId(id)}
+                    style={({ pressed }) => [
+                      styles.deviceRow,
+                      selected && styles.deviceRowSelected,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text style={styles.deviceRowTitle} numberOfLines={1}>
+                      {label}
+                    </Text>
+                    <Text style={styles.deviceRowMeta} numberOfLines={1}>
+                      {id} · {d.status ?? "unknown"}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Create group</Text>
           <TextInput
             value={newGroupName}
             onChangeText={setNewGroupName}
             placeholder="e.g. Apartment Kitchen"
-            style={styles.input}
-          />
-          <TextInput
-            value={newGroupDeviceId}
-            onChangeText={setNewGroupDeviceId}
-            placeholder="Device ID (optional)"
-            autoCapitalize="none"
             style={styles.input}
           />
           <Pressable
@@ -211,6 +265,8 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
         </View>
 
         {!!generalError && <Text style={styles.errorText}>{generalError}</Text>}
+
+        <Text style={styles.listSectionTitle}>My groups</Text>
 
         {isLoading ? (
           <View style={styles.loadingWrap}>
@@ -304,10 +360,51 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 10,
   },
+  listSectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0f172a",
+    marginTop: 4,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: "#0f172a",
+  },
+  hintText: {
+    fontSize: 12,
+    color: "#64748b",
+    lineHeight: 16,
+  },
+  mutedText: {
+    fontSize: 13,
+    color: "#94a3b8",
+  },
+  deviceList: {
+    gap: 8,
+    marginTop: 4,
+  },
+  deviceRow: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: "#f8fafc",
+  },
+  deviceRowSelected: {
+    borderColor: "#0ea5e9",
+    backgroundColor: "#e0f2fe",
+  },
+  deviceRowTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#0f172a",
+  },
+  deviceRowMeta: {
+    fontSize: 11,
+    color: "#64748b",
+    marginTop: 2,
   },
   input: {
     borderWidth: 1,

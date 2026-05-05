@@ -35,9 +35,14 @@ async function apiFetch(path, init = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    if (res.status === 404 && (path.startsWith("/api/groups") || path.startsWith("/api/profile"))) {
+    if (
+      res.status === 404 &&
+      (path.startsWith("/api/groups") ||
+        path.startsWith("/api/profile") ||
+        path.startsWith("/api/devices"))
+    ) {
       throw new Error(
-        `API route not found at ${apiBaseUrl}${path}. Set EXPO_PUBLIC_API_BASE_URL to the deployed web-server API that includes the new group/profile routes.`
+        `API route not found at ${apiBaseUrl}${path}. Set EXPO_PUBLIC_API_BASE_URL to the deployed web-server that includes the latest API routes.`
       );
     }
     throw new Error(data.error || `Request failed (${res.status})`);
@@ -73,6 +78,10 @@ export async function ensureMyProfile(displayName) {
 
 export async function fetchMyGroups() {
   return apiFetch("/api/groups", { method: "GET" });
+}
+
+export async function fetchMyDevices() {
+  return apiFetch("/api/devices", { method: "GET" });
 }
 
 export async function createGroup(payload) {

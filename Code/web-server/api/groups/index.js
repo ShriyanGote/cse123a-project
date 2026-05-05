@@ -44,6 +44,23 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Group name is required." });
       }
 
+      if (deviceId) {
+        const { data: owned, error: ownErr } = await supabaseAdmin
+          .from("devices")
+          .select("id")
+          .eq("device_id", deviceId)
+          .eq("created_by", auth.user.id)
+          .maybeSingle();
+        if (ownErr) {
+          return res.status(500).json({ error: ownErr.message });
+        }
+        if (!owned) {
+          return res.status(403).json({
+            error: "You can only attach a device you registered, or the device id is invalid.",
+          });
+        }
+      }
+
       let group = null;
       let createError = null;
       for (let attempt = 0; attempt < 5; attempt += 1) {
