@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import Settings from "./Settings";
+import Guide from "./Guide";
 import "./App.css";
 
 // Default calibration if none is stored in Supabase
@@ -229,6 +230,13 @@ export default function App() {
         </button>
         <button
           type="button"
+          className={`brita-nav__item${view === "guide" ? " brita-nav__item--active" : ""}`}
+          onClick={() => setView("guide")}
+        >
+          Guide
+        </button>
+        <button
+          type="button"
           className={`brita-nav__item${view === "settings" ? " brita-nav__item--active" : ""}`}
           onClick={() => setView("settings")}
         >
@@ -236,6 +244,7 @@ export default function App() {
         </button>
       </nav>
 
+      {view === "guide" && <Guide />}
       {view === "settings" && <Settings />}
       {view === "dashboard" && (
       <div className="brita-dashboard__inner">
