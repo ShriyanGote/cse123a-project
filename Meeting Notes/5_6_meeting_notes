@@ -1,0 +1,10 @@
+- why web push in package.json (instead of fetch?)
+- Tests are poorly factored
+- Change design to go to auth endpoint in our api, not to supabase
+- Make provisioning diagram for poster and design doc
+- Justify why notify everyone in design and presentation
+- Poster: 
+    - more diagrams, images, less text
+    - On design, say we made prototype to prove it works
+    - Show draft to prof
+- Give link to video of setup process
