@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -10,7 +10,7 @@ import DashboardScreen from "./src/screens/DashboardScreen";
 import GroupScreen from "./src/screens/GroupScreen";
 import IntroScreen from "./src/screens/IntroScreen";
 import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
-import { ensureMyProfile } from "./src/api";
+import { ensureMyProfile, fetchMyProfile } from "./src/api";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
 
 const Stack = createNativeStackNavigator();
@@ -21,6 +21,7 @@ export default function App() {
   const [isBooting, setIsBooting] = useState(true);
   const [showIntro, setShowIntro] = useState(null);
   const [screenTransition] = useState(() => new Animated.Value(1));
+  const [isDeactivated, setIsDeactivated] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -77,6 +78,60 @@ export default function App() {
 
     ensureProfile();
   }, [session?.user]);
+
+  // Check account status and subscribe to live updates so a deactivation
+  // performed from the web Settings page kicks the user out immediately.
+  useEffect(() => {
+    if (!session?.user || !isSupabaseConfigured) {
+      setIsDeactivated(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    async function checkStatus() {
+      try {
+        const profile = await fetchMyProfile();
+        if (!cancelled && profile?.is_active === false) {
+          setIsDeactivated(true);
+        }
+      } catch (error) {
+        const message = error?.message ?? String(error);
+        if (/account.*deactivat/i.test(message) || /403/.test(message)) {
+          if (!cancelled) setIsDeactivated(true);
+        }
+      }
+    }
+
+    checkStatus();
+
+    const channel = supabase
+      .channel(`profile-${session.user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${session.user.id}`,
+        },
+        (payload) => {
+          if (payload.new?.is_active === false) setIsDeactivated(true);
+          if (payload.new?.is_active === true) setIsDeactivated(false);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id]);
+
+  async function handleDeactivatedSignOut() {
+    await supabase.auth.signOut();
+    setIsDeactivated(false);
+  }
 
   useEffect(() => {
     if (showIntro === null) return;
@@ -144,6 +199,17 @@ export default function App() {
             <IntroScreen onContinue={handleCompleteIntro} />
           ) : !session?.user ? (
             <AuthScreen onOpenIntro={() => setShowIntro(true)} />
+          ) : isDeactivated ? (
+            <View style={styles.deactivatedWrap}>
+              <Text style={styles.deactivatedTitle}>Account deactivated</Text>
+              <Text style={styles.deactivatedText}>
+                Your account has been deactivated. Sign in to the web app to
+                reactivate it, then sign in again here.
+              </Text>
+              <TouchableOpacity style={styles.deactivatedButton} onPress={handleDeactivatedSignOut}>
+                <Text style={styles.deactivatedButtonText}>Sign out</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             <Stack.Navigator
               screenOptions={{
@@ -212,5 +278,37 @@ const styles = StyleSheet.create({
     color: "#475569",
     textAlign: "center",
     lineHeight: 20,
+  },
+  deactivatedWrap: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    gap: 12,
+  },
+  deactivatedTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#dc2626",
+    textAlign: "center",
+  },
+  deactivatedText: {
+    fontSize: 14,
+    color: "#475569",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  deactivatedButton: {
+    marginTop: 12,
+    backgroundColor: "#0ea5e9",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  deactivatedButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });

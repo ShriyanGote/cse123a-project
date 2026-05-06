@@ -76,6 +76,10 @@ export async function ensureMyProfile(displayName) {
   });
 }
 
+export async function fetchMyProfile() {
+  return apiFetch("/api/profile/me", { method: "GET" });
+}
+
 export async function fetchMyGroups() {
   return apiFetch("/api/groups", { method: "GET" });
 }

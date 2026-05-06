@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase";
+import Settings from "./Settings";
 import "./App.css";
 
 // Default calibration if none is stored in Supabase
@@ -42,6 +43,7 @@ function hasWater(weightG, calibration) {
 }
 
 export default function App() {
+  const [view, setView] = useState("dashboard");
   const [latest, setLatest] = useState(null);
   const [calibration, setCalibration] = useState(null);
   const [isSavingCalibration, setIsSavingCalibration] = useState(false);
@@ -217,6 +219,26 @@ export default function App() {
 
   return (
     <div className="brita-dashboard">
+      <nav className="brita-nav">
+        <button
+          type="button"
+          className={`brita-nav__item${view === "dashboard" ? " brita-nav__item--active" : ""}`}
+          onClick={() => setView("dashboard")}
+        >
+          Dashboard
+        </button>
+        <button
+          type="button"
+          className={`brita-nav__item${view === "settings" ? " brita-nav__item--active" : ""}`}
+          onClick={() => setView("settings")}
+        >
+          Settings
+        </button>
+      </nav>
+
+      {view === "settings" && <Settings />}
+      {view === "dashboard" && (
+      <div className="brita-dashboard__inner">
       {USE_DEMO_DATA && (
         <p className="brita-demo-banner">Demo mode — showing fake data</p>
       )}
@@ -330,6 +352,8 @@ export default function App() {
             </div>
           </div>
         </>
+      )}
+      </div>
       )}
     </div>
   );
