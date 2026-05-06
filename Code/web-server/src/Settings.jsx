@@ -43,7 +43,7 @@ export default function Settings() {
   const loadProfile = useCallback(async () => {
     if (!session) return;
     try {
-      const data = await authedFetch("/api/profile/me");
+      const data = await authedFetch("/api/profile");
       setProfile(data);
       setError("");
     } catch (e) {
@@ -113,7 +113,7 @@ export default function Settings() {
     setWorking(true);
     setError("");
     try {
-      const data = await authedFetch("/api/profile/set-active", {
+      const data = await authedFetch("/api/profile", {
         method: "POST",
         body: JSON.stringify({ is_active: nextActive }),
       });
