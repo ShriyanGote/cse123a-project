@@ -70,10 +70,14 @@ export async function registerBleDevice(payload) {
 }
 
 export async function ensureMyProfile(displayName) {
-  return apiFetch("/api/profile/ensure", {
+  return apiFetch("/api/profile", {
     method: "POST",
     body: JSON.stringify({ display_name: displayName ?? null }),
   });
+}
+
+export async function fetchMyProfile() {
+  return apiFetch("/api/profile", { method: "GET" });
 }
 
 export async function fetchMyGroups() {
