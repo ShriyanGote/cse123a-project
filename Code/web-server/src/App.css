@@ -382,3 +382,63 @@
 }
 .status-active { color: #16a34a; }
 .status-inactive { color: #dc2626; }
+
+/* --- Guide page --- */
+.guide-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  text-align: left;
+}
+.guide-intro {
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.guide-steps {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.guide-step {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: white;
+  align-items: flex-start;
+}
+.guide-step__num {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.guide-step__body h3 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  color: #0f172a;
+}
+.guide-step__body p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.guide-footer {
+  margin-top: 16px;
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
