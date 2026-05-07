@@ -1,9 +1,12 @@
 \subsection{Microcontroller WiFi Provisioning}
 
-In order for the microcontroller to connect to the home network, the user must be able to send the WiFi credentials to the device. This is called WiFi provisioning. In our design, the MCU hosts a WiFi soft access point, an HTTP server, and an HTML page that allows the user to input the WiFi credentials. Once it is connected to the home network, it will save this information and can communicate with the web application.
+In order for the microcontroller to connect to the home network, the user must be able to send the WiFi credentials to the device. This is called WiFi provisioning. In our design, the user connects to the device through BLE and sends the data through the mobile app.
 
-\subsubsection{First Boot}
-When the device is first turned on, it will attempt to connect to the last known WiFi network using credentials from non-volatile storage. If the connection is successful, the device will operate normally and send data to the web application. If the connection fails (e.g. because the credentials are incorrect or the network is unavailable), the device will enter provisioning mode.
+\subsubsection{On Boot}
+When the device starts, it will attempt to load saved WiFi credentials and connect to the network. If this fails, it will enter provisioning mode. In our design, the MCU hosts a BLE access point that the user connects to through the mobile app. Once connected, the user will send the WiFi credentials through BLE to the device. The mobile app will also request a unique authentication token from the server for the device to use in the future, which will also be sent over BLE. The MCU will then attempt to connect to the specified WiFi network using the provided credentials. If the connection is sucessful, the device will save the wifi credentials to non-volatile storage and reboot.
 
-\subsubsection{Soft Access Point}
-In provisioning mode, the MCU will create its own WiFi soft access point with a unique name (e.g. "Smart Filter Setup"). On that network, it will host an HTTP server on a specific IP address along with an HTML page. The user can then follow the instructions on the device to connect to this network using their phone or computer, scan a QR code to access the HTML page, and enter their WiFi credentials. Once the user submits the form with their credentials, the device will attempt to connect to the specified WiFi network. If the connection is successful, it will save the credentials to non-volatile storage for future use and exit provisioning mode. If the connection fails, it will display an error message and remain in provisioning mode until valid credentials are provided.
+\subsubsection{Lost Connection}
+If WiFi connection is lost for any reason, the device will enter recovery mode. It will repeatedly attempt to reconnect, exponentially backing off over time to save resources. If connection is restored, the device will go back to normal functioning.
+
+\subsubsection{Manual Reset}
+If the user changes WiFi networks or needs to restart the device for any other reason, they can use the reboot button found on the smart base.
