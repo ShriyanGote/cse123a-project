@@ -1,6 +1,15 @@
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -10,7 +19,17 @@ import DashboardScreen from "./src/screens/DashboardScreen";
 import GroupScreen from "./src/screens/GroupScreen";
 import IntroScreen from "./src/screens/IntroScreen";
 import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
-import { ensureMyProfile, fetchMyProfile } from "./src/api";
+import {
+  ensureMyProfile,
+  fetchMyProfile,
+  registerPushToken,
+  unregisterPushToken,
+} from "./src/api";
+import {
+  addNotificationResponseListener,
+  handleInitialNotification,
+  registerForPushNotificationsAsync,
+} from "./src/notifications";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
 
 const Stack = createNativeStackNavigator();
@@ -22,6 +41,16 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(null);
   const [screenTransition] = useState(() => new Animated.Value(1));
   const [isDeactivated, setIsDeactivated] = useState(false);
+  const [pushToken, setPushToken] = useState(null);
+  const navigationRef = useRef(null);
+
+  function openGroupFromNotification(groupId, groupName) {
+    if (!navigationRef.current || !groupId) return;
+    navigationRef.current.navigate("Group", {
+      groupId,
+      groupName: groupName || "Group",
+    });
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -79,6 +108,41 @@ export default function App() {
     ensureProfile();
   }, [session?.user]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let removeResponseListener = null;
+
+    async function setupPush() {
+      if (!session?.user || !isSupabaseConfigured) return;
+
+      try {
+        const token = await registerForPushNotificationsAsync();
+        if (!token || cancelled) return;
+
+        await registerPushToken({
+          token,
+          provider: "expo",
+          platform: Platform.OS,
+        });
+
+        if (!cancelled) {
+          setPushToken(token);
+        }
+      } catch (error) {
+        console.warn("Failed to register push token:", error?.message ?? error);
+      }
+    }
+
+    setupPush();
+    removeResponseListener = addNotificationResponseListener(openGroupFromNotification);
+    handleInitialNotification(openGroupFromNotification).catch(() => {});
+
+    return () => {
+      cancelled = true;
+      if (removeResponseListener) removeResponseListener();
+    };
+  }, [session?.user?.id]);
+
   // Check account status and subscribe to live updates so a deactivation
   // performed from the web Settings page kicks the user out immediately.
   useEffect(() => {
@@ -128,8 +192,25 @@ export default function App() {
     };
   }, [session?.user?.id]);
 
-  async function handleDeactivatedSignOut() {
+  async function runSignOut() {
+    const tokenToUnregister = pushToken;
+    if (tokenToUnregister) {
+      try {
+        await unregisterPushToken({
+          token: tokenToUnregister,
+          provider: "expo",
+          platform: Platform.OS,
+        });
+      } catch (error) {
+        console.warn("Failed to unregister push token:", error?.message ?? error);
+      }
+    }
+    setPushToken(null);
     await supabase.auth.signOut();
+  }
+
+  async function handleDeactivatedSignOut() {
+    await runSignOut();
     setIsDeactivated(false);
   }
 
@@ -177,7 +258,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <StatusBar style="dark" />
         <Animated.View
           style={[
@@ -223,6 +304,7 @@ export default function App() {
                     {...props}
                     user={session.user}
                     onOpenIntro={() => setShowIntro(true)}
+                    onSignOut={runSignOut}
                   />
                 )}
               </Stack.Screen>

@@ -12,10 +12,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
-import { supabase } from "../supabase";
 import { createGroup, fetchMyDevices, fetchMyGroups, joinGroupByInvite } from "../api";
 
-export default function DashboardScreen({ user, navigation, onOpenIntro }) {
+export default function DashboardScreen({ user, navigation, onOpenIntro, onSignOut }) {
   const [groups, setGroups] = useState([]);
   const [devices, setDevices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,9 +123,10 @@ export default function DashboardScreen({ user, navigation, onOpenIntro }) {
   }
 
   async function handleSignOut() {
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) {
-      setGeneralError(signOutError.message ?? "Could not sign out.");
+    try {
+      await onSignOut();
+    } catch (error) {
+      setGeneralError(error?.message ?? "Could not sign out.");
     }
   }
 

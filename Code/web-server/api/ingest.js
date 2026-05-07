@@ -1,54 +1,10 @@
-import webpush from "web-push";
 import { requireDeviceAuth } from "./_lib/auth.js";
+import { sendExpoPushNotifications } from "./_lib/expoPush.js";
 import { supabaseAdmin } from "./_lib/supabaseAdmin.js";
 
 const DEFAULT_FULL_G = 2500; // ~2.5L of water
 const DEFAULT_EMPTY_G = 0;
 const LOW_WATER_THRESHOLD_PERCENT = 20;
-
-let webPushConfigured = false;
-
-function getMissingVapidEnvVars() {
-  const missing = [];
-  if (!process.env.VAPID_PUBLIC_KEY) missing.push("VAPID_PUBLIC_KEY");
-  if (!process.env.VAPID_PRIVATE_KEY) missing.push("VAPID_PRIVATE_KEY");
-  if (!process.env.VAPID_SUBJECT) missing.push("VAPID_SUBJECT");
-  return missing;
-}
-
-function configureWebPush() {
-  if (webPushConfigured) return true;
-
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT;
-
-  if (!publicKey || !privateKey || !subject) return false;
-
-  webpush.setVapidDetails(subject, publicKey, privateKey);
-  webPushConfigured = true;
-  return true;
-}
-
-function parseSubscriptionToken(token) {
-  if (!token) return null;
-
-  if (typeof token === "string") {
-    try {
-      const parsed = JSON.parse(token);
-      if (parsed && typeof parsed.endpoint === "string") return parsed;
-    } catch {
-      return null;
-    }
-    return null;
-  }
-
-  if (typeof token === "object" && typeof token.endpoint === "string") {
-    return token;
-  }
-
-  return null;
-}
 
 function getLevelPercent(weightG, calibration) {
   if (weightG == null) return 0;
@@ -78,21 +34,25 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing device_id." });
     }
 
+    const { data: groupData, error: groupLookupError } = await supabaseAdmin
+      .from("groups")
+      .select("id, name, empty_g, full_g")
+      .eq("device_id", resolvedDeviceId)
+      .maybeSingle();
+    if (groupLookupError) return res.status(500).json({ error: groupLookupError.message });
+    if (!groupData) {
+      return res.status(404).json({ error: "No group linked to this device." });
+    }
+
     const { data: previousReading, error: previousError } = await supabaseAdmin
       .from("water_readings")
       .select("weight_g")
+      .eq("device_id", resolvedDeviceId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (previousError) return res.status(500).json({ error: previousError.message });
-
-    const { data: calibrationData, error: calibrationError } = await supabaseAdmin
-      .from("calibration")
-      .select("empty, full")
-      .maybeSingle();
-
-    if (calibrationError) console.error("Failed to read calibration", calibrationError);
 
     const { error } = await supabaseAdmin.from("water_readings").insert([
       { device_id: resolvedDeviceId, weight_g, battery_mv }
@@ -100,96 +60,93 @@ export default async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
 
+    const calibrationData = {
+      empty: groupData.empty_g,
+      full: groupData.full_g,
+    };
     const currentPercent = getLevelPercent(Number(weight_g), calibrationData);
     const previousPercent = getLevelPercent(previousReading?.weight_g, calibrationData);
     const crossedBelowThreshold =
+      previousPercent >= LOW_WATER_THRESHOLD_PERCENT &&
       currentPercent < LOW_WATER_THRESHOLD_PERCENT;
 
     const debug = {
       currentPercent,
       previousPercent,
       crossedBelowThreshold,
+      groupId: groupData.id,
       subscriptionCount: 0,
-      webPushConfigured: false,
-      missingVapidEnvVars: [],
+      recipientCount: 0,
       sentCount: 0,
       failedCount: 0,
       failedReasons: [],
     };
 
     if (crossedBelowThreshold) {
-      debug.missingVapidEnvVars = getMissingVapidEnvVars();
+      const { data: members, error: membersError } = await supabaseAdmin
+        .from("group_members")
+        .select("user_id")
+        .eq("group_id", groupData.id);
 
-      const { data: subscriptionRows, error: subscriptionError } = await supabaseAdmin
-        .from("notification_tokens")
-        .select("token");
+      if (membersError) {
+        console.error("Failed to read group members", membersError);
+      } else {
+        const userIds = (members ?? []).map((m) => m.user_id).filter(Boolean);
+        debug.recipientCount = userIds.length;
 
-      if (subscriptionError) {
-        console.error("Failed to read notification_tokens", subscriptionError);
-      } else if (subscriptionRows?.length) {
-        const subscriptions = subscriptionRows
-          .map((row) => {
-            const parsedSubscription = parseSubscriptionToken(row?.token);
-            if (!parsedSubscription) return null;
+        if (userIds.length > 0) {
+          const { data: tokenRows, error: tokenError } = await supabaseAdmin
+            .from("notification_tokens")
+            .select("token")
+            .eq("provider", "expo")
+            .eq("enabled", true)
+            .in("user_id", userIds);
 
-            return {
-              rawToken: row.token,
-              subscription: parsedSubscription,
-            };
-          })
-          .filter(Boolean);
+          if (tokenError) {
+            console.error("Failed to read notification_tokens", tokenError);
+          } else {
+            const expoTokens = (tokenRows ?? [])
+              .map((row) => (typeof row?.token === "string" ? row.token.trim() : ""))
+              .filter((token) => token.startsWith("ExponentPushToken[") || token.startsWith("ExpoPushToken["));
+            debug.subscriptionCount = expoTokens.length;
 
-        debug.subscriptionCount = subscriptions.length;
+            if (expoTokens.length > 0) {
+              const { invalidTokens, failures, tickets } = await sendExpoPushNotifications(
+                expoTokens.map((token) => ({
+                  to: token,
+                  title: "Brita water level low",
+                  body: `Water level is ${currentPercent}%. Time to refill.`,
+                  data: {
+                    type: "low_water",
+                    level_percent: String(currentPercent),
+                    groupId: groupData.id,
+                    groupName: groupData.name ?? "Group",
+                    deviceId: resolvedDeviceId,
+                  },
+                }))
+              );
 
-        const isWebPushReady = configureWebPush();
-        debug.webPushConfigured = isWebPushReady;
+              debug.sentCount = tickets.filter((entry) => entry?.ticket?.status === "ok").length;
+              debug.failedCount = failures.length;
+              debug.failedReasons = failures.map((failure) => ({
+                statusCode: null,
+                message: failure.message ?? "Unknown push error",
+              }));
 
-        if (isWebPushReady && subscriptions.length > 0) {
-          try {
-            const payload = JSON.stringify({
-              notification: {
-                title: "Brita water level low",
-                body: `Water level is ${currentPercent}%. Time to refill.`,
-              },
-              data: {
-                type: "low_water",
-                level_percent: String(currentPercent),
-              },
-            });
-
-            const expiredSubscriptions = [];
-
-            await Promise.all(
-              subscriptions.map(async (item) => {
-                try {
-                  await webpush.sendNotification(item.subscription, payload);
-                  debug.sentCount += 1;
-                } catch (pushError) {
-                  debug.failedCount += 1;
-
-                  const statusCode = pushError?.statusCode;
-                  if (statusCode === 404 || statusCode === 410) {
-                    expiredSubscriptions.push(item.rawToken);
-                  } else {
-                    console.error("Web Push send failed", pushError);
-                  }
-
-                  debug.failedReasons.push({
-                    statusCode: statusCode ?? null,
-                    message: pushError?.message ?? "Unknown push error",
-                  });
+              if (invalidTokens.length > 0) {
+                const { error: disableError } = await supabaseAdmin
+                  .from("notification_tokens")
+                  .update({
+                    enabled: false,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("provider", "expo")
+                  .in("token", invalidTokens);
+                if (disableError) {
+                  console.error("Failed to disable invalid Expo tokens", disableError);
                 }
               }
-            ));
-
-            if (expiredSubscriptions.length > 0) {
-              await supabaseAdmin
-                .from("notification_tokens")
-                .delete()
-                .in("token", expiredSubscriptions);
             }
-          } catch (notifyError) {
-            console.error("Push notification send failed", notifyError);
           }
         }
       }
