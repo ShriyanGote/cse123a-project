@@ -17,3 +17,4 @@ Documentation/.DS_Store
 
 # Node dependencies
 Code/node_modules/
+build/
