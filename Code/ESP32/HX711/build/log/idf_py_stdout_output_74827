@@ -1,0 +1,18 @@
+Command: ninja all
+[1/9] Performing build step for 'bootloader'
+[1/1] cd /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/esp-idf/esptool_py && /Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python /Users/loganbossuwe/Desktop/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.bin
+Bootloader binary size 0x5210 bytes. 0x2df0 bytes (36%) free.
+[2/9] No install step for 'bootloader'
+[3/9] Completed 'bootloader'
+[4/9] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj
+[5/9] Linking C static library esp-idf/main/libmain.a
+[6/9] Generating esp-idf/esp_system/ld/sections.ld
+[7/9] Linking CXX executable HX711.elf
+[8/9] Generating binary image from built executable
+esptool.py v4.10.0
+Creating esp32c3 image...
+Merged 3 ELF sections
+Successfully created esp32c3 image.
+Generated /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/HX711.bin
+[9/9] cd /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/esp-idf/esptool_py && /Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python /Users/loganbossuwe/Desktop/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/partition_table/partition-table.bin /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/HX711.bin
+HX711.bin binary size 0xfd710 bytes. Smallest app partition is 0x200000 bytes. 0x1028f0 bytes (50%) free.

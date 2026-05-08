@@ -1,0 +1,2087 @@
+Command: /Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python /Users/loganbossuwe/Desktop/esp/esp-idf/tools/idf_monitor.py -p /dev/cu.usbmodem101 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32c3 --revision 3 --decode-panic backtrace /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/HX711.elf /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf -m '/Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python' '/Users/loganbossuwe/Desktop/esp/esp-idf/tools/idf.py'
+[0;32mI (325) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (330) heap_init: ESP-ROM:esp32c3-api1-20210207[0m
+Build:Feb  7 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4004c0dc
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (25) boot: chip revision: v0.4[0m
+[0;32mI (25) boot: efuse block revision: v1.3[0m
+[0;32mI (28) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (32) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (36) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (44) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (53) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (66) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (76) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (128) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (280) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (284) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (298) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (325) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (331) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (337) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (343) spi_flash: detected chip: generic[0m
+[0;32mI (346) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (355) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (362) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (366) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+Stack memory:
+3fc9fff0: 0x3c0c5160 0x4200a4c2 0x3fca0050 0x4038f710 0x00000001 0x00000028 0x00000000 0x3fc97a90
+3fca0010: 0x3fca0054 0x3fc97aac 0x3fca0050 0x726f6261 0x20292874 0x20736177 0x6c6c6163 0x61206465
+3fca0030: 0x43502074 0x34783020 0x36383330 0x20313366 0x63206e6f 0x2065726f 0x00000030 0x00000000
+3fca0050: 0x00000030 0x38333034 0x31336636 0x00000000 0x00000000 0x00000003 0x3c0c4000 0x40386f34
+3fca0070: 0x00000000 0x3fca00ec 0x3c0c3d04 0x4200a4c2 0x00001800 0x00000001 0x3fca0aec 0x00000000
+3fca0090: 0x00000000 0x00000000 0x00000000 0x4200a586 0x00000000 0x00000000 0x00000000 0x00000000
+3fca00b0: 0x00000000 0x3fca00ec 0x3c0c3d78 0x4038e53e 0x00000000 0x00000010 0x00000010 0x3fca00ec
+3fca00d0: 0x00000000 0x00000003 0x3c0c4000 0x420b3d4e 0x00000000 0x3fca0ac8 0x3fca0104 0x00000000
+3fca00f0: 0x00000000 0x00000003 0x3c0c4000 0x420b3d52 0x00000000 0x00001388 0x00000001 0x00000000
+3fca0110: 0x00000000 0x00000000 0x00000000 0x403880a2 0x00000000 0x00000000 0x00000000 0x00000000
+3fca0130: 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca0150: 0xa5a5a5a5 0xa5a5a5a5 0x00000150 0x3fc9ff00 0x00000000 0x3fc98b90 0x3fc98b90 0x3fca015c
+3fca0170: 0x3fc98b88 0x00000018 0x00000000 0x00000000 0x3fca015c 0x00000000 0x00000001 0x3fc9f158
+3fca0190: 0x6e69616d 0x00000000 0x00000000 0x00000000 0x3fca0150 0x00000001 0x00000000 0x00000000
+3fca01b0: 0x00000000 0x00000000 0x3fc9d928 0x3fc9d990 0x3fc9d9f8 0x00000000 0x00000000 0x00000001
+3fca01d0: 0x00000000 0x00000000 0x00000000 0x42005634 0x00000000 0x00000000 0x00000000 0x00000000
+3fca01f0: 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000
+3fca0210: 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000
+3fca0230: 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000
+3fca0250: 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000
+3fca0270: 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000
+3fca0290: 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000600
+3fca02b0: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca02d0: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca02f0: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca0310: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca0330: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca0350: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca0370: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca0390: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca03b0: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+3fca03d0: 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5 0xa5a5a5a5
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (279) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  55de7f83c...[0m
+[0;32mI (297) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (324) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (330) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (336) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (342) spi_flash: detected chip: generic[0m
+[0;32mI (345) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (354) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (361) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (365) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+ESP_ERROR_CHECK failed: esp_err_t 0x1101 (ESP_ERR_NVS_NOT_INITIALIZED) at 0x4200a4be
+file: "./main/main.c" line 35
+func: load_state
+expression: nvs_open("scale", NVS_READWRITE, &h)
+
+abort() was called at PC 0x40386f31 on core 0
+Core  0 register dump:
+MEPC    : 0x40386f7c  RA      : 0x40386f3a  SP      : 0x3fc9fff0  GP      : 0x3fc96200  
+TP      : 0x3fca0150  T0      : 0x37363534  T1      : 0x7271706f  T2      : 0x33323130  
+S0/FP   : 0x00000004  S1      : 0x3fca0054  A0      : 0x3fca001c  A1      : 0x3fca0052  
+A2      : 0x00000000  A3      : 0x3fca0049  A4      : 0x00000001  A5      : 0x3fc9d000  
+A6      : 0x7a797877  A7      : 0x76757473  S2      : 0x00000000  S3      : 0x00000000  
+S4      : 0x00000000  S5      : 0x00000000  S6      : 0x00000000  S7      : 0x00000000  
+S8      : 0x00000000  S9      : 0x00000000  S10     : 0x00000000  S11     : 0x00000000  
+T3      : 0x6e6d6c6b  T4      : 0x6a696867  T5      : 0x66656463  T6      : 0x62613938  
+MSTATUS : 0x00001881  MTVEC   : 0x40380001  MCAUSE  : 0x00000002  MTVAL   : 0x00000000  
+MHARTID : 0x00000000  
+
+add symbol table from file "/Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf"
+panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+483	    asm("unimp");   // should be an invalid operation on RISC-V targets
+#0  panic_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/panic.c:483
+#1  0x40386f3a in esp_system_abort (details=details@entry=0x3fca001c "abort() was called at PC 0x40386f31 on core 0") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/port/esp_system_chip.c:87
+#2  0x4038f710 in abort () at /Users/loganbossuwe/Desktop/esp/esp-idf/components/newlib/src/abort.c:38
+#3  0x40386f34 in _esp_error_check_failed (rc=<optimized out>, file=file@entry=0x3c0c5160 "", line=line@entry=35, function=function@entry=0x3c0d4218 <__func__.1> "", expression=expression@entry=0x3c0c5138 "") at /Users/loganbossuwe/Desktop/esp/esp-idf/components/esp_system/esp_err.c:49
+#4  0x4200a4c2 in load_state () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:35
+#5  0x4200a586 in app_main () at /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/main/main.c:62
+#6  0x420b3d52 in main_task (args=<error reading variable: value has been optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/app_startup.c:208
+#7  0x403880a2 in vPortTaskWrapper (pxCode=<optimized out>, pvParameters=<optimized out>) at /Users/loganbossuwe/Desktop/esp/esp-idf/components/freertos/FreeRTOS-Kernel/portable/riscv/port.c:255
+
+
+
+ELF file SHA256: 55de7f83c
+
+Rebooting...
+ESP-ROM:esp32c3-api1-20210207
+Build:Feb  7 2021
+rst:0xc (RTC_SW_CPU_RST),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40387062
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (24) boot: chip revision: v0.4[0m
+[0;32mI (24) boot: efuse block revision: v1.3[0m
+[0;32mI (27) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (31) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (35) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (43) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (52) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (65) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (75) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30300h (197376) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040328 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432e4 vaddr=40380000 size=0cd34h ( 52532) load[0m
+[0;32mI (127) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b2ch (740140) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b54 vaddr=4038cd34 size=08b44h ( 35652) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6a0 vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (279) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (283) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m

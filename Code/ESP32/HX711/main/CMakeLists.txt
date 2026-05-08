@@ -1,4 +1,22 @@
 idf_component_register(
-    SRCS "main.c" "HX711.c" "https_client.c" "wifi_manager.c"
-    INCLUDE_DIRS "."
+    SRCS
+        "main.c"
+        "HX711.c"
+        "https_client.c"
+        "wifi_manager.c"
+        "ble.c"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        bt
+        nvs_flash
+        esp_wifi
+        esp_netif
+        esp_event
+        esp_http_client
+        esp-tls
+        mbedtls
+        json
+        esp_driver_gpio
+        qrcode
 )

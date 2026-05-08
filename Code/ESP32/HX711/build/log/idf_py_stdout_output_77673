@@ -1,0 +1,163 @@
+Command: /Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python /Users/loganbossuwe/Desktop/esp/esp-idf/tools/idf_monitor.py -p /dev/cu.usbmodem101 -b 115200 --toolchain-prefix riscv32-esp-elf- --target esp32c3 --revision 3 --decode-panic backtrace /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/HX711.elf /Users/loganbossuwe/Desktop/CSE123a/123a-project/Code/ESP32/HX711/build/bootloader/bootloader.elf -m '/Users/loganbossuwe/.espressif/python_env/idf5.5_py3.14_env/bin/python' '/Users/loganbossuwe/Desktop/esp/esp-idf/tools/idf.py'
+[0;32mI (325) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (330)ESP-ROM:esp32c3-api1-20210207[0m
+Build:Feb  7 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0xc (SPI_FAST_FLASH_BOOT)
+Saved PC:0x4004c0d4
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fcd5820,len:0x15ac
+load:0x403cbf10,len:0xc34
+load:0x403ce710,len:0x2fd0
+entry 0x403cbf1a
+[0;32mI (24) boot: ESP-IDF v5.5.1 2nd stage bootloader[0m
+[0;32mI (24) boot: compile time May  8 2026 15:56:28[0m
+[0;32mI (25) boot: chip revision: v0.4[0m
+[0;32mI (25) boot: efuse block revision: v1.3[0m
+[0;32mI (28) boot.esp32c3: SPI Speed      : 80MHz[0m
+[0;32mI (32) boot.esp32c3: SPI Mode       : DIO[0m
+[0;32mI (36) boot.esp32c3: SPI Flash Size : 4MB[0m
+[0;32mI (39) boot: Enabling RNG early entropy source...[0m
+[0;32mI (44) boot: Partition Table:[0m
+[0;32mI (46) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (53) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (59) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (66) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (72) boot: End of partition table[0m
+[0;32mI (76) esp_image: segment 0: paddr=00010020 vaddr=3c0c0020 size=30310h (197392) map[0m
+[0;32mI (114) esp_image: segment 1: paddr=00040338 vaddr=3fc95a00 size=02fb4h ( 12212) load[0m
+[0;32mI (117) esp_image: segment 2: paddr=000432f4 vaddr=40380000 size=0cd24h ( 52516) load[0m
+[0;32mI (128) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=b4b58h (740184) map[0m
+[0;32mI (246) esp_image: segment 4: paddr=00104b80 vaddr=4038cd24 size=08b54h ( 35668) load[0m
+[0;32mI (253) esp_image: segment 5: paddr=0010d6dc vaddr=50000000 size=00044h (    68) load[0m
+[0;32mI (260) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (260) boot: Disabling RNG early entropy source...[0m
+[0;32mI (271) cpu_start: Unicore app[0m
+[0;32mI (280) cpu_start: Pro cpu start user code[0m
+[0;32mI (280) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (280) app_init: Application information:[0m
+[0;32mI (280) app_init: Project name:     HX711[0m
+[0;32mI (284) app_init: App version:      84a795f-dirty[0m
+[0;32mI (288) app_init: Compile time:     May  8 2026 15:56:20[0m
+[0;32mI (293) app_init: ELF file SHA256:  c591dbe46...[0m
+[0;32mI (298) app_init: ESP-IDF:          v5.5.1[0m
+[0;32mI (301) efuse_init: Min chip rev:     v0.3[0m
+[0;32mI (305) efuse_init: Max chip rev:     v1.99 [0m
+[0;32mI (309) efuse_init: Chip rev:         v0.4[0m
+[0;32mI (313) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (319) heap_init: At 3FC9D2F0 len 00022D10 (139 KiB): RAM[0m
+[0;32mI (325) heap_init: At 3FCC0000 len 0001C710 (113 KiB): Retention RAM[0m
+[0;32mI (331) heap_init: At 3FCDC710 len 00002950 (10 KiB): Retention RAM[0m
+[0;32mI (337) heap_init: At 50000044 len 00001FA4 (7 KiB): RTCRAM[0m
+[0;32mI (343) spi_flash: detected chip: generic[0m
+[0;32mI (346) spi_flash: flash io: dio[0m
+[0;32mI (349) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (355) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (362) coexist: coex firmware version: b0bcc39[0m
+[0;32mI (366) coexist: coexist rom version 9387209[0m
+[0;32mI (370) main_task: Started on CPU0[0m
+[0;32mI (370) main_task: Calling app_main()[0m
+[0;32mI (980) MAIN: Waking Up[0m
+[0;33mW (2180) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (3200) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (4220) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (5240) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (6260) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (7280) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (8300) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (9320) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (10340) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (11360) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;32mI (11380) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (11380) MAIN: No significant change[0m
+[0;32mI (11380) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;33mW (2214) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (3234) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (4254) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (5274) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (6294) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (7314) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (8334) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (9354) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (10374) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (11394) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;32mI (11414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (11414) MAIN: No significant change[0m
+[0;32mI (11414) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;33mW (2214) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (3234) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (4254) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (5274) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (6294) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (7314) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (8334) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (9354) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (10374) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (11394) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;32mI (11414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (11414) MAIN: No significant change[0m
+[0;32mI (11414) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;33mW (2214) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (3234) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (4254) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (5274) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (6294) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (7314) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (8334) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (9354) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (10374) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (11394) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;32mI (11414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (11414) MAIN: No significant change[0m
+[0;32mI (11414) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;33mW (2214) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (3234) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (4254) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (5274) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (6294) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (7314) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (8334) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (9354) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (10374) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (11394) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;32mI (11414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (11414) MAIN: No significant change[0m
+[0;32mI (11414) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;33mW (2214) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (3234) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (4254) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (5274) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (6294) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;33mW (7314) HX711: HX711 not ready (DOUT stayed high)[0m
+[0;32mI (8434) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (8434) MAIN: No significant change[0m
+[0;32mI (8434) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;32mI (1474) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (1474) MAIN: No significant change[0m
+[0;32mI (1474) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;32mI (1414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (1414) MAIN: No significant change[0m
+[0;32mI (1414) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;32mI (1694) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (1694) MAIN: No significant change[0m
+[0;32mI (1694) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;32mI (1414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (1414) MAIN: No significant change[0m
+[0;32mI (1414) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;32mI (1414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (1414) MAIN: No significant change[0m
+[0;32mI (1414) MAIN: Going to sleep[0m
+[0;32mI (1014) MAIN: Waking Up[0m
+[0;32mI (1414) MAIN: grams=0, gramBefore=0[0m
+[0;32mI (1414) MAIN: No significant change[0m
+[0;32mI (1414) MAIN: Going to sleep[0m

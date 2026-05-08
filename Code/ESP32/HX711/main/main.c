@@ -9,6 +9,7 @@
 #include "esp_event.h"
 #include "esp_sleep.h"
 
+#include "ble.h"
 #include "nvs_flash.h"
 #include "nvs.h"
 
@@ -56,16 +57,19 @@ static void save_state(void)
 
 void app_main(void)
 {   
-    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(ble_provisioning_init());
+    //ESP_ERROR_CHECK(nvs_flash_init());
     load_state();
     sensor_init();
     hx711_power_up();
+    vTaskDelay(pdMS_TO_TICKS(500));
     ESP_LOGI(TAG, "Waking Up");
     vTaskDelay(pdMS_TO_TICKS(200));
 
     if(!tareDone){
         tare(20);
         tareDone = true;
+        save_state();
         ESP_LOGI(TAG, "Tare complete");
     }
 
@@ -74,10 +78,10 @@ void app_main(void)
     ESP_LOGI(TAG, "grams=%" PRId32 ", gramBefore=%" PRId32, grams, gramBefore);
 
     if(!notFirstBoot){
-        ESP_LOGI(TAG, "First boot");
         gramBefore = grams;
         notFirstBoot = true;
         save_state();
+        ESP_LOGI(TAG, "First Boot Completed");
     } else if ((grams > gramBefore + 15) || (grams < gramBefore - 15)) {
             ESP_LOGI(TAG, "Weight changed, connecting Wi-Fi");
             wifi_init();
