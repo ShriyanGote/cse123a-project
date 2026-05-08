@@ -140,17 +140,3 @@ export async function calibrateGroup(groupId, action) {
     body: JSON.stringify({ action }),
   });
 }
-
-export async function registerPushToken(payload) {
-  return apiFetch("/api/register-token", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export async function unregisterPushToken(payload) {
-  return apiFetch("/api/register-token", {
-    method: "DELETE",
-    body: JSON.stringify(payload),
-  });
-}

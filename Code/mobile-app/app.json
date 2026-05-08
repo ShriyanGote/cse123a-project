@@ -14,9 +14,6 @@
     },
     "ios": {
       "supportsTablet": true,
-      "entitlements": {
-        "aps-environment": "development"
-      },
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is used to scan ESP provisioning QR codes.",
         "NSBluetoothAlwaysUsageDescription": "Bluetooth is used to provision and configure your ESP device over BLE."

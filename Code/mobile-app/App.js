@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -19,16 +18,11 @@ import DashboardScreen from "./src/screens/DashboardScreen";
 import GroupScreen from "./src/screens/GroupScreen";
 import IntroScreen from "./src/screens/IntroScreen";
 import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
-import {
-  ensureMyProfile,
-  fetchMyProfile,
-  registerPushToken,
-  unregisterPushToken,
-} from "./src/api";
+import { ensureMyProfile, fetchMyProfile } from "./src/api";
 import {
   addNotificationResponseListener,
+  ensureLocalNotificationPermissionsAsync,
   handleInitialNotification,
-  registerForPushNotificationsAsync,
 } from "./src/notifications";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
 
@@ -41,7 +35,6 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(null);
   const [screenTransition] = useState(() => new Animated.Value(1));
   const [isDeactivated, setIsDeactivated] = useState(false);
-  const [pushToken, setPushToken] = useState(null);
   const navigationRef = useRef(null);
 
   function openGroupFromNotification(groupId, groupName) {
@@ -112,28 +105,19 @@ export default function App() {
     let cancelled = false;
     let removeResponseListener = null;
 
-    async function setupPush() {
+    async function setupLocalNotifications() {
       if (!session?.user || !isSupabaseConfigured) return;
 
       try {
-        const token = await registerForPushNotificationsAsync();
-        if (!token || cancelled) return;
-
-        await registerPushToken({
-          token,
-          provider: "expo",
-          platform: Platform.OS,
-        });
-
-        if (!cancelled) {
-          setPushToken(token);
-        }
+        await ensureLocalNotificationPermissionsAsync();
       } catch (error) {
-        console.warn("Failed to register push token:", error?.message ?? error);
+        if (!cancelled) {
+          console.warn("Failed to initialize local notifications:", error?.message ?? error);
+        }
       }
     }
 
-    setupPush();
+    setupLocalNotifications();
     removeResponseListener = addNotificationResponseListener(openGroupFromNotification);
     handleInitialNotification(openGroupFromNotification).catch(() => {});
 
@@ -193,19 +177,6 @@ export default function App() {
   }, [session?.user?.id]);
 
   async function runSignOut() {
-    const tokenToUnregister = pushToken;
-    if (tokenToUnregister) {
-      try {
-        await unregisterPushToken({
-          token: tokenToUnregister,
-          provider: "expo",
-          platform: Platform.OS,
-        });
-      } catch (error) {
-        console.warn("Failed to unregister push token:", error?.message ?? error);
-      }
-    }
-    setPushToken(null);
     await supabase.auth.signOut();
   }
 

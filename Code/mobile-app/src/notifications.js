@@ -1,6 +1,5 @@
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
-import Constants from "expo-constants";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -11,17 +10,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function getProjectId() {
-  const fromEnv = process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
-  if (fromEnv) return fromEnv;
-  return (
-    Constants.expoConfig?.extra?.eas?.projectId ??
-    Constants.easConfig?.projectId ??
-    undefined
-  );
-}
-
-export async function registerForPushNotificationsAsync() {
+export async function ensureLocalNotificationPermissionsAsync() {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
   if (existingStatus !== "granted") {
@@ -41,12 +30,7 @@ export async function registerForPushNotificationsAsync() {
       lightColor: "#0ea5e9",
     });
   }
-
-  const projectId = getProjectId();
-  const tokenResponse = projectId
-    ? await Notifications.getExpoPushTokenAsync({ projectId })
-    : await Notifications.getExpoPushTokenAsync();
-  return tokenResponse?.data ?? null;
+  return true;
 }
 
 export function addNotificationResponseListener(onNavigateToGroup) {
