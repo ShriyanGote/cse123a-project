@@ -10,9 +10,13 @@ The base assembly consists of three 3D-printed parts: a top plate, a bottom plat
 The compartment is a circular open-top tray with a 116mm outer diameter and a 110mm inner diameter, sized so the plates sit flush inside it. There is a resting shelf for the bottom plate to sit on, and tabs slightly above it so that when the plates are turned, they are held in place.
 
 In the assembled stack-up, the compartment sits below the bottom plate so that the load cell remains free to flex under load while the electronics remain enclosed. Since the compartment is open at the top, the top plate is slightly wider, serving two purposes: to provide a cover for the compartment, and to be large enough for various sizes of pitchers to be placed on top of it.
+
+In order to fully cover all components the base housing must be large enough to contain the load cell and associated electronics completely. For our design we chose to use two separate compartments within the base to separate out the electronics from the load cell. For a future design with the custom circuit board or a different load cell it could be possible to use a single compartment housing all components. When manufacturing at a large scale, using 3D printers may not be fast enough so the design could be changed to use a resin cast, or some other method of creating plastic components at a large scale for cheap. 
+
+
 \subsubsection{Load Cell Assembly}
 
-The 75mm bar-type strain gauge load cell is sandwiched between the two plates using four M4 x 10mm bolts---two through the top plate into one end of the load cell, and two through the bottom plate into the other end. This creates a cantilever arrangement where weight applied to the top plate causes measurable strain on the load cell. The assembly requires only an M4 hex key and can be taken apart and reassembled in a few minutes.
+Our design includes a load cell which has screw holes for attaching it to plates. Both plates are required and spacers are needed to bring the load cell off the plane, to a point where it is able to function as intended. This design is intended for a strain gauge load cell capable of measuring up to 20 kilograms. When designing for manufacture this part is a simple install with four screws. The cables required should be placed into a 4 pin connector so that it can interface properly with the custom PCB design. Using connectors rather than soldering will make the manufacturing process easier and reduce the chance that components break during shipping as these wires are very thin. 
 
 \subsubsection{Electronics}
 

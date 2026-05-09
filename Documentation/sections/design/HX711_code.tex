@@ -1,11 +1,11 @@
 \subsection{Amplifier}
-In order to get readings for weight from the load cell, it is most likely required to use an amplifer if the chosen load cell is analog.
+The selected load cell for this design requires an amplifier in order to function properly. This amplifier powers the gauge and measures the return voltage through the resistor network. The design includes an amplifier capable of taking in microvolts and outputting 24-bit serial data. This serial data is interpreted by the microcontroller where it is turned to grams. 
 
 \subsubsection{Digital Converter}
-Software will need to be implemented in order to read data, analog gives the signals in terms of bits that need to read and converted to either raw data of calibrate straight to grams.
+To use the design, the software and hardware must be capable of interpreting analog data, converting it to digital data, and performing mathematical operations on the data to convert it to a unit of measurement. Our current design performs the interpretation and conversion to digital at the load cell. The digital data is sent to the microcontroller using GPIO pins where it is operated on by the formulas for conversion to grams. 
 
 \subsubsection{Average Sampling}
-Sampling without averaging can lead to lots of noise. Average sampling allows the accuracy of weight to be more accurate.
+To reduce the chance of noise having a heavy affect on our readings, our design implemented an average sampling algorithm, where data is read in for a period of time, averaged, then interpreted as results. This not only prevents high spikes from noise, but also smooths the updating process, so a user placing or removing the filter rapidly will not have an unintended affect on the application, or cause issues like spamming notifications. 
 
 \subsubsection{Tare}
-For handling offset, it is required to create to create a baseline state value that represents an empty pitcher. It means future data is can be compared to the baseline value to get the water weight readings.
+For handling offset, it is required to create to create a baseline state value that represents an empty pitcher. It means future data is can be compared to the baseline value to get the water weight readings. In our prototyping we found the offset value for our specific setup, but this value can change depending on the writing, pathway, and other factors. The offset value must be programmed into the device before is ready to ship. 
