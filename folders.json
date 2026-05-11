@@ -1,0 +1,10 @@
+{
+  "code": {
+    "exts": [".c", ".h", ".py", ".jsx", ".js", ".css", ".sh", ".sql"],
+    "exclude": ["node_modules/", "build/", "managed_components/"]
+  },
+  "doc": {
+    "exts": [".tex"],
+    "include": ["Documentation/"]
+  }
+}
