@@ -56,3 +56,21 @@ export async function handleInitialNotification(openGroup) {
     openGroup(groupId, groupName);
   }
 }
+
+/** Local notification when water crosses below threshold (no remote push). */
+export async function scheduleLowWaterLocalNotification({ groupId, groupName, levelPercent }) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `${groupName}`,
+      body: `Water filter is at ${levelPercent}%. Time to refill.`,
+      sound: "default",
+      data: {
+        type: "low_water",
+        groupId,
+        groupName,
+        level_percent: String(levelPercent),
+      },
+    },
+    trigger: null,
+  });
+}

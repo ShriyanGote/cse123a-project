@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import WaterLevelCard from "../components/WaterLevelCard";
 import {
   calibrateGroup as calibrateGroupApi,
@@ -21,6 +22,10 @@ import {
   updateGroup,
   updateGroupMemberRole,
 } from "../api";
+import { updateGroupWaterLevelState } from "../groupLowWaterAlerts";
+
+/** Refetch interval while this screen is focused so water % stays in sync with new readings. */
+const GROUP_DETAIL_POLL_MS = 5_000;
 
 export default function GroupScreen({ route, user, navigation }) {
   const { groupId } = route.params;
@@ -71,6 +76,20 @@ export default function GroupScreen({ route, user, navigation }) {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const intervalId = setInterval(() => {
+        loadGroup().catch(() => {});
+      }, GROUP_DETAIL_POLL_MS);
+      return () => clearInterval(intervalId);
+    }, [loadGroup])
+  );
+
+  useEffect(() => {
+    if (!group) return;
+    updateGroupWaterLevelState(group, latestReading).catch(() => {});
+  }, [group, latestReading]);
 
   async function updateMemberRole(targetUserId, nextRole) {
     if (!canEditGroup) return;

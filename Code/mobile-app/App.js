@@ -25,6 +25,7 @@ import {
   handleInitialNotification,
 } from "./src/notifications";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
+import { useLowWaterMonitor } from "./src/useLowWaterMonitor";
 
 const Stack = createNativeStackNavigator();
 const INTRO_COMPLETED_KEY = "app:intro-completed";
@@ -126,6 +127,13 @@ export default function App() {
       if (removeResponseListener) removeResponseListener();
     };
   }, [session?.user?.id]);
+
+  const lowWaterMonitorEnabled =
+    Boolean(session?.user) &&
+    isSupabaseConfigured &&
+    !isDeactivated;
+
+  useLowWaterMonitor(lowWaterMonitorEnabled);
 
   // Check account status and subscribe to live updates so a deactivation
   // performed from the web Settings page kicks the user out immediately.
