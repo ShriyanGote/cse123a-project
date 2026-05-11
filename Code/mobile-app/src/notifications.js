@@ -57,6 +57,28 @@ export async function handleInitialNotification(openGroup) {
   }
 }
 
+/**
+ * Cancels queued notifications and clears low-water entries from the tray where supported,
+ * so alerts do not accumulate while the user is signed out.
+ */
+export async function clearLowWaterNotificationsOnSignOut() {
+  await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+
+  try {
+    const presented = await Notifications.getPresentedNotificationsAsync();
+    for (const notification of presented) {
+      const type = notification.request?.content?.data?.type;
+      if (type === "low_water") {
+        const id = notification.request?.identifier;
+        if (id) await Notifications.dismissNotificationAsync(id).catch(() => {});
+      }
+    }
+  } catch {
+    // getPresentedNotificationsAsync is unavailable on some platforms (e.g. Android).
+    await Notifications.dismissAllNotificationsAsync().catch(() => {});
+  }
+}
+
 /** Local notification when water crosses below threshold (no remote push). */
 export async function scheduleLowWaterLocalNotification({ groupId, groupName, levelPercent }) {
   await Notifications.scheduleNotificationAsync({

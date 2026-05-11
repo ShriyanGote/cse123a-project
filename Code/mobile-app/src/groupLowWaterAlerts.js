@@ -12,6 +12,11 @@ function clearState(groupId) {
   stateByGroupId.delete(groupId);
 }
 
+/** Clears all low-water alert bookkeeping (call on sign-out so nothing carries across sessions). */
+export function clearAllLowWaterAlertState() {
+  stateByGroupId.clear();
+}
+
 function getState(groupId) {
   return stateByGroupId.get(groupId) ?? { lastPercent: null, lastAlertedSig: null };
 }

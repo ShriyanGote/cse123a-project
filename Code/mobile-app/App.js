@@ -10,7 +10,11 @@ import {
   View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  CommonActions,
+  createNavigationContainerRef,
+  NavigationContainer,
+} from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AuthScreen from "./src/screens/AuthScreen";
@@ -21,14 +25,18 @@ import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
 import { ensureMyProfile, fetchMyProfile } from "./src/api";
 import {
   addNotificationResponseListener,
+  clearLowWaterNotificationsOnSignOut,
   ensureLocalNotificationPermissionsAsync,
   handleInitialNotification,
 } from "./src/notifications";
+import { clearAllLowWaterAlertState } from "./src/groupLowWaterAlerts";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
 import { useLowWaterMonitor } from "./src/useLowWaterMonitor";
 
 const Stack = createNativeStackNavigator();
 const INTRO_COMPLETED_KEY = "app:intro-completed";
+
+const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -36,14 +44,61 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(null);
   const [screenTransition] = useState(() => new Animated.Value(1));
   const [isDeactivated, setIsDeactivated] = useState(false);
-  const navigationRef = useRef(null);
+  /** Latest auth / intro flags for notification handlers (avoid stale closures). */
+  const navGateRef = useRef({
+    hasUser: false,
+    showIntro: true,
+    isDeactivated: false,
+  });
+  const pendingGroupNavRef = useRef(null);
 
-  function openGroupFromNotification(groupId, groupName) {
-    if (!navigationRef.current || !groupId) return;
-    navigationRef.current.navigate("Group", {
-      groupId,
-      groupName: groupName || "Group",
-    });
+  useEffect(() => {
+    navGateRef.current = {
+      hasUser: Boolean(session?.user),
+      showIntro: showIntro !== false,
+      isDeactivated,
+    };
+  }, [session?.user, showIntro, isDeactivated]);
+
+  function tryOpenGroupFromNotification(groupId, groupName) {
+    if (!groupId) return;
+    const gate = navGateRef.current;
+    if (!gate.hasUser || gate.showIntro || gate.isDeactivated) {
+      pendingGroupNavRef.current = {
+        groupId,
+        groupName: groupName || "Group",
+      };
+      return;
+    }
+    if (!navigationRef.isReady()) {
+      pendingGroupNavRef.current = {
+        groupId,
+        groupName: groupName || "Group",
+      };
+      return;
+    }
+    pendingGroupNavRef.current = null;
+    try {
+      navigationRef.navigate("Group", {
+        groupId,
+        groupName: groupName || "Group",
+      });
+    } catch {
+      pendingGroupNavRef.current = { groupId, groupName: groupName || "Group" };
+    }
+  }
+
+  function flushPendingGroupNavigation() {
+    const pending = pendingGroupNavRef.current;
+    if (!pending || !navigationRef.isReady()) return;
+    const gate = navGateRef.current;
+    if (!gate.hasUser || gate.showIntro || gate.isDeactivated) return;
+    pendingGroupNavRef.current = null;
+    try {
+      navigationRef.navigate("Group", pending);
+    } catch {
+      pendingGroupNavRef.current = pending;
+    }
   }
 
   useEffect(() => {
@@ -61,7 +116,22 @@ export default function App() {
       }
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === "SIGNED_IN" && nextSession?.user) {
+        pendingGroupNavRef.current = null;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (!navigationRef.isReady()) return;
+            try {
+              navigationRef.dispatch(
+                CommonActions.reset({ index: 0, routes: [{ name: "Dashboard" }] })
+              );
+            } catch {
+              // Stack may not be mounted yet (e.g. intro); remount still lands on Dashboard.
+            }
+          });
+        });
+      }
       setSession(nextSession ?? null);
     });
 
@@ -119,8 +189,8 @@ export default function App() {
     }
 
     setupLocalNotifications();
-    removeResponseListener = addNotificationResponseListener(openGroupFromNotification);
-    handleInitialNotification(openGroupFromNotification).catch(() => {});
+    removeResponseListener = addNotificationResponseListener(tryOpenGroupFromNotification);
+    handleInitialNotification(tryOpenGroupFromNotification).catch(() => {});
 
     return () => {
       cancelled = true;
@@ -128,12 +198,22 @@ export default function App() {
     };
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    flushPendingGroupNavigation();
+  }, [showIntro, isDeactivated]);
+
   const lowWaterMonitorEnabled =
     Boolean(session?.user) &&
     isSupabaseConfigured &&
     !isDeactivated;
 
   useLowWaterMonitor(lowWaterMonitorEnabled);
+
+  useEffect(() => {
+    if (session?.user) return;
+    clearAllLowWaterAlertState();
+    clearLowWaterNotificationsOnSignOut().catch(() => {});
+  }, [session?.user]);
 
   // Check account status and subscribe to live updates so a deactivation
   // performed from the web Settings page kicks the user out immediately.
@@ -185,6 +265,8 @@ export default function App() {
   }, [session?.user?.id]);
 
   async function runSignOut() {
+    clearAllLowWaterAlertState();
+    await clearLowWaterNotificationsOnSignOut().catch(() => {});
     await supabase.auth.signOut();
   }
 
@@ -237,7 +319,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer ref={navigationRef}>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() => {
+          flushPendingGroupNavigation();
+        }}
+      >
         <StatusBar style="dark" />
         <Animated.View
           style={[
@@ -272,6 +359,8 @@ export default function App() {
             </View>
           ) : (
             <Stack.Navigator
+              key={session.user.id}
+              initialRouteName="Dashboard"
               screenOptions={{
                 animation: "slide_from_right",
                 contentStyle: { backgroundColor: "#f8fafc" },
