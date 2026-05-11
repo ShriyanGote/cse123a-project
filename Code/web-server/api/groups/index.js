@@ -14,20 +14,38 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     try {
-      const { data, error } = await supabaseAdmin
+      const uid = auth.user.id;
+
+      const { data: memberRows, error: memberError } = await supabaseAdmin
         .from("group_members")
         .select("role, groups:group_id(id, name, invite_code, device_id, created_by, created_at)")
-        .eq("user_id", auth.user.id)
+        .eq("user_id", uid)
         .order("created_at", { ascending: false });
-      if (error) return res.status(500).json({ error: error.message });
+      if (memberError) return res.status(500).json({ error: memberError.message });
 
-      const groups = (data ?? [])
+      const fromMembership = (memberRows ?? [])
         .map((row) => ({
           role: row.role,
           ...(row.groups ?? {}),
         }))
         .filter((group) => group?.id);
 
+      const memberIds = new Set(fromMembership.map((g) => g.id));
+
+      const { data: ownedRows, error: ownedError } = await supabaseAdmin
+        .from("groups")
+        .select("id, name, invite_code, device_id, created_by, created_at")
+        .eq("created_by", uid);
+      if (ownedError) return res.status(500).json({ error: ownedError.message });
+
+      const fromCreatorOnly = (ownedRows ?? [])
+        .filter((g) => g?.id && !memberIds.has(g.id))
+        .map((g) => ({
+          role: "owner",
+          ...g,
+        }));
+
+      const groups = [...fromMembership, ...fromCreatorOnly];
       return res.status(200).json({ groups });
     } catch (error) {
       return res.status(500).json({ error: error.message ?? "Failed to list groups." });

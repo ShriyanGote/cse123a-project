@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { registerBleDevice } from "../api";
+import { fetchMyDevices, registerBleDevice } from "../api";
 
 /* Must match `custom_ble_prov` firmware (128-bit UUIDs). Override via EXPO_PUBLIC_* if needed. */
 const FALLBACK_SERVICE_UUID = "a0b40001-9267-4d61-a8c8-9f2f4b2c8e01";
@@ -128,9 +128,10 @@ function parseQrPayload(rawValue) {
   return null;
 }
 
-export default function ProvisionDeviceScreen() {
+export default function ProvisionDeviceScreen({ navigation }) {
   const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
   const [isBleBusy, setIsBleBusy] = useState(false);
+  const [isWaitingForServer, setIsWaitingForServer] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -494,12 +495,54 @@ export default function ProvisionDeviceScreen() {
       }
 
       setMessage(
-        "Device registered on the server, auth + Wi‑Fi sent over BLE. The ESP should connect and call /api/ingest."
+        "Device registered on the server, auth + Wi‑Fi sent over BLE. The ESP is rebooting to apply credentials."
       );
+
+      try {
+        connectedDeviceRef.current?.cancelConnection();
+      } catch {
+        // Ignore disconnect errors; the ESP reboot will drop BLE anyway.
+      }
+      connectedDeviceRef.current = null;
+
+      await waitForDeviceVisibleThenReturnHome(deviceId.trim());
     } catch (e) {
       setError(e.message ?? "Failed BLE provisioning transfer.");
     } finally {
       setIsBleBusy(false);
+    }
+  }
+
+  async function waitForDeviceVisibleThenReturnHome(targetDeviceId) {
+    setIsWaitingForServer(true);
+    setMessage("Waiting for the server to see the new device...");
+    try {
+      const deadline = Date.now() + 30000;
+      while (Date.now() < deadline) {
+        try {
+          const { devices: latest = [] } = await fetchMyDevices();
+          const found = latest.find(
+            (d) => String(d.device_id ?? "").toLowerCase() === targetDeviceId.toLowerCase()
+          );
+          if (found) {
+            setMessage("Device is registered. Returning to Home.");
+            if (navigation?.popToTop) {
+              navigation.popToTop();
+            } else if (navigation?.goBack) {
+              navigation.goBack();
+            }
+            return;
+          }
+        } catch (pollError) {
+          console.log("device poll failed (will retry):", pollError?.message ?? pollError);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+      setError(
+        "Provisioning sent, but the server did not show the device within 30s. Pull-to-refresh from Home."
+      );
+    } finally {
+      setIsWaitingForServer(false);
     }
   }
 
@@ -564,13 +607,13 @@ export default function ProvisionDeviceScreen() {
           <Pressable
             style={({ pressed }) => [
               styles.primaryButton,
-              (!isReadyToSendBlePayload || isBleBusy) && styles.disabledButton,
+              (!isReadyToSendBlePayload || isBleBusy || isWaitingForServer) && styles.disabledButton,
               pressed && styles.pressed,
             ]}
             onPress={sendBleProvisioningPayload}
-            disabled={!isReadyToSendBlePayload || isBleBusy}
+            disabled={!isReadyToSendBlePayload || isBleBusy || isWaitingForServer}
           >
-            {isBleBusy ? (
+            {isBleBusy || isWaitingForServer ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.primaryButtonText}>Send Token + Wi-Fi over BLE</Text>

@@ -20,7 +20,8 @@ async function authedFetch(path, init = {}) {
 
 export default function Settings() {
   const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
   const [error, setError] = useState("");
@@ -40,11 +41,15 @@ export default function Settings() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  const loadProfile = useCallback(async () => {
+  const loadAccountData = useCallback(async () => {
     if (!session) return;
     try {
-      const data = await authedFetch("/api/profile");
-      setProfile(data);
+      const [groupsData, devicesData] = await Promise.all([
+        authedFetch("/api/groups"),
+        authedFetch("/api/devices"),
+      ]);
+      setGroups(groupsData.groups ?? []);
+      setDevices(devicesData.devices ?? []);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -52,32 +57,8 @@ export default function Settings() {
   }, [session]);
 
   useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
-
-  // Live updates: if anything changes our profile row (e.g. another tab
-  // toggles the flag), reflect it immediately.
-  useEffect(() => {
-    if (!session?.user) return;
-    const channel = supabase
-      .channel(`profile-${session.user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${session.user.id}`,
-        },
-        (payload) => {
-          setProfile((prev) => ({ ...(prev ?? {}), ...payload.new }));
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [session?.user?.id]);
+    loadAccountData();
+  }, [loadAccountData]);
 
   async function handleSignIn(event) {
     event.preventDefault();
@@ -99,30 +80,8 @@ export default function Settings() {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    setProfile(null);
-  }
-
-  async function handleToggleActive(nextActive) {
-    const verb = nextActive ? "reactivate" : "deactivate";
-    const confirmed = window.confirm(
-      nextActive
-        ? "Reactivate your account? Your devices will be re-enabled."
-        : "Deactivate your account? This will sign you out of the mobile app on every device and revoke your devices until you reactivate."
-    );
-    if (!confirmed) return;
-    setWorking(true);
-    setError("");
-    try {
-      const data = await authedFetch("/api/profile", {
-        method: "POST",
-        body: JSON.stringify({ is_active: nextActive }),
-      });
-      setProfile((prev) => ({ ...(prev ?? {}), is_active: data.is_active }));
-    } catch (e) {
-      setError(`Failed to ${verb}: ${e.message}`);
-    } finally {
-      setWorking(false);
-    }
+    setGroups([]);
+    setDevices([]);
   }
 
   if (loading) {
@@ -132,10 +91,9 @@ export default function Settings() {
   if (!session) {
     return (
       <div className="settings-page">
-        <h2>Settings — Sign In</h2>
+        <h2>Sign In</h2>
         <p className="settings-hint">
-          Sign in with the same account you use in the mobile app to manage
-          account activation.
+          Sign in with the same account you use in the mobile app.
         </p>
         <form onSubmit={handleSignIn} className="settings-form">
           <label>
@@ -167,11 +125,9 @@ export default function Settings() {
     );
   }
 
-  const isActive = profile?.is_active !== false;
-
   return (
     <div className="settings-page">
-      <h2>Settings</h2>
+      <h2>My Account</h2>
       <p className="settings-hint">
         Signed in as <strong>{session.user.email}</strong>{" "}
         <button className="settings-link" type="button" onClick={handleSignOut}>
@@ -180,36 +136,33 @@ export default function Settings() {
       </p>
 
       <section className="settings-section">
-        <h3>Account status</h3>
-        <p>
-          Status:{" "}
-          <strong className={isActive ? "status-active" : "status-inactive"}>
-            {isActive ? "Active" : "Deactivated"}
-          </strong>
-        </p>
-        <p className="settings-hint">
-          Deactivating your account will sign you out of the mobile app on
-          every device and revoke your registered devices. Use this if your
-          phone is lost. You can reactivate any time by signing in here.
-        </p>
-        {isActive ? (
-          <button
-            type="button"
-            className="settings-button settings-button--danger"
-            onClick={() => handleToggleActive(false)}
-            disabled={working}
-          >
-            {working ? "Working…" : "Deactivate account"}
-          </button>
+        <h3>My Groups</h3>
+        {groups.length === 0 ? (
+          <p className="settings-hint">No groups found for this account.</p>
         ) : (
-          <button
-            type="button"
-            className="settings-button settings-button--primary"
-            onClick={() => handleToggleActive(true)}
-            disabled={working}
-          >
-            {working ? "Working…" : "Reactivate account"}
-          </button>
+          <ul>
+            {groups.map((group) => (
+              <li key={group.id}>
+                {group.name} ({group.role}){" "}
+                {group.device_id ? `· Device: ${group.device_id}` : ""}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="settings-section">
+        <h3>My Devices</h3>
+        {devices.length === 0 ? (
+          <p className="settings-hint">No devices found for this account.</p>
+        ) : (
+          <ul>
+            {devices.map((device) => (
+              <li key={device.id}>
+                {device.device_name || device.device_id} · {device.status}
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 

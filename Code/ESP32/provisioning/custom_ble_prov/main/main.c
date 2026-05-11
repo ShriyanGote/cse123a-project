@@ -13,12 +13,17 @@
 
 #include "esp_log.h"
 #include "esp_nimble_hci.h"
+#include "esp_system.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_netif.h"
 #include "esp_http_client.h"
 #include "esp_crt_bundle.h"
+#include "nvs.h"
 #include "nvs_flash.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
@@ -40,6 +45,15 @@ extern void ble_store_config_init(void);
 #ifndef CSE123A_API_BASE
 #define CSE123A_API_BASE "https://cse123a-project-6a3s.vercel.app"
 #endif
+
+/* NVS namespace + keys where provisioning state is persisted. After a
+ * successful BLE provisioning the firmware writes auth_token, ssid and
+ * password to NVS, then reboots. On the next boot we skip BLE entirely
+ * and connect to Wi-Fi using the stored credentials. */
+#define PROV_NVS_NS        "prov"
+#define PROV_KEY_AUTH      "auth_token"
+#define PROV_KEY_SSID      "wifi_ssid"
+#define PROV_KEY_PWD       "wifi_pwd"
 
 /* 128-bit UUIDs — byte order for NimBLE BLE_UUID128_INIT (reverse of canonical string). */
 static const ble_uuid128_t svc_uuid =
@@ -114,6 +128,54 @@ static void notify_status(const char *msg)
     }
 }
 
+static esp_err_t prov_save_to_nvs(const char *auth_token, const char *ssid, const char *pwd)
+{
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(PROV_NVS_NS, NVS_READWRITE, &h);
+    if (err != ESP_OK) return err;
+    if ((err = nvs_set_str(h, PROV_KEY_AUTH, auth_token)) != ESP_OK) goto done;
+    if ((err = nvs_set_str(h, PROV_KEY_SSID, ssid)) != ESP_OK) goto done;
+    if ((err = nvs_set_str(h, PROV_KEY_PWD,  pwd))  != ESP_OK) goto done;
+    err = nvs_commit(h);
+done:
+    nvs_close(h);
+    return err;
+}
+
+static bool prov_load_from_nvs(char *auth_token, size_t auth_size,
+                               char *ssid,       size_t ssid_size,
+                               char *pwd,        size_t pwd_size)
+{
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(PROV_NVS_NS, NVS_READONLY, &h);
+    if (err != ESP_OK) return false;
+
+    size_t s;
+    s = auth_size;
+    if ((err = nvs_get_str(h, PROV_KEY_AUTH, auth_token, &s)) != ESP_OK) {
+        nvs_close(h);
+        return false;
+    }
+    s = ssid_size;
+    if ((err = nvs_get_str(h, PROV_KEY_SSID, ssid, &s)) != ESP_OK) {
+        nvs_close(h);
+        return false;
+    }
+    s = pwd_size;
+    err = nvs_get_str(h, PROV_KEY_PWD, pwd, &s);
+    nvs_close(h);
+    return err == ESP_OK;
+}
+
+/* Reboot from a non-BLE task so the BLE notify above has a chance to flush. */
+static void delayed_restart_task(void *arg)
+{
+    (void)arg;
+    vTaskDelay(pdMS_TO_TICKS(800));
+    ESP_LOGI(TAG, "restarting to apply stored provisioning...");
+    esp_restart();
+}
+
 static int handle_auth_write(struct os_mbuf *om)
 {
     uint16_t pktlen = OS_MBUF_PKTLEN(om);
@@ -145,29 +207,36 @@ static int handle_wifi_write(struct os_mbuf *om)
     if (rc != 0) return BLE_ATT_ERR_UNLIKELY;
     wifi_str[pktlen] = '\0';
 
-    ESP_LOGI(TAG, "wifi payload: %s", wifi_str);
+    ESP_LOGI(TAG, "wifi payload received (len=%d)", pktlen);
 
     char *colon = strchr(wifi_str, ':');
     if (!colon) return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
     *colon = '\0';
-    char *ssid = wifi_str;
-    char *pwd = colon + 1;
+    const char *ssid = wifi_str;
+    const char *pwd  = colon + 1;
 
-    wifi_config_t cfg = {0};
-    strncpy((char *)cfg.sta.ssid, ssid, sizeof cfg.sta.ssid - 1);
-    strncpy((char *)cfg.sta.password, pwd, sizeof cfg.sta.password - 1);
-
-    notify_status("wifi_connecting");
-    esp_err_t w = esp_wifi_set_config(WIFI_IF_STA, &cfg);
-    if (w != ESP_OK) {
-        ESP_LOGE(TAG, "esp_wifi_set_config: %s", esp_err_to_name(w));
-        notify_status("wifi_failed");
+    if (s_auth_token[0] == '\0') {
+        ESP_LOGW(TAG, "wifi received but auth token not set yet");
+        notify_status("auth_missing");
         return BLE_ATT_ERR_UNLIKELY;
     }
-    w = esp_wifi_connect();
-    if (w != ESP_OK) {
-        ESP_LOGE(TAG, "esp_wifi_connect: %s", esp_err_to_name(w));
-        notify_status("wifi_failed");
+
+    /* Persist auth_token + Wi-Fi creds to NVS, then reboot. On the next
+     * boot the firmware will skip BLE, connect to Wi-Fi automatically,
+     * and POST /api/ingest with the saved auth token. */
+    esp_err_t err = prov_save_to_nvs(s_auth_token, ssid, pwd);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "prov_save_to_nvs: %s", esp_err_to_name(err));
+        notify_status("nvs_failed");
+        return BLE_ATT_ERR_UNLIKELY;
+    }
+
+    ESP_LOGI(TAG, "provisioning saved to NVS; restarting in ~1s");
+    notify_status("saved_restarting");
+
+    BaseType_t ok = xTaskCreate(delayed_restart_task, "prov_restart", 2048, NULL, 5, NULL);
+    if (ok != pdPASS) {
+        ESP_LOGE(TAG, "failed to create restart task");
         return BLE_ATT_ERR_UNLIKELY;
     }
     return 0;
@@ -436,6 +505,31 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     init_wifi_and_ids();
+
+    char stored_ssid[64] = {0};
+    char stored_pwd[96]  = {0};
+    bool have_stored_prov = prov_load_from_nvs(
+        s_auth_token, sizeof s_auth_token,
+        stored_ssid,  sizeof stored_ssid,
+        stored_pwd,   sizeof stored_pwd);
+
+    if (have_stored_prov) {
+        ESP_LOGI(TAG, "found stored provisioning; skipping BLE and connecting Wi-Fi");
+
+        wifi_config_t cfg = {0};
+        strncpy((char *)cfg.sta.ssid,     stored_ssid, sizeof cfg.sta.ssid - 1);
+        strncpy((char *)cfg.sta.password, stored_pwd,  sizeof cfg.sta.password - 1);
+        ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &cfg));
+
+        esp_err_t w = esp_wifi_connect();
+        if (w != ESP_OK) {
+            ESP_LOGE(TAG, "esp_wifi_connect: %s", esp_err_to_name(w));
+        }
+        /* wifi_event_handler will run /api/ingest once IP is acquired. */
+        return;
+    }
+
+    /* No stored creds → run BLE provisioning flow. */
     show_qr_payload();
 
     ESP_ERROR_CHECK(nimble_port_init());

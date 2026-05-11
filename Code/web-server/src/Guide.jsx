@@ -36,7 +36,6 @@ const STEPS = [
 export default function Guide() {
   return (
     <div className="guide-page">
-      <h2>Setup Guide</h2>
       <p className="guide-intro">
         Follow these steps to get your Smart Base up and running for the first
         time. The whole process takes about 5 minutes.
