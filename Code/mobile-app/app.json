@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "mobile-app",
-    "slug": "mobile-app",
+    "name": "Water Filter Monitor",
+    "slug": "Water Filter Monitor",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/water_filter.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/water_filter.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -22,7 +22,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/water_filter.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -32,11 +32,11 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/water_filter.png"
     },
     "plugins": [
       "expo-camera",
-      "expo-notifications"
+      "./plugins/withRemoveApsEntitlement.js"
     ]
   }
 }
