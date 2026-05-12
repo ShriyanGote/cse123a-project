@@ -105,7 +105,6 @@ describe("app-state handler", () => {
     const readingChain = mockSupabaseChain({ data: fakeReading, error: null });
     const calibrationChain = mockSupabaseChain({ data: fakeCalibration, error: null });
 
-    let callCount = 0;
     supabaseAdmin.from.mockImplementation((table) => {
       if (table === "water_readings") return readingChain;
       if (table === "calibration") return calibrationChain;

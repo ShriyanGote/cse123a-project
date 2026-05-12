@@ -54,13 +54,6 @@ export async function fetchAppState() {
   return apiFetch("/api/app-state", { method: "GET" });
 }
 
-export async function postCalibration(partial) {
-  return apiFetch("/api/calibration", {
-    method: "POST",
-    body: JSON.stringify(partial),
-  });
-}
-
 /** Simple BLE provisioning: register device_id + auth_token after the app has sent both over BLE. */
 export async function registerBleDevice(payload) {
   return apiFetch("/api/devices/ble-register", {
