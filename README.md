@@ -1,17 +1,29 @@
 # 123a-project: Smart Pitcher Base
 
+This repo contains all the code, hardware notes, and documentation for our Smart Pitcher Base project. The system is made up of three pieces:
 
-# How to run code
+1. **ESP32C3 firmware** — reads the load cell (HX711) on the pitcher base and POSTs readings to the web server.
+2. **Web server / dashboard** — a Vite + React app (deployed on Vercel) that ingests readings into Supabase. Account sign-in and a setup guide live at https://cse123a-project-6a3s.vercel.app/.
+3. **Mobile app** — an Expo / React Native app that talks to the web server, displays the water level, and receives low-water push notifications.
 
-## ESP32c3
-The ESP32c3 code is located under [Code/ESP32/HX711](Code/ESP32/HX711).
+Everything lives under [`Code/`](Code). Each sub-project has its own README with run instructions.
 
-To run this code:
-- download ESP-IDF
-- Inside the esp-idf command line, run ./export.sh
-- Go to the main folder, Code/ESP32/HX711
-- Plug the ESP32C3 into a USB port
-- run idf.py set-target esp32c3
-- run idf.py build flash monitor
+```
+Code/
+├── ESP32/         # firmware (ESP-IDF)
+├── web-server/    # Vite + React dashboard + Vercel API routes
+├── mobile-app/    # Expo / React Native app
+└── 3D Designs/    # printable parts for the base
+```
 
-For more help, access the Espressif web page: [here](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html)
+---
+
+# Other things in this repo
+
+- [Documentation/](Documentation) — write-ups and design docs
+- [Hardware Notes/](Hardware%20Notes) — schematics, PCB revisions, wiring notes
+- [HardwarePicture/](HardwarePicture) — photos of the assembled hardware
+- [Meeting Notes/](Meeting%20Notes) — weekly meeting notes
+- [Status Updates/](Status%20Updates) — milestone / status reports
+- [Code/Links to Test Cases.md](Code/Links%20to%20Test%20Cases.md) — index of test cases
+- `git-contribution-report.sh` + `aliases.json` + `folders.json` — helpers for generating per-author contribution metrics
