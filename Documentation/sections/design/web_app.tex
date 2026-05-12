@@ -1,112 +1,67 @@
 \subsection{Web Application}
 
-The web application is the user-facing interface for the smart water-level monitor. The design goal is to provide a clear 
-real-time estimate of remaining water in the container, allow user calibration for different pitcher sizes, and send refill 
-notifications when the water level becomes low.
+The web application is the account-management and onboarding companion to the mobile app. It is a React application deployed on Vercel and backed by a Supabase Postgres database. Sensor readings, group membership, device records, and authentication all live in Supabase; the web app and the mobile app share the same backend.
 
-The current design is a React application deployed on Vercel, with a Supabase backend for data storage. The frontend displays the latest water level reading as a percentage, 
-along with a visual representation of the water level in the pitcher. Users can calibrate the system by setting empty and full reference points, which allows for accurate 
-level estimation regardless of pitcher size or sensor placement. The application also includes functionality to send push notifications to users when the water level falls 
-below a certain threshold.
+The deployed site is hosted at \url{https://cse123a-project-6a3s.vercel.app/}. The interface is organized into two side-by-side panels: an \textbf{Account} panel (the Settings page) and a \textbf{Setup guide} panel (the Guide page). The web app intentionally does not display live water-level data --- that is the role of the mobile app. Instead, the web app exists to let users manage the account that the mobile app signs in with, review the devices and groups associated with that account, and consult the first-time setup instructions.
 
 \subsubsection{System Architecture}
 The deployed architecture has three coordinated layers:
 
 \begin{itemize}
-	\item \textbf{Frontend dashboard:} Displays the latest reading, computes estimated level percentage, and status indicators.
-    \item \textbf{Vercel backend:} Receives sensor uploads and notification subscriptions.
-	\item \textbf{Supabase Storage:} Stores water readings, calibration parameters, and browser push subscription tokens.
+    \item \textbf{Frontend (React + Vite):} Renders the Settings panel and the Guide panel.
+    \item \textbf{Vercel backend (serverless functions):} Hosts the ingestion endpoint used by the microcontroller and the authenticated REST endpoints used by both the web app and the mobile app (e.g. \texttt{/api/groups}, \texttt{/api/devices}, \texttt{/api/app-state}).
+    \item \textbf{Supabase:} Provides authentication, a Postgres database for groups/devices/readings, and row-level-security enforcement.
 \end{itemize}
 
-\noindent The frontend was designed using the following languages: HTML, CSS, and JavaScript. It utilizes a React framework for building user interfaces. The backend is 
-implemented on Vercel, written in JavaScript (Node.js), with API endpoints for data ingestion and notification management. We are using Supabase, which provides a 
-PostgreSQL database for persistent storage and real-time capabilities.
+\subsubsection{Settings Page}
+The Settings page is the Account panel of the web app. It serves two states depending on whether the user is signed in.
 
-\subsubsection{Frontend Design and User Experience}
-The current dashboard is minimal and task-focused. Core interface elements are:
+\paragraph{Signed out.}
+The panel renders a Sign-In form with email and password fields. A hint reminds the user to sign in with the same account they use in the mobile app, since the two clients share Supabase Auth.
 
+\paragraph{Signed in.}
+After authentication, the panel displays:
 \begin{itemize}
-	\item A large water-level visualization (pitcher graphic with animated fill height).
-	\item A numerical percentage readout for quick interpretation.
-	\item A water-present/empty status indicator.
-	\item Metadata showing last update timestamp, measured weight, and battery voltage (when available).
+    \item The signed-in user's email and a sign-out control.
+    \item \textbf{My Groups} --- a list of the groups the user belongs to, including the user's role in each group and the associated device ID where applicable. Group and device data are fetched from the authenticated endpoints \texttt{/api/groups} and \texttt{/api/devices}.
+    \item \textbf{My Devices} --- a list of devices owned by the user, showing each device's name and status.
 \end{itemize}
 
-\noindent Users can quickly assess whether refill action is needed without interpreting raw sensor values.
+\noindent All requests from the Settings page attach the Supabase access token as a Bearer token; the serverless API routes validate the token before returning data scoped to the user.
+
+\subsubsection{Setup Guide Page}
+The Guide page is a static, step-by-step walkthrough for first-time setup of a Smart Base. It is intended to be readable on a desktop screen while the user follows along with the mobile app. The guide covers:
+
+\begin{enumerate}
+    \item Unboxing and powering on the base.
+    \item Installing the mobile app.
+    \item Signing in (or creating an account) and granting Bluetooth and Camera permissions.
+    \item Opening the Provision Device flow from the mobile dashboard.
+    \item Scanning the QR sticker on the base, which auto-fills the device name and ID.
+    \item Entering the Wi-Fi SSID and password the base should join.
+    \item Sending the authentication token and Wi-Fi credentials to the base over Bluetooth Low Energy.
+    \item Waiting for the base to confirm Wi-Fi connectivity and begin reporting readings.
+\end{enumerate}
+
+\noindent The Guide page deliberately mirrors the mobile-app provisioning flow so users have a printable / linkable reference while completing setup on their phone.
 
 \subsubsection{API Endpoints}
-The application has two primary API endpoints:
+The serverless API on Vercel exposes routes used by both clients and the microcontroller:
 
 \begin{itemize}
-    \item \textbf{POST /api/ingest:} Receives sensor readings (device ID, weight, battery) from the microcontroller and stores the data in Supabase. 
-    If the weight is below a configured threshold, triggers a low-water notification to registered users.
-    
-    \item \textbf{POST /api/register-token:} Registers browser push subscriptions from the frontend and saves them in the database.
+    \item \textbf{\texttt{POST /api/ingest}} --- Receives sensor readings (device ID, weight, battery voltage) from the microcontroller using an API key and inserts them into Supabase.
+    \item \textbf{\texttt{GET /api/app-state}} --- Returns the latest reading and calibration record. Consumed by the mobile app to render the live water level.
+    \item \textbf{\texttt{GET /api/groups}} --- Authenticated. Returns the groups the signed-in user belongs to. Used by both the Settings page and the mobile app.
+    \item \textbf{\texttt{GET /api/devices}} --- Authenticated. Returns the devices owned by the signed-in user. Used by both the Settings page and the mobile app.
 \end{itemize}
-
-\noindent Sensor data is sent to the ingestion endpoint with an API key, validated, and inserted into a table on Supabase. The dashboard reads the newest 
-value from Supabase on a polling interval and renders the latest state. The token registration endpoint enables user devices to register for alert notifications.
-When invoked, it associates a device with a user account and stores the device token in a table on Supabase for later use in push notification delivery.
 
 \subsubsection{Supabase Tables}
-Supabase serves as persistent storage for both backend APIs and the frontend dashboard state. The ingestion and token-registration endpoints write data to
-Supabase using a service-role key, while the frontend dashboard queries the same tables to render the latest readings and calibration settings.\\
-
-\noindent The current deployment uses the following tables:
+Supabase backs both the web app and the mobile app. Relevant tables include:
 
 \begin{itemize}
-	\item \textbf{\texttt{water\_readings}} --- Stores time-series sensor uploads from the microcontroller. Each row represents one sample and includes the
-	device name, weight in grams, and battery voltage in millivolts (e.g., \texttt{device\_id}, \texttt{weight\_g}, \texttt{battery\_mv}) with a timestamp (\texttt{created\_at}).
-
-	\item \textbf{\texttt{notification\_tokens}} --- Stores browser/device push tokens used for low-water alerts. Tokens are inserted or upserted on
-	registration and are later queried by the ingest pipeline when a low-water event occurs.
-
-	\item \textbf{\texttt{calibration}} --- Stores user calibration references for level estimation. The dashboard upserts a single calibration record
-	(using \texttt{id} constant) containing empty and full reference values (\texttt{empty}, \texttt{full}), then reads the latest entry when computing displayed percentage.
+    \item \textbf{\texttt{profiles}} --- One row per user. Tracks display name and an \texttt{is\_active} flag that the Settings page can toggle to deactivate an account; the mobile app subscribes to changes on this row and signs the user out when their account is deactivated.
+    \item \textbf{\texttt{groups}} / \textbf{\texttt{group\_members}} --- Group definitions and role-based membership, surfaced on the Settings page under My Groups.
+    \item \textbf{\texttt{devices}} --- Devices owned by a user, surfaced on the Settings page under My Devices and used during the mobile app's provisioning flow.
+    \item \textbf{\texttt{water\_readings}} --- Time-series sensor uploads written by \texttt{/api/ingest}; consumed by the mobile app.
+    \item \textbf{\texttt{calibration}} --- Empty/full reference points used to compute displayed percentage. Updated from the Group screen in the mobile app via \texttt{POST /api/groups/\{id\}/calibration} against the group's associated device.
 \end{itemize}
-
-\subsubsection{Calibration}
-To support different pitcher geometries and sensor offsets, the application includes user calibration controls:
-
-\begin{itemize}
-	\item \textbf{Calibrate empty:} Stores the current reading as the empty reference.
-	\item \textbf{Calibrate full:} Stores the current reading as the full reference.
-	\item \textbf{Reset calibration:} Clears stored values and falls back to default constants.
-\end{itemize}
-
-\noindent The level estimate is computed by linearly mapping measured weight between empty and full references, 
-then clamping the result between 0\% and 100\%. This makes the UI behavior predictable while still allowing practical 
-adjustments.
-
-\subsubsection{Push Notifications}
-The push notification feature is designed as an event-driven subsystem that alerts users only when refill action is needed. 
-The implementation uses standard Web Push protocols with VAPID authentication and is integrated into the ingest API used for sensor data.
-
-\paragraph{1) Subscription Registration}
-
-When the dashboard is loaded, the browser UI has a button that the user can click on to request notification permission. Clicking on the button 
-triggers a pop up that asks the user to allow/disallow notifications for the website. If permission is granted, a service worker is registered and a Push API 
-subscription is created (or reused if it already exists). The subscription object is sent to the backend endpoint and stored in the \texttt{notification\_tokens} table in Supabase.
-
-\noindent This registration path has two design goals:
-\begin{itemize}
-	\item maintain a durable list of reachable user devices
-	\item avoid duplicate subscriptions by upserting on token value.
-\end{itemize}
-
-\paragraph{2) Alert Trigger Condition}
-
-Sensor readings are received by the ingestion endpoint and stored in \texttt{water\_readings} table. For each new reading, the backend 
-computes current and previous water-level percentages and checks for a low-level threshold crossing. The low-water threshold is currently set to 20\%.
-This design prevents repeated notifications while the level remains continuously low.
-
-\paragraph{3) Delivery}
-
-If the trigger condition is true, the backend loads all stored subscriptions and sends a Web Push payload to each valid endpoint. The payload includes a:
-\begin{itemize}
-	\item notification title
-    \item notification body
-	\item structured data (event type and level percentage) for client-side handling.
-\end{itemize}
-
-\noindent The service worker receives the push event, displays the notification, and handles click interaction by focusing an existing app tab or opening the web page.
