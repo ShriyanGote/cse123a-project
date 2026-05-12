@@ -11,11 +11,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "wifi_manager.h"
+#include <stdlib.h>
 #include "esp_log.h"
 #include "esp_nimble_hci.h"
-#include "esp_wifi.h"
+
 #include "esp_event.h"
-#include "esp_netif.h"
+
 #include "esp_http_client.h"
 #include "esp_crt_bundle.h"
 #include "nvs_flash.h"
@@ -33,7 +35,16 @@
 
 #include "cJSON.h"
 #include "qrcode.h"
+#include <stdbool.h>
 
+#include "esp_mac.h"
+
+typedef struct {
+    char ssid[33];
+    char pwd[65];
+} wifi_connect_args_t;
+
+static bool s_wifi_connecting = false;
 static const char *TAG2 = "cse_ble_prov";
 extern void ble_store_config_init(void);
 
@@ -67,6 +78,7 @@ static int gatt_svr_chr_access(uint16_t conn_handle, uint16_t attr_handle,
 
 static void ble_app_advertise(void);
 static int gap_event(struct ble_gap_event *event, void *arg);
+static void do_ingest_task(void *arg);
 
 static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {
@@ -114,6 +126,63 @@ static void notify_status(const char *msg)
     }
 }
 
+
+static void wifi_connect_task(void *arg)
+{
+    wifi_connect_args_t *args = (wifi_connect_args_t *)arg;
+
+    char ssid[33];
+    char pwd[65];
+
+    strncpy(ssid, args->ssid, sizeof(ssid) - 1);
+    strncpy(pwd, args->pwd, sizeof(pwd) - 1);
+    ssid[sizeof(ssid) - 1] = '\0';
+    pwd[sizeof(pwd) - 1] = '\0';
+
+    free(args);
+
+    notify_status("wifi_connecting");
+
+    esp_err_t err = wifi_connect(ssid, pwd);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG2, "wifi_connect failed: %s", esp_err_to_name(err));
+        notify_status("wifi_failed");
+        s_wifi_connecting = false;
+        vTaskDelete(NULL);
+        return;
+    }
+
+    wifi_wait_connected();
+
+    ESP_LOGI(TAG2, "wifi connected successfully");
+    notify_status("wifi_connected");
+
+    if (s_auth_token[0] == '\0') {
+        ESP_LOGW(TAG2, "no auth token; skip ingest");
+    } else {
+        BaseType_t task_ok = xTaskCreate(
+            do_ingest_task,
+            "ingest",
+            8192,
+            NULL,
+            5,
+            NULL
+        );
+
+        if (task_ok != pdPASS) {
+            ESP_LOGE(TAG2, "failed to create ingest task");
+        }
+    }
+    
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE) {
+        ble_gap_terminate(s_conn_handle, BLE_ERR_REM_USER_CONN_TERM);
+    }
+    s_wifi_connecting = false;
+    vTaskDelete(NULL);
+}
+
 static int handle_auth_write(struct os_mbuf *om)
 {
     uint16_t pktlen = OS_MBUF_PKTLEN(om);
@@ -153,24 +222,43 @@ static int handle_wifi_write(struct os_mbuf *om)
     char *ssid = wifi_str;
     char *pwd = colon + 1;
 
-    wifi_config_t cfg = {0};
-    strncpy((char *)cfg.sta.ssid, ssid, sizeof cfg.sta.ssid - 1);
-    strncpy((char *)cfg.sta.password, pwd, sizeof cfg.sta.password - 1);
+    wifi_connect_args_t *args = calloc(1, sizeof(wifi_connect_args_t));
+    if (!args) {
+        notify_status("wifi_failed");
+        return BLE_ATT_ERR_INSUFFICIENT_RES;
+    }
 
-    notify_status("wifi_connecting");
-    esp_err_t w = esp_wifi_set_config(WIFI_IF_STA, &cfg);
-    if (w != ESP_OK) {
-        ESP_LOGE(TAG2, "esp_wifi_set_config: %s", esp_err_to_name(w));
+    strncpy(args->ssid, ssid, sizeof(args->ssid) - 1);
+    strncpy(args->pwd, pwd, sizeof(args->pwd) - 1);
+
+    if (s_wifi_connecting) {
+        ESP_LOGW(TAG2, "wifi provisioning already in progress");
+        free(args);
+        return BLE_ATT_ERR_INSUFFICIENT_RES;
+    }
+
+    s_wifi_connecting = true;
+
+    BaseType_t task_ok = xTaskCreate(
+        wifi_connect_task,
+        "wifi_connect",
+        4096,
+        args,
+        5,
+        NULL
+    );
+
+    if (task_ok != pdPASS) {
+        s_wifi_connecting = false;
+        free(args);
+        ESP_LOGE(TAG2, "failed to create wifi_connect task");
         notify_status("wifi_failed");
         return BLE_ATT_ERR_UNLIKELY;
     }
-    w = esp_wifi_connect();
-    if (w != ESP_OK) {
-        ESP_LOGE(TAG2, "esp_wifi_connect: %s", esp_err_to_name(w));
-        notify_status("wifi_failed");
-        return BLE_ATT_ERR_UNLIKELY;
-    }
+
+    notify_status("wifi_received");
     return 0;
+
 }
 
 static int gatt_svr_chr_access(uint16_t conn_handle, uint16_t attr_handle,
@@ -380,62 +468,25 @@ static void do_ingest_task(void *arg)
     esp_http_client_cleanup(client);
     vTaskDelete(NULL);
 }
-
-static void wifi_event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
+static void init_device_ids(void)
 {
-    (void)arg;
-    (void)data;
-    if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) {
-        ESP_LOGI(TAG2, "WIFI_EVENT_STA_START");
-    } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
-        ESP_LOGW(TAG2, "WIFI_EVENT_STA_DISCONNECTED");
-        notify_status("wifi_failed");
-    } else if (base == IP_EVENT && id == IP_EVENT_STA_GOT_IP) {
-        ESP_LOGI(TAG2, "got IP");
-        notify_status("wifi_connected");
-
-        if (s_auth_token[0] == '\0') {
-            ESP_LOGW(TAG2, "no auth token; skip ingest");
-            return;
-        }
-
-        BaseType_t task_ok = xTaskCreate(do_ingest_task, "ingest", 8192, NULL, 5, NULL);
-        if (task_ok != pdPASS) {
-            ESP_LOGE(TAG2, "failed to create ingest task");
-        }
-    }
-}
-
-static void init_wifi_and_ids(void)
-{
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    esp_netif_create_default_wifi_sta();
-
-    wifi_init_config_t wcfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&wcfg));
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, wifi_event_handler, NULL));
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, wifi_event_handler, NULL));
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK(esp_wifi_start());
-
     uint8_t mac[6];
-    ESP_ERROR_CHECK(esp_wifi_get_mac(WIFI_IF_STA, mac));
-    snprintf(s_device_id, sizeof s_device_id, "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2],
+
+    ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
+
+    snprintf(s_device_id, sizeof s_device_id,
+             "%02x%02x%02x%02x%02x%02x",
+             mac[0], mac[1], mac[2],
              mac[3], mac[4], mac[5]);
-    snprintf(s_device_name, sizeof s_device_name, "ESP32_%02X%02X%02X", mac[3], mac[4], mac[5]);
+
+    snprintf(s_device_name, sizeof s_device_name,
+             "ESP32_%02X%02X%02X",
+             mac[3], mac[4], mac[5]);
 }
 
 esp_err_t ble_provisioning_init(void)
 {
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-
-    init_wifi_and_ids();
+    init_device_ids();
     show_qr_payload();
 
     ESP_ERROR_CHECK(nimble_port_init());

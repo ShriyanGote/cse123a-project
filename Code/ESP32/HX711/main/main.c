@@ -10,7 +10,6 @@
 #include "esp_sleep.h"
 
 #include "ble.h"
-#include "nvs_flash.h"
 #include "nvs.h"
 
 
@@ -57,9 +56,20 @@ static void save_state(void)
 
 void app_main(void)
 {   
-    ESP_ERROR_CHECK(ble_provisioning_init());
-    //ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_ERROR_CHECK(wifi_init());
     load_state();
+
+    if (!wifi_credentials_saved()) {
+        ESP_LOGI(TAG, "No Wi-Fi credentials; starting BLE provisioning");
+        //ESP_ERROR_CHECK(ble_provisioning_init()); UNCOMMENT FOR BLE
+
+        ESP_ERROR_CHECK(wifi_connect("ESPTEST", "uc2025sc")); //REMOVE WHEN BLE, REMEMBER CLEAR NVS SSID PWD
+        wifi_wait_connected();
+
+        ESP_LOGI(TAG, "Provisioning complete");
+    }
+
     sensor_init();
     hx711_power_up();
     vTaskDelay(pdMS_TO_TICKS(500));
@@ -84,10 +94,8 @@ void app_main(void)
         ESP_LOGI(TAG, "First Boot Completed");
     } else if ((grams > gramBefore + 15) || (grams < gramBefore - 15)) {
             ESP_LOGI(TAG, "Weight changed, connecting Wi-Fi");
-            wifi_init();
-        
-            wifi_connect("ESPTEST", "uc2025sc");
-            wifi_wait_connected(); //check
+            ESP_ERROR_CHECK(wifi_connect_saved());
+            wifi_wait_connected();
             
             vTaskDelay(pdMS_TO_TICKS(1000));
 

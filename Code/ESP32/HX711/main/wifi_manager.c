@@ -17,6 +17,8 @@
 #include "esp_event.h"
 #include "esp_netif.h"
 #include "nvs_flash.h"
+#include "nvs.h"
+#include <stdbool.h>
 
 static const char *TAG = "WIFI";
 
@@ -49,34 +51,18 @@ static void event_handler(void *arg,
     }
 }
 
+static bool s_wifi_initialized = false;
 esp_err_t wifi_init(void)
-{
+{   
+    if (s_wifi_initialized) {
+        return ESP_OK;
+    }
     wifi_event_group = xEventGroupCreate();
 
-    ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
-
-    ESP_ERROR_CHECK(esp_netif_dhcpc_stop(sta_netif));
-
-    esp_netif_ip_info_t ip_info;
-    IP4_ADDR(&ip_info.ip,      172, 20, 10, 10);   // ESP32 static IP
-    IP4_ADDR(&ip_info.gw,      172, 20, 10, 1);    // hotspot/router
-    IP4_ADDR(&ip_info.netmask, 255, 255, 255, 240);
-
-    ESP_ERROR_CHECK(esp_netif_set_ip_info(sta_netif, &ip_info));
-
-    esp_netif_dns_info_t dns;
-    IP4_ADDR(&dns.ip.u_addr.ip4, 8, 8, 8, 8);
-    dns.ip.type = ESP_IPADDR_TYPE_V4;
-
-    ESP_ERROR_CHECK(esp_netif_set_dns_info(
-    sta_netif,
-    ESP_NETIF_DNS_MAIN,
-    &dns));
-    
+    esp_netif_create_default_wifi_sta();
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
@@ -89,12 +75,24 @@ esp_err_t wifi_init(void)
                                                IP_EVENT_STA_GOT_IP,
                                                &event_handler,
                                                NULL));
+                                    
+    s_wifi_initialized = true;
 
     return ESP_OK;
 }
 
 esp_err_t wifi_connect(const char *ssid, const char *password)
-{
+{   
+    nvs_handle_t h;
+
+    ESP_ERROR_CHECK(nvs_open("wifi", NVS_READWRITE, &h));
+
+    ESP_ERROR_CHECK(nvs_set_str(h, "ssid", ssid));
+    ESP_ERROR_CHECK(nvs_set_str(h, "password", password));
+
+    ESP_ERROR_CHECK(nvs_commit(h));
+
+    nvs_close(h);
     wifi_config_t wifi_config = {0};
 
     strncpy((char *)wifi_config.sta.ssid, ssid, sizeof(wifi_config.sta.ssid));
@@ -118,4 +116,51 @@ void wifi_wait_connected(void)
                         portMAX_DELAY);
 
     ESP_LOGI(TAG, "WiFi connected!");
+}
+
+bool wifi_credentials_saved(void)
+{
+    nvs_handle_t h;
+
+    esp_err_t err = nvs_open("wifi", NVS_READONLY, &h);
+    if (err != ESP_OK) {
+        return false;
+    }
+
+    size_t ssid_len = 0;
+
+    err = nvs_get_str(h, "ssid", NULL, &ssid_len);
+
+    nvs_close(h);
+
+    return (err == ESP_OK && ssid_len > 1);
+}
+
+esp_err_t wifi_connect_saved(void)
+{
+    nvs_handle_t h;
+
+    esp_err_t err = nvs_open("wifi", NVS_READONLY, &h);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    char ssid[33] = {0};
+    char password[65] = {0};
+
+    size_t ssid_len = sizeof(ssid);
+    size_t pass_len = sizeof(password);
+
+    err = nvs_get_str(h, "ssid", ssid, &ssid_len);
+    if (err == ESP_OK) {
+        err = nvs_get_str(h, "password", password, &pass_len);
+    }
+
+    nvs_close(h);
+
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    return wifi_connect(ssid, password);
 }

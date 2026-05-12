@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdbool.h>
 #include "esp_err.h"
 
 /**
@@ -47,3 +47,6 @@ esp_err_t wifi_connect(const char *ssid, const char *password);
  * @return void
  */
 void wifi_wait_connected(void);
+
+bool wifi_credentials_saved(void);
+esp_err_t wifi_connect_saved(void);
