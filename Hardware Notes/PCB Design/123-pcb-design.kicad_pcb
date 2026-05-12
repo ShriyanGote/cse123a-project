@@ -9,8 +9,8 @@
 	(paper "A4")
 	(title_block
 		(title "123-BOARD-DESIGN")
-		(date "2026-04-22")
-		(rev "2")
+		(date "2026-05-11")
+		(rev "3")
 		(company "Group 8")
 	)
 	(layers

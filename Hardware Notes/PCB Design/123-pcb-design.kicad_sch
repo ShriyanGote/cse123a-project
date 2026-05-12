@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "123-BOARD-DESIGN")
-		(date "2026-04-30")
+		(date "2026-05-11")
 		(rev "3")
 		(company "Group 8")
 	)
@@ -3034,7 +3034,7 @@
 	)
 	(rectangle
 		(start 229.87 89.535)
-		(end 262.89 116.205)
+		(end 273.05 116.205)
 		(stroke
 			(width 0)
 			(type default)
