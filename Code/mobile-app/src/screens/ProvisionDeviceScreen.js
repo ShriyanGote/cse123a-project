@@ -49,10 +49,6 @@ const DEFAULT_STATUS_CHAR_UUID = resolveUuid(
   FALLBACK_STATUS_CHAR_UUID
 );
 
-function toBase64(jsonPayload) {
-  return Buffer.from(JSON.stringify(jsonPayload), "utf8").toString("base64");
-}
-
 function toBase64Text(text) {
   return Buffer.from(text, "utf8").toString("base64");
 }
