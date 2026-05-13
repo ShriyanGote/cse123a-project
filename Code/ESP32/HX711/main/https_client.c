@@ -52,15 +52,31 @@ esp_err_t https_get(const char *url)
  */
 esp_err_t https_post(const char *url, const char *data)
 {
+    return https_post_bearer(url, data, NULL);
+}
+
+esp_err_t https_post_bearer(const char *url, const char *data, const char *bearer_token)
+{
     esp_http_client_config_t config = {
         .url = url,
         .crt_bundle_attach = esp_crt_bundle_attach,
+        .timeout_ms = 15000,
     };
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
+    if (client == NULL) {
+        ESP_LOGE(TAG, "esp_http_client_init failed");
+        return ESP_FAIL;
+    }
 
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
+
+    if (bearer_token && bearer_token[0] != '\0') {
+        char auth_hdr[192];
+        snprintf(auth_hdr, sizeof auth_hdr, "Bearer %s", bearer_token);
+        esp_http_client_set_header(client, "Authorization", auth_hdr);
+    }
 
     if (data) {
         esp_http_client_set_post_field(client, data, strlen(data));
@@ -71,8 +87,7 @@ esp_err_t https_post(const char *url, const char *data)
     esp_err_t err = esp_http_client_perform(client);
 
     if (err == ESP_OK) {
-        ESP_LOGI(TAG, "Status = %d",
-                 esp_http_client_get_status_code(client));
+        ESP_LOGI(TAG, "Status = %d", esp_http_client_get_status_code(client));
     } else {
         ESP_LOGE(TAG, "POST failed: %s", esp_err_to_name(err));
     }

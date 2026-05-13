@@ -19,6 +19,77 @@ function getLevelPercent(weightG, calibration) {
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
+function normalizeHardwareDeviceId(id) {
+  return typeof id === "string" ? id.trim().toLowerCase() : "";
+}
+
+/**
+ * Resolve group for ingest: direct groups.device_id match, or auto-link first
+ * owned empty group for the device's created_by user (same idea as ble-register).
+ */
+async function resolveGroupForIngest(hardwareId) {
+  const hid = normalizeHardwareDeviceId(hardwareId);
+  if (!hid) return { group: null, linked: false };
+
+  const { data: direct, error: directErr } = await supabaseAdmin
+    .from("groups")
+    .select("id, name, empty_g, full_g")
+    .eq("device_id", hid)
+    .maybeSingle();
+  if (directErr) {
+    return { group: null, linked: false, error: directErr.message };
+  }
+  if (direct) {
+    return { group: direct, linked: false };
+  }
+
+  const { data: deviceRow, error: devErr } = await supabaseAdmin
+    .from("devices")
+    .select("id, created_by")
+    .eq("device_id", hid)
+    .maybeSingle();
+  if (devErr || !deviceRow?.created_by) {
+    return { group: null, linked: false };
+  }
+
+  const { data: owned, error: listErr } = await supabaseAdmin
+    .from("groups")
+    .select("id, name, empty_g, full_g, device_id")
+    .eq("created_by", deviceRow.created_by)
+    .order("created_at", { ascending: false });
+  if (listErr) {
+    return { group: null, linked: false, error: listErr.message };
+  }
+  const rows = owned ?? [];
+  const reuse = rows.find((g) => g.device_id && String(g.device_id).trim().toLowerCase() === hid);
+  if (reuse) {
+    return {
+      group: {
+        id: reuse.id,
+        name: reuse.name,
+        empty_g: reuse.empty_g,
+        full_g: reuse.full_g,
+      },
+      linked: false,
+    };
+  }
+  const slot = rows.find((g) => g.device_id == null || String(g.device_id).trim() === "");
+  if (!slot) {
+    return { group: null, linked: false };
+  }
+
+  const { data: patched, error: patchErr } = await supabaseAdmin
+    .from("groups")
+    .update({ device_id: hid })
+    .eq("id", slot.id)
+    .select("id, name, empty_g, full_g")
+    .maybeSingle();
+  if (patchErr || !patched) {
+    return { group: null, linked: false, error: patchErr?.message };
+  }
+  return { group: patched, linked: true };
+}
+
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
@@ -34,20 +105,31 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing device_id." });
     }
 
-    const { data: groupData, error: groupLookupError } = await supabaseAdmin
-      .from("groups")
-      .select("id, name, empty_g, full_g")
-      .eq("device_id", resolvedDeviceId)
-      .maybeSingle();
-    if (groupLookupError) return res.status(500).json({ error: groupLookupError.message });
+    const hid =
+      normalizeHardwareDeviceId(resolvedDeviceId) ||
+      (typeof resolvedDeviceId === "string" ? resolvedDeviceId.trim() : String(resolvedDeviceId));
+
+    const { group: groupData, linked: autoLinkedGroup, error: resolveErr } =
+      await resolveGroupForIngest(hid);
+    if (resolveErr) {
+      return res.status(500).json({ error: resolveErr });
+    }
     if (!groupData) {
-      return res.status(404).json({ error: "No group linked to this device." });
+      console.warn("[ingest] no group for device", hid);
+      return res.status(404).json({
+        error: "No group linked to this device.",
+        code: "INGEST_NO_GROUP",
+        hint: "Create a group in the app, or run device provisioning again so a group can be linked.",
+      });
+    }
+    if (autoLinkedGroup) {
+      console.info("[ingest] auto-linked groups.device_id for device", hid, "group", groupData.id);
     }
 
     const { data: previousReading, error: previousError } = await supabaseAdmin
       .from("water_readings")
       .select("weight_g")
-      .eq("device_id", resolvedDeviceId)
+      .eq("device_id", hid)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -55,7 +137,7 @@ export default async function handler(req, res) {
     if (previousError) return res.status(500).json({ error: previousError.message });
 
     const { error } = await supabaseAdmin.from("water_readings").insert([
-      { device_id: resolvedDeviceId, weight_g, battery_mv }
+      { device_id: hid, weight_g, battery_mv }
     ]);
 
     if (error) return res.status(500).json({ error: error.message });
@@ -152,7 +234,7 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ ok: true, debug });
+    return res.status(200).json({ ok: true, auto_linked_group: autoLinkedGroup, debug });
   } catch (unhandledError) {
     console.error("Unhandled ingest failure", unhandledError);
     return res.status(500).json({ error: "Internal server error" });

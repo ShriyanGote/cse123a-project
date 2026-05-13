@@ -1,0 +1,11 @@
+# NimBLE (used by main/ble.c). Prevents losing BT after `idf.py set-target`.
+CONFIG_BT_ENABLED=y
+CONFIG_BT_NIMBLE_ENABLED=y
+CONFIG_BT_CONTROLLER_ENABLED=y
+
+# App + NimBLE + Wi-Fi exceed 1MB; use repo partitions.csv (2MB factory).
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Match ESP32-C3 module SPI flash (2MB is too small for this partition table + app).
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y

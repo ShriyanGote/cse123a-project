@@ -52,3 +52,9 @@ esp_err_t https_get(const char *url);
  * @note The function logs the HTTP status code on success and error details on failure
  */
 esp_err_t https_post(const char *url, const char *data);
+
+/**
+ * POST JSON with optional `Authorization: Bearer <bearer_token>`.
+ * Pass NULL or "" for bearer_token to omit the header.
+ */
+esp_err_t https_post_bearer(const char *url, const char *data, const char *bearer_token);

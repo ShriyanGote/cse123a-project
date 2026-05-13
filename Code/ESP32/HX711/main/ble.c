@@ -1,26 +1,26 @@
 /*
- * CSE 123A — Custom BLE provisioning (no Espressif wifi_prov_scheme_ble).
+ * CSE 123A — Custom BLE provisioning (same GATT contract as custom_ble_prov).
  *
  * QR JSON: {"device_name":"ESP32_XXX","device_id":"..."}
- * GATT: service + AUTH (write) + WIFI (write) + STATUS (read/notify)
- * Payloads: base64( UTF-8 JSON ). AUTH: {"auth_token":"<uuid>"}. WIFI: {"ssid","password"}
+ * GATT: AUTH (write) + WIFI (write) + STATUS (read/notify)
+ * Mobile sends base64(UTF-8) on AUTH (UUID string) and base64("ssid:password") on WIFI.
  *
- * Edit CSE123A_API_BASE to your deployed web-server origin (HTTPS).
+ * After WIFI write: persist auth_token + SSID + password to NVS namespace "prov"
+ * (via wifi_prov_save), notify "saved_restarting", then reboot — same as
+ * custom_ble_prov. On next boot main.c loads credentials and connects Wi-Fi.
  */
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "wifi_manager.h"
-#include <stdlib.h>
 #include "esp_log.h"
 #include "esp_nimble_hci.h"
-
 #include "esp_event.h"
+#include "esp_system.h"
 
-#include "esp_http_client.h"
-#include "esp_crt_bundle.h"
-#include "nvs_flash.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
@@ -33,24 +33,15 @@
 #include "services/gatt/ble_svc_gatt.h"
 #include "store/config/ble_store_config.h"
 
-#include "cJSON.h"
+#include "mbedtls/base64.h"
+
 #include "qrcode.h"
 #include <stdbool.h>
 
 #include "esp_mac.h"
 
-typedef struct {
-    char ssid[33];
-    char pwd[65];
-} wifi_connect_args_t;
-
-static bool s_wifi_connecting = false;
 static const char *TAG2 = "cse_ble_prov";
 extern void ble_store_config_init(void);
-
-#ifndef CSE123A_API_BASE
-#define CSE123A_API_BASE "https://cse123a-project-6a3s.vercel.app"
-#endif
 
 /* 128-bit UUIDs — byte order for NimBLE BLE_UUID128_INIT (reverse of canonical string). */
 static const ble_uuid128_t svc_uuid =
@@ -78,7 +69,6 @@ static int gatt_svr_chr_access(uint16_t conn_handle, uint16_t attr_handle,
 
 static void ble_app_advertise(void);
 static int gap_event(struct ble_gap_event *event, void *arg);
-static void do_ingest_task(void *arg);
 
 static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {
@@ -126,61 +116,25 @@ static void notify_status(const char *msg)
     }
 }
 
-
-static void wifi_connect_task(void *arg)
+/* Mobile sends base64(UUID); decode so Bearer token matches DB auth_token. */
+static void decode_auth_token_inplace(char *buf, size_t cap)
 {
-    wifi_connect_args_t *args = (wifi_connect_args_t *)arg;
-
-    char ssid[33];
-    char pwd[65];
-
-    strncpy(ssid, args->ssid, sizeof(ssid) - 1);
-    strncpy(pwd, args->pwd, sizeof(pwd) - 1);
-    ssid[sizeof(ssid) - 1] = '\0';
-    pwd[sizeof(pwd) - 1] = '\0';
-
-    free(args);
-
-    notify_status("wifi_connecting");
-
-    esp_err_t err = wifi_connect(ssid, pwd);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG2, "wifi_connect failed: %s", esp_err_to_name(err));
-        notify_status("wifi_failed");
-        s_wifi_connecting = false;
-        vTaskDelete(NULL);
+    unsigned char tmp[128];
+    size_t olen = 0;
+    int r = mbedtls_base64_decode(tmp, sizeof(tmp), &olen, (const unsigned char *)buf, strlen(buf));
+    if (r != 0 || olen == 0 || olen >= cap) {
         return;
     }
+    memcpy(buf, tmp, olen);
+    buf[olen] = '\0';
+}
 
-    wifi_wait_connected();
-
-    ESP_LOGI(TAG2, "wifi connected successfully");
-    notify_status("wifi_connected");
-
-    if (s_auth_token[0] == '\0') {
-        ESP_LOGW(TAG2, "no auth token; skip ingest");
-    } else {
-        BaseType_t task_ok = xTaskCreate(
-            do_ingest_task,
-            "ingest",
-            8192,
-            NULL,
-            5,
-            NULL
-        );
-
-        if (task_ok != pdPASS) {
-            ESP_LOGE(TAG2, "failed to create ingest task");
-        }
-    }
-    
-    vTaskDelay(pdMS_TO_TICKS(1000));
-
-    if (s_conn_handle != BLE_HS_CONN_HANDLE_NONE) {
-        ble_gap_terminate(s_conn_handle, BLE_ERR_REM_USER_CONN_TERM);
-    }
-    s_wifi_connecting = false;
-    vTaskDelete(NULL);
+static void delayed_restart_task(void *arg)
+{
+    (void)arg;
+    vTaskDelay(pdMS_TO_TICKS(800));
+    ESP_LOGI(TAG2, "restarting to apply stored provisioning...");
+    esp_restart();
 }
 
 static int handle_auth_write(struct os_mbuf *om)
@@ -197,7 +151,9 @@ static int handle_auth_write(struct os_mbuf *om)
     }
     s_auth_token[pktlen] = '\0';
 
-    ESP_LOGI(TAG2, "auth token stored: %s (len=%d)", s_auth_token, pktlen);
+    decode_auth_token_inplace(s_auth_token, sizeof(s_auth_token));
+
+    ESP_LOGI(TAG2, "auth token stored (len=%zu)", strlen(s_auth_token));
     notify_status("auth_ok");
     return 0;
 }
@@ -211,58 +167,60 @@ static int handle_wifi_write(struct os_mbuf *om)
         return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
     }
     int rc = ble_hs_mbuf_to_flat(om, wifi_str, sizeof(wifi_str) - 1, NULL);
-    if (rc != 0) return BLE_ATT_ERR_UNLIKELY;
+    if (rc != 0) {
+        return BLE_ATT_ERR_UNLIKELY;
+    }
     wifi_str[pktlen] = '\0';
 
-    ESP_LOGI(TAG2, "wifi payload: %s", wifi_str);
+    /* Optional: mobile sends base64("ssid:password") */
+    char decoded[256];
+    strncpy(decoded, wifi_str, sizeof decoded - 1);
+    decoded[sizeof decoded - 1] = '\0';
+    {
+        unsigned char outb[256];
+        size_t olen = 0;
+        int r = mbedtls_base64_decode(outb, sizeof(outb), &olen, (const unsigned char *)decoded,
+                                        strlen(decoded));
+        if (r == 0 && olen > 0 && olen < sizeof decoded) {
+            memcpy(decoded, outb, olen);
+            decoded[olen] = '\0';
+        }
+    }
 
-    char *colon = strchr(wifi_str, ':');
-    if (!colon) return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
+    char *colon = strchr(decoded, ':');
+    if (!colon) {
+        return BLE_ATT_ERR_INVALID_ATTR_VALUE_LEN;
+    }
     *colon = '\0';
-    char *ssid = wifi_str;
-    char *pwd = colon + 1;
+    const char *ssid = decoded;
+    const char *pwd = colon + 1;
 
-    wifi_connect_args_t *args = calloc(1, sizeof(wifi_connect_args_t));
-    if (!args) {
-        notify_status("wifi_failed");
-        return BLE_ATT_ERR_INSUFFICIENT_RES;
-    }
-
-    strncpy(args->ssid, ssid, sizeof(args->ssid) - 1);
-    strncpy(args->pwd, pwd, sizeof(args->pwd) - 1);
-
-    if (s_wifi_connecting) {
-        ESP_LOGW(TAG2, "wifi provisioning already in progress");
-        free(args);
-        return BLE_ATT_ERR_INSUFFICIENT_RES;
-    }
-
-    s_wifi_connecting = true;
-
-    BaseType_t task_ok = xTaskCreate(
-        wifi_connect_task,
-        "wifi_connect",
-        4096,
-        args,
-        5,
-        NULL
-    );
-
-    if (task_ok != pdPASS) {
-        s_wifi_connecting = false;
-        free(args);
-        ESP_LOGE(TAG2, "failed to create wifi_connect task");
-        notify_status("wifi_failed");
+    if (s_auth_token[0] == '\0') {
+        ESP_LOGW(TAG2, "wifi received but auth token not set yet");
+        notify_status("auth_missing");
         return BLE_ATT_ERR_UNLIKELY;
     }
 
-    notify_status("wifi_received");
-    return 0;
+    esp_err_t err = wifi_prov_save(s_auth_token, ssid, pwd);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG2, "wifi_prov_save: %s", esp_err_to_name(err));
+        notify_status("nvs_failed");
+        return BLE_ATT_ERR_UNLIKELY;
+    }
 
+    ESP_LOGI(TAG2, "provisioning saved to NVS; restarting in ~1s");
+    notify_status("saved_restarting");
+
+    BaseType_t ok = xTaskCreate(delayed_restart_task, "prov_restart", 2048, NULL, 5, NULL);
+    if (ok != pdPASS) {
+        ESP_LOGE(TAG2, "failed to create restart task");
+        return BLE_ATT_ERR_UNLIKELY;
+    }
+    return 0;
 }
 
-static int gatt_svr_chr_access(uint16_t conn_handle, uint16_t attr_handle,
-                             struct ble_gatt_access_ctxt *ctxt, void *arg)
+static int gatt_svr_chr_access(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt,
+                             void *arg)
 {
     (void)conn_handle;
     (void)attr_handle;
@@ -293,8 +251,8 @@ static void gatt_svr_register_cb(struct ble_gatt_register_ctxt *ctxt, void *arg)
     char buf[BLE_UUID_STR_LEN];
     switch (ctxt->op) {
     case BLE_GATT_REGISTER_OP_CHR:
-        ESP_LOGD(TAG2, "characteristic %s handle=%d",
-                 ble_uuid_to_str(ctxt->chr.chr_def->uuid, buf), ctxt->chr.val_handle);
+        ESP_LOGD(TAG2, "characteristic %s handle=%d", ble_uuid_to_str(ctxt->chr.chr_def->uuid, buf),
+                 ctxt->chr.val_handle);
         break;
     default:
         break;
@@ -377,8 +335,7 @@ static int gap_event(struct ble_gap_event *event, void *arg)
         ble_app_advertise();
         break;
     case BLE_GAP_EVENT_MTU:
-        ESP_LOGI(TAG2, "MTU negotiated conn=%d mtu=%d",
-                 event->mtu.conn_handle, event->mtu.value);
+        ESP_LOGI(TAG2, "MTU negotiated conn=%d mtu=%d", event->mtu.conn_handle, event->mtu.value);
         break;
     default:
         break;
@@ -430,58 +387,16 @@ static void show_qr_payload(void)
     esp_qrcode_generate(&cfg, payload);
 }
 
-static void do_ingest_task(void *arg)
-{
-    (void)arg;
-    char url[160];
-    snprintf(url, sizeof url, "%s/api/ingest", CSE123A_API_BASE);
-
-    esp_http_client_config_t cfg = {
-        .url = url,
-        .method = HTTP_METHOD_POST,
-        .timeout_ms = 15000,
-        .crt_bundle_attach = esp_crt_bundle_attach,
-    };
-    esp_http_client_handle_t client = esp_http_client_init(&cfg);
-    if (client == NULL) {
-        ESP_LOGE(TAG2, "esp_http_client_init failed");
-        vTaskDelete(NULL);
-        return;
-    }
-
-    char auth_hdr[160];
-    snprintf(auth_hdr, sizeof auth_hdr, "Bearer %s", s_auth_token);
-    esp_http_client_set_header(client, "Authorization", auth_hdr);
-    esp_http_client_set_header(client, "Content-Type", "application/json");
-
-    char body[192];
-    snprintf(body, sizeof body, "{\"device_id\":\"%s\",\"weight_g\":0,\"battery_mv\":0}",
-             s_device_id);
-    esp_http_client_set_post_field(client, body, strlen(body));
-
-    esp_err_t err = esp_http_client_perform(client);
-    if (err == ESP_OK) {
-        ESP_LOGI(TAG2, "ingest HTTP %d", esp_http_client_get_status_code(client));
-    } else {
-        ESP_LOGE(TAG2, "ingest failed: %s", esp_err_to_name(err));
-    }
-    esp_http_client_cleanup(client);
-    vTaskDelete(NULL);
-}
 static void init_device_ids(void)
 {
     uint8_t mac[6];
 
     ESP_ERROR_CHECK(esp_read_mac(mac, ESP_MAC_WIFI_STA));
 
-    snprintf(s_device_id, sizeof s_device_id,
-             "%02x%02x%02x%02x%02x%02x",
-             mac[0], mac[1], mac[2],
-             mac[3], mac[4], mac[5]);
+    snprintf(s_device_id, sizeof s_device_id, "%02x%02x%02x%02x%02x%02x", mac[0], mac[1], mac[2], mac[3],
+             mac[4], mac[5]);
 
-    snprintf(s_device_name, sizeof s_device_name,
-             "ESP32_%02X%02X%02X",
-             mac[3], mac[4], mac[5]);
+    snprintf(s_device_name, sizeof s_device_name, "ESP32_%02X%02X%02X", mac[3], mac[4], mac[5]);
 }
 
 esp_err_t ble_provisioning_init(void)
