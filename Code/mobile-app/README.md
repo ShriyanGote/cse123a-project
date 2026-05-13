@@ -73,5 +73,5 @@ npx expo start -c
 ## 5) Common issues
 
 - **"Supabase Config Required" screen**: confirm `.env` exists in `mobile-app` and both Supabase vars are set.
-- **Pod install/build errors**: run `npx expo prebuild --clean` and then `npx expo run:ios`.
+- **Pod install/build errors**: run `npx expo prebuild --clean` and then `npx expo run:ios --device`.
 - **Code signing/device install errors**: open Xcode once, sign in with your Apple ID, and trust the developer profile on your iPhone.
