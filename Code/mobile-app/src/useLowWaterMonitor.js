@@ -8,7 +8,7 @@ const POLL_INTERVAL_MS = 8_000;
 
 /**
  * Polls the user's groups while the app is active and triggers local low-water
- * notifications when any group's level crosses below 20%.
+ * notifications per groupLowWaterAlerts (immediate for non-zero low; 30s delay at 0%).
  */
 export function useLowWaterMonitor(enabled) {
   const appStateRef = useRef(AppState.currentState);

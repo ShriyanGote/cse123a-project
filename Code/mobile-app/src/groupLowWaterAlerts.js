@@ -2,9 +2,10 @@ import { getLevelPercent } from "./lib/water";
 import { scheduleLowWaterLocalNotification } from "./notifications";
 
 export const LOW_WATER_THRESHOLD_PERCENT = 20;
-const OFF_SENSOR_PERCENT = 0;
+/** Require this long continuously at 0% before notifying on empty/off readings (non-zero low alerts immediately). */
+export const LOW_WATER_ALERT_DELAY_MS = 30_000;
 
-/** @typedef {{ lastPercent: number | null, lastAlertedSig: string | null }} GroupWaterAlertState */
+/** @typedef {{ lastPercent: number | null, lastAlertedSig: string | null, zeroPercentSinceMs: number | null }} GroupWaterAlertState */
 
 /** @type {Map<string, GroupWaterAlertState>} */
 const stateByGroupId = new Map();
@@ -19,7 +20,13 @@ export function clearAllLowWaterAlertState() {
 }
 
 function getState(groupId) {
-  return stateByGroupId.get(groupId) ?? { lastPercent: null, lastAlertedSig: null };
+  return (
+    stateByGroupId.get(groupId) ?? {
+      lastPercent: null,
+      lastAlertedSig: null,
+      zeroPercentSinceMs: null,
+    }
+  );
 }
 
 function putState(groupId, state) {
@@ -53,11 +60,7 @@ function groupDisplayName(group) {
  * @param {string | null} readingSig
  */
 function shouldAlertLowWater(prevPercent, currentPercent, lastAlertedSig, readingSig) {
-  if (
-    currentPercent >= LOW_WATER_THRESHOLD_PERCENT ||
-    currentPercent <= OFF_SENSOR_PERCENT ||
-    !readingSig
-  ) {
+  if (currentPercent >= LOW_WATER_THRESHOLD_PERCENT || !readingSig) {
     return false;
   }
 
@@ -66,23 +69,16 @@ function shouldAlertLowWater(prevPercent, currentPercent, lastAlertedSig, readin
     prevPercent >= LOW_WATER_THRESHOLD_PERCENT &&
     currentPercent < LOW_WATER_THRESHOLD_PERCENT;
 
-  // Treat 0% as "filter removed/off sensor". Alert when it comes back while still low.
-  const returnedFromOffSensor =
-    prevPercent != null &&
-    prevPercent <= OFF_SENSOR_PERCENT &&
-    currentPercent > OFF_SENSOR_PERCENT &&
-    currentPercent < LOW_WATER_THRESHOLD_PERCENT;
-
   const newReadingWhileLow =
     lastAlertedSig == null || readingSig !== lastAlertedSig;
 
-  return crossedFromAbove || returnedFromOffSensor || newReadingWhileLow;
+  return crossedFromAbove || newReadingWhileLow;
 }
 
 /**
  * Call after each fresh fetch of `group` + `latestReading`.
- * Alerts when level crosses below the threshold or a new sub-threshold reading arrives.
- * Clears alert bookkeeping when level is back at or above the threshold.
+ * Below threshold: non-zero low (1–19%) alerts immediately when rules fire; 0% waits
+ * {@link LOW_WATER_ALERT_DELAY_MS} before notifying. Clears bookkeeping when level is back at or above the threshold.
  */
 export async function updateGroupWaterLevelState(group, latestReading) {
   const groupId = group?.id;
@@ -105,11 +101,46 @@ export async function updateGroupWaterLevelState(group, latestReading) {
 
   if (current >= LOW_WATER_THRESHOLD_PERCENT) {
     state.lastAlertedSig = null;
+    state.zeroPercentSinceMs = null;
     putState(groupId, state);
     return;
   }
 
   const readingSig = readingSignature(latestReading);
+
+  if (current > 0) {
+    state.zeroPercentSinceMs = null;
+    if (
+      !shouldAlertLowWater(prevPercent, current, state.lastAlertedSig, readingSig)
+    ) {
+      putState(groupId, state);
+      return;
+    }
+
+    state.lastAlertedSig = readingSig;
+    putState(groupId, state);
+
+    await scheduleLowWaterLocalNotification({
+      groupId,
+      groupName: groupDisplayName(group),
+      levelPercent: current,
+    });
+    return;
+  }
+
+  // current === 0% (empty weight): defer until sustained long enough
+  if (state.zeroPercentSinceMs == null) {
+    state.zeroPercentSinceMs = Date.now();
+  }
+
+  const delayElapsed =
+    Date.now() - state.zeroPercentSinceMs >= LOW_WATER_ALERT_DELAY_MS;
+
+  if (!delayElapsed) {
+    putState(groupId, state);
+    return;
+  }
+
   if (
     !shouldAlertLowWater(prevPercent, current, state.lastAlertedSig, readingSig)
   ) {
