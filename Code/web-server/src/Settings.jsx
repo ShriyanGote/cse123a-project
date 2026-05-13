@@ -79,7 +79,7 @@ export default function Settings() {
   }
 
   async function handleSignOut() {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     setGroups([]);
     setDevices([]);
   }

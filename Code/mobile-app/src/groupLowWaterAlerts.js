@@ -2,6 +2,7 @@ import { getLevelPercent } from "./lib/water";
 import { scheduleLowWaterLocalNotification } from "./notifications";
 
 export const LOW_WATER_THRESHOLD_PERCENT = 20;
+const OFF_SENSOR_PERCENT = 0;
 
 /** @typedef {{ lastPercent: number | null, lastAlertedSig: string | null }} GroupWaterAlertState */
 
@@ -52,17 +53,30 @@ function groupDisplayName(group) {
  * @param {string | null} readingSig
  */
 function shouldAlertLowWater(prevPercent, currentPercent, lastAlertedSig, readingSig) {
-  if (currentPercent >= LOW_WATER_THRESHOLD_PERCENT || !readingSig) return false;
+  if (
+    currentPercent >= LOW_WATER_THRESHOLD_PERCENT ||
+    currentPercent <= OFF_SENSOR_PERCENT ||
+    !readingSig
+  ) {
+    return false;
+  }
 
   const crossedFromAbove =
     prevPercent != null &&
     prevPercent >= LOW_WATER_THRESHOLD_PERCENT &&
     currentPercent < LOW_WATER_THRESHOLD_PERCENT;
 
+  // Treat 0% as "filter removed/off sensor". Alert when it comes back while still low.
+  const returnedFromOffSensor =
+    prevPercent != null &&
+    prevPercent <= OFF_SENSOR_PERCENT &&
+    currentPercent > OFF_SENSOR_PERCENT &&
+    currentPercent < LOW_WATER_THRESHOLD_PERCENT;
+
   const newReadingWhileLow =
     lastAlertedSig == null || readingSig !== lastAlertedSig;
 
-  return crossedFromAbove || newReadingWhileLow;
+  return crossedFromAbove || returnedFromOffSensor || newReadingWhileLow;
 }
 
 /**

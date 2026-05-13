@@ -267,7 +267,7 @@ export default function App() {
   async function runSignOut() {
     clearAllLowWaterAlertState();
     await clearLowWaterNotificationsOnSignOut().catch(() => {});
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
   }
 
   async function handleDeactivatedSignOut() {

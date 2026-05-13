@@ -5,6 +5,7 @@ import { supabaseAdmin } from "./_lib/supabaseAdmin.js";
 const DEFAULT_FULL_G = 2500; // ~2.5L of water
 const DEFAULT_EMPTY_G = 0;
 const LOW_WATER_THRESHOLD_PERCENT = 20;
+const OFF_SENSOR_PERCENT = 0;
 
 function getLevelPercent(weightG, calibration) {
   if (weightG == null) return 0;
@@ -151,11 +152,20 @@ export default async function handler(req, res) {
     const crossedBelowThreshold =
       previousPercent >= LOW_WATER_THRESHOLD_PERCENT &&
       currentPercent < LOW_WATER_THRESHOLD_PERCENT;
+    const returnedFromOffSensorLow =
+      previousPercent <= OFF_SENSOR_PERCENT &&
+      currentPercent > OFF_SENSOR_PERCENT &&
+      currentPercent < LOW_WATER_THRESHOLD_PERCENT;
+    const shouldNotifyLowWater =
+      currentPercent > OFF_SENSOR_PERCENT &&
+      (crossedBelowThreshold || returnedFromOffSensorLow);
 
     const debug = {
       currentPercent,
       previousPercent,
       crossedBelowThreshold,
+      returnedFromOffSensorLow,
+      shouldNotifyLowWater,
       groupId: groupData.id,
       subscriptionCount: 0,
       recipientCount: 0,
@@ -164,7 +174,7 @@ export default async function handler(req, res) {
       failedReasons: [],
     };
 
-    if (crossedBelowThreshold) {
+    if (shouldNotifyLowWater) {
       const { data: members, error: membersError } = await supabaseAdmin
         .from("group_members")
         .select("user_id")
