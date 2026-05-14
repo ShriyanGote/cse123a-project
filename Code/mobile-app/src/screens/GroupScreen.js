@@ -4,8 +4,10 @@ import {
   Alert,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
+import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import WaterLevelCard from "../components/WaterLevelCard";
 import {
   calibrateGroup as calibrateGroupApi,
@@ -333,57 +336,64 @@ export default function GroupScreen({ route, user, navigation }) {
         transparent
         onRequestClose={() => setIsEditModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.editTitle}>Edit Group</Text>
-            <TextInput
-              value={editName}
-              onChangeText={setEditName}
-              placeholder="Group name"
-              style={styles.input}
-            />
-            <TextInput
-              value={editDeviceId}
-              onChangeText={setEditDeviceId}
-              placeholder="Device ID"
-              autoCapitalize="none"
-              style={styles.input}
-            />
-            {!!editError && <Text style={styles.modalErrorText}>{editError}</Text>}
-            <Pressable
-              style={[
-                styles.actionButton,
-                (isSavingGroup || isDeletingGroup) && styles.disabledButton,
-              ]}
-              onPress={saveGroupEdits}
-              disabled={isSavingGroup || isDeletingGroup}
-            >
-              <Text style={styles.actionButtonText}>
-                {isSavingGroup ? "Saving..." : "Save changes"}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={styles.secondaryAction}
-              onPress={() => setIsEditModalVisible(false)}
-            >
-              <Text style={styles.secondaryActionText}>Cancel</Text>
-            </Pressable>
-            {canDeleteGroup ? (
+        <KeyboardAvoidingWrapper>
+          <ScrollView
+            style={styles.modalKeyboardRoot}
+            contentContainerStyle={styles.modalScrollContent}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          >
+            <View style={styles.modalCard}>
+              <Text style={styles.editTitle}>Edit Group</Text>
+              <TextInput
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Group name"
+                style={styles.input}
+              />
+              <TextInput
+                value={editDeviceId}
+                onChangeText={setEditDeviceId}
+                placeholder="Device ID"
+                autoCapitalize="none"
+                style={styles.input}
+              />
+              {!!editError && <Text style={styles.modalErrorText}>{editError}</Text>}
               <Pressable
                 style={[
-                  styles.deleteButton,
+                  styles.actionButton,
                   (isSavingGroup || isDeletingGroup) && styles.disabledButton,
                 ]}
-                onPress={confirmDeleteGroup}
+                onPress={saveGroupEdits}
                 disabled={isSavingGroup || isDeletingGroup}
               >
-                <Text style={styles.deleteButtonText}>
-                  {isDeletingGroup ? "Deleting..." : "Delete group"}
+                <Text style={styles.actionButtonText}>
+                  {isSavingGroup ? "Saving..." : "Save changes"}
                 </Text>
               </Pressable>
-            ) : null}
-          </View>
-        </View>
+              <Pressable
+                style={styles.secondaryAction}
+                onPress={() => setIsEditModalVisible(false)}
+              >
+                <Text style={styles.secondaryActionText}>Cancel</Text>
+              </Pressable>
+              {canDeleteGroup ? (
+                <Pressable
+                  style={[
+                    styles.deleteButton,
+                    (isSavingGroup || isDeletingGroup) && styles.disabledButton,
+                  ]}
+                  onPress={confirmDeleteGroup}
+                  disabled={isSavingGroup || isDeletingGroup}
+                >
+                  <Text style={styles.deleteButtonText}>
+                    {isDeletingGroup ? "Deleting..." : "Delete group"}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingWrapper>
       </Modal>
     </SafeAreaView>
   );
@@ -481,11 +491,15 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-  modalOverlay: {
+  modalKeyboardRoot: {
     flex: 1,
     backgroundColor: "rgba(15,23,42,0.35)",
+  },
+  modalScrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
   modalCard: {
     backgroundColor: "#fff",

@@ -21,6 +21,7 @@
       "bundleIdentifier": "com.shriyangote.cse123a.mobileapp"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/water_filter.png",
         "backgroundColor": "#ffffff"

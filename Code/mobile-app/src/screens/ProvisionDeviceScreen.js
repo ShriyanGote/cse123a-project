@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
+import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { fetchMyDevices, registerBleDevice } from "../api";
 
 /* Must match `custom_ble_prov` firmware (128-bit UUIDs). Override via EXPO_PUBLIC_* if needed. */
@@ -125,6 +127,7 @@ function parseQrPayload(rawValue) {
 }
 
 export default function ProvisionDeviceScreen({ navigation }) {
+  const headerHeight = useHeaderHeight();
   const [showAdvancedDetails, setShowAdvancedDetails] = useState(false);
   const [isBleBusy, setIsBleBusy] = useState(false);
   const [isWaitingForServer, setIsWaitingForServer] = useState(false);
@@ -544,7 +547,12 @@ export default function ProvisionDeviceScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <KeyboardAvoidingWrapper keyboardVerticalOffset={headerHeight}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+        >
         <View style={styles.card}>
           <Text style={styles.title}>Device Provisioning</Text>
           <Text style={styles.instructions}>
@@ -703,7 +711,8 @@ export default function ProvisionDeviceScreen({ navigation }) {
           {!!message && <Text style={styles.messageText}>{message}</Text>}
           {!!error && <Text style={styles.errorText}>{error}</Text>}
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingWrapper>
 
       {cameraVisible ? (
         <Modal
