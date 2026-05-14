@@ -25,23 +25,24 @@ function normalizeHardwareDeviceId(id) {
 }
 
 /**
- * Resolve group for ingest: direct groups.device_id match, or auto-link first
- * owned empty group for the device's created_by user (same idea as ble-register).
+ * Resolve all groups for ingest: every row with this hardware `device_id`, or
+ * auto-link first owned empty group for the device's created_by user (same idea as ble-register).
+ * Multiple groups may reference the same device; readings are stored once per device.
  */
-async function resolveGroupForIngest(hardwareId) {
+async function resolveGroupsForIngest(hardwareId) {
   const hid = normalizeHardwareDeviceId(hardwareId);
-  if (!hid) return { group: null, linked: false };
+  if (!hid) return { groups: [], linked: false };
 
-  const { data: direct, error: directErr } = await supabaseAdmin
+  const { data: directRows, error: directErr } = await supabaseAdmin
     .from("groups")
     .select("id, name, empty_g, full_g")
-    .eq("device_id", hid)
-    .maybeSingle();
+    .eq("device_id", hid);
   if (directErr) {
-    return { group: null, linked: false, error: directErr.message };
+    return { groups: [], linked: false, error: directErr.message };
   }
-  if (direct) {
-    return { group: direct, linked: false };
+  const direct = directRows ?? [];
+  if (direct.length > 0) {
+    return { groups: direct, linked: false };
   }
 
   const { data: deviceRow, error: devErr } = await supabaseAdmin
@@ -50,7 +51,7 @@ async function resolveGroupForIngest(hardwareId) {
     .eq("device_id", hid)
     .maybeSingle();
   if (devErr || !deviceRow?.created_by) {
-    return { group: null, linked: false };
+    return { groups: [], linked: false };
   }
 
   const { data: owned, error: listErr } = await supabaseAdmin
@@ -59,24 +60,26 @@ async function resolveGroupForIngest(hardwareId) {
     .eq("created_by", deviceRow.created_by)
     .order("created_at", { ascending: false });
   if (listErr) {
-    return { group: null, linked: false, error: listErr.message };
+    return { groups: [], linked: false, error: listErr.message };
   }
   const rows = owned ?? [];
-  const reuse = rows.find((g) => g.device_id && String(g.device_id).trim().toLowerCase() === hid);
-  if (reuse) {
+  const reuse = rows.filter(
+    (g) => g.device_id && String(g.device_id).trim().toLowerCase() === hid
+  );
+  if (reuse.length > 0) {
     return {
-      group: {
-        id: reuse.id,
-        name: reuse.name,
-        empty_g: reuse.empty_g,
-        full_g: reuse.full_g,
-      },
+      groups: reuse.map((g) => ({
+        id: g.id,
+        name: g.name,
+        empty_g: g.empty_g,
+        full_g: g.full_g,
+      })),
       linked: false,
     };
   }
   const slot = rows.find((g) => g.device_id == null || String(g.device_id).trim() === "");
   if (!slot) {
-    return { group: null, linked: false };
+    return { groups: [], linked: false };
   }
 
   const { data: patched, error: patchErr } = await supabaseAdmin
@@ -86,9 +89,9 @@ async function resolveGroupForIngest(hardwareId) {
     .select("id, name, empty_g, full_g")
     .maybeSingle();
   if (patchErr || !patched) {
-    return { group: null, linked: false, error: patchErr?.message };
+    return { groups: [], linked: false, error: patchErr?.message };
   }
-  return { group: patched, linked: true };
+  return { groups: [patched], linked: true };
 }
 
 export default async function handler(req, res) {
@@ -110,12 +113,12 @@ export default async function handler(req, res) {
       normalizeHardwareDeviceId(resolvedDeviceId) ||
       (typeof resolvedDeviceId === "string" ? resolvedDeviceId.trim() : String(resolvedDeviceId));
 
-    const { group: groupData, linked: autoLinkedGroup, error: resolveErr } =
-      await resolveGroupForIngest(hid);
+    const { groups: linkedGroups, linked: autoLinkedGroup, error: resolveErr } =
+      await resolveGroupsForIngest(hid);
     if (resolveErr) {
       return res.status(500).json({ error: resolveErr });
     }
-    if (!groupData) {
+    if (!linkedGroups?.length) {
       console.warn("[ingest] no group for device", hid);
       return res.status(404).json({
         error: "No group linked to this device.",
@@ -124,7 +127,12 @@ export default async function handler(req, res) {
       });
     }
     if (autoLinkedGroup) {
-      console.info("[ingest] auto-linked groups.device_id for device", hid, "group", groupData.id);
+      console.info(
+        "[ingest] auto-linked groups.device_id for device",
+        hid,
+        "group(s)",
+        linkedGroups.map((g) => g.id).join(", ")
+      );
     }
 
     const { data: previousReading, error: previousError } = await supabaseAdmin
@@ -143,38 +151,48 @@ export default async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    const calibrationData = {
-      empty: groupData.empty_g,
-      full: groupData.full_g,
-    };
-    const currentPercent = getLevelPercent(Number(weight_g), calibrationData);
-    const previousPercent = getLevelPercent(previousReading?.weight_g, calibrationData);
-    const crossedBelowThreshold =
-      previousPercent >= LOW_WATER_THRESHOLD_PERCENT &&
-      currentPercent < LOW_WATER_THRESHOLD_PERCENT;
-    const returnedFromOffSensorLow =
-      previousPercent <= OFF_SENSOR_PERCENT &&
-      currentPercent > OFF_SENSOR_PERCENT &&
-      currentPercent < LOW_WATER_THRESHOLD_PERCENT;
-    const shouldNotifyLowWater =
-      currentPercent > OFF_SENSOR_PERCENT &&
-      (crossedBelowThreshold || returnedFromOffSensorLow);
-
     const debug = {
-      currentPercent,
-      previousPercent,
-      crossedBelowThreshold,
-      returnedFromOffSensorLow,
-      shouldNotifyLowWater,
-      groupId: groupData.id,
-      subscriptionCount: 0,
-      recipientCount: 0,
+      groupIds: linkedGroups.map((g) => g.id),
+      perGroup: [],
+      notificationsQueued: 0,
       sentCount: 0,
       failedCount: 0,
       failedReasons: [],
     };
 
-    if (shouldNotifyLowWater) {
+    const notificationsToSend = [];
+
+    for (const groupData of linkedGroups) {
+      const calibrationData = {
+        empty: groupData.empty_g,
+        full: groupData.full_g,
+      };
+      const currentPercent = getLevelPercent(Number(weight_g), calibrationData);
+      const previousPercent = getLevelPercent(previousReading?.weight_g, calibrationData);
+      const crossedBelowThreshold =
+        previousPercent >= LOW_WATER_THRESHOLD_PERCENT &&
+        currentPercent < LOW_WATER_THRESHOLD_PERCENT;
+      const returnedFromOffSensorLow =
+        previousPercent <= OFF_SENSOR_PERCENT &&
+        currentPercent > OFF_SENSOR_PERCENT &&
+        currentPercent < LOW_WATER_THRESHOLD_PERCENT;
+      const shouldNotifyLowWater =
+        currentPercent > OFF_SENSOR_PERCENT &&
+        (crossedBelowThreshold || returnedFromOffSensorLow);
+
+      const groupDebug = {
+        groupId: groupData.id,
+        currentPercent,
+        previousPercent,
+        crossedBelowThreshold,
+        returnedFromOffSensorLow,
+        shouldNotifyLowWater,
+        pushTokensQueued: 0,
+      };
+      debug.perGroup.push(groupDebug);
+
+      if (!shouldNotifyLowWater) continue;
+
       const { data: members, error: membersError } = await supabaseAdmin
         .from("group_members")
         .select("user_id")
@@ -182,64 +200,69 @@ export default async function handler(req, res) {
 
       if (membersError) {
         console.error("Failed to read group members", membersError);
-      } else {
-        const userIds = (members ?? []).map((m) => m.user_id).filter(Boolean);
-        debug.recipientCount = userIds.length;
+        continue;
+      }
 
-        if (userIds.length > 0) {
-          const { data: tokenRows, error: tokenError } = await supabaseAdmin
-            .from("notification_tokens")
-            .select("token")
-            .eq("provider", "expo")
-            .eq("enabled", true)
-            .in("user_id", userIds);
+      const userIds = (members ?? []).map((m) => m.user_id).filter(Boolean);
+      if (userIds.length === 0) continue;
 
-          if (tokenError) {
-            console.error("Failed to read notification_tokens", tokenError);
-          } else {
-            const expoTokens = (tokenRows ?? [])
-              .map((row) => (typeof row?.token === "string" ? row.token.trim() : ""))
-              .filter((token) => token.startsWith("ExponentPushToken[") || token.startsWith("ExpoPushToken["));
-            debug.subscriptionCount = expoTokens.length;
+      const { data: tokenRows, error: tokenError } = await supabaseAdmin
+        .from("notification_tokens")
+        .select("token")
+        .eq("provider", "expo")
+        .eq("enabled", true)
+        .in("user_id", userIds);
 
-            if (expoTokens.length > 0) {
-              const { invalidTokens, failures, tickets } = await sendExpoPushNotifications(
-                expoTokens.map((token) => ({
-                  to: token,
-                  title: "Brita water level low",
-                  body: `Water level is ${currentPercent}%. Time to refill.`,
-                  data: {
-                    type: "low_water",
-                    level_percent: String(currentPercent),
-                    groupId: groupData.id,
-                    groupName: groupData.name ?? "Group",
-                    deviceId: resolvedDeviceId,
-                  },
-                }))
-              );
+      if (tokenError) {
+        console.error("Failed to read notification_tokens", tokenError);
+        continue;
+      }
 
-              debug.sentCount = tickets.filter((entry) => entry?.ticket?.status === "ok").length;
-              debug.failedCount = failures.length;
-              debug.failedReasons = failures.map((failure) => ({
-                statusCode: null,
-                message: failure.message ?? "Unknown push error",
-              }));
+      const expoTokens = (tokenRows ?? [])
+        .map((row) => (typeof row?.token === "string" ? row.token.trim() : ""))
+        .filter((token) => token.startsWith("ExponentPushToken[") || token.startsWith("ExpoPushToken["));
+      groupDebug.pushTokensQueued = expoTokens.length;
 
-              if (invalidTokens.length > 0) {
-                const { error: disableError } = await supabaseAdmin
-                  .from("notification_tokens")
-                  .update({
-                    enabled: false,
-                    updated_at: new Date().toISOString(),
-                  })
-                  .eq("provider", "expo")
-                  .in("token", invalidTokens);
-                if (disableError) {
-                  console.error("Failed to disable invalid Expo tokens", disableError);
-                }
-              }
-            }
-          }
+      for (const token of expoTokens) {
+        notificationsToSend.push({
+          to: token,
+          title: "Brita water level low",
+          body: `Water level is ${currentPercent}%. Time to refill.`,
+          data: {
+            type: "low_water",
+            level_percent: String(currentPercent),
+            groupId: groupData.id,
+            groupName: groupData.name ?? "Group",
+            deviceId: resolvedDeviceId,
+          },
+        });
+      }
+    }
+
+    debug.notificationsQueued = notificationsToSend.length;
+
+    if (notificationsToSend.length > 0) {
+      const { invalidTokens, failures, tickets } =
+        await sendExpoPushNotifications(notificationsToSend);
+
+      debug.sentCount = tickets.filter((entry) => entry?.ticket?.status === "ok").length;
+      debug.failedCount = failures.length;
+      debug.failedReasons = failures.map((failure) => ({
+        statusCode: null,
+        message: failure.message ?? "Unknown push error",
+      }));
+
+      if (invalidTokens.length > 0) {
+        const { error: disableError } = await supabaseAdmin
+          .from("notification_tokens")
+          .update({
+            enabled: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("provider", "expo")
+          .in("token", invalidTokens);
+        if (disableError) {
+          console.error("Failed to disable invalid Expo tokens", disableError);
         }
       }
     }
