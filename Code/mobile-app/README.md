@@ -24,6 +24,10 @@ From this folder (`mobile-app`), install project dependencies:
 npm install
 ```
 
+Turn on Developer Mode on your physical iPhone
+
+Go to **Settings** -> **Privacy & Security** -> **Developer Mode**
+
 ## 2) One-time Xcode setup (required for iOS builds)
 
 If building to a physical iPhone:

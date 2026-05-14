@@ -22,7 +22,9 @@ const FALLBACK_SERVICE_UUID = "a0b40001-9267-4d61-a8c8-9f2f4b2c8e01";
 const FALLBACK_AUTH_CHAR_UUID = "a0b40002-9267-4d61-a8c8-9f2f4b2c8e01";
 const FALLBACK_WIFI_CHAR_UUID = "a0b40003-9267-4d61-a8c8-9f2f4b2c8e01";
 const FALLBACK_STATUS_CHAR_UUID = "a0b40004-9267-4d61-a8c8-9f2f4b2c8e01";
-console.log("Something to print\n");
+
+/** After Wi‑Fi is sent over BLE, if the server never sees the device in this window, assume bad Wi‑Fi or no connectivity. */
+const DEVICE_VISIBLE_AFTER_WIFI_MS = 10000;
 
 function resolveUuid(envValue, fallbackValue) {
   const value = typeof envValue === "string" ? envValue.trim() : "";
@@ -514,9 +516,11 @@ export default function ProvisionDeviceScreen({ navigation }) {
 
   async function waitForDeviceVisibleThenReturnHome(targetDeviceId) {
     setIsWaitingForServer(true);
-    setMessage("Waiting for the server to see the new device...");
+    setMessage(
+      `Waiting for the server to see the new device (up to ${Math.round(DEVICE_VISIBLE_AFTER_WIFI_MS / 1000)}s)...`
+    );
     try {
-      const deadline = Date.now() + 30000;
+      const deadline = Date.now() + DEVICE_VISIBLE_AFTER_WIFI_MS;
       while (Date.now() < deadline) {
         try {
           const { devices: latest = [] } = await fetchMyDevices();
@@ -538,7 +542,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
       setError(
-        "Provisioning sent, but the server did not show the device within 30s. Pull-to-refresh from Home."
+        `No response from the server within ${Math.round(DEVICE_VISIBLE_AFTER_WIFI_MS / 1000)} seconds. The sensor may not have joined Wi‑Fi — check SSID and password, then try again.`
       );
     } finally {
       setIsWaitingForServer(false);
