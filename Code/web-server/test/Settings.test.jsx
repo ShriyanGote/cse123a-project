@@ -13,10 +13,10 @@ const mockSignOut = vi.fn();
 vi.mock("../src/supabase", () => ({
   supabase: {
     auth: {
-      getSession: (...args) => mockGetSession(...args),
-      onAuthStateChange: (...args) => mockOnAuthStateChange(...args),
-      signInWithPassword: (...args) => mockSignInWithPassword(...args),
-      signOut: (...args) => mockSignOut(...args),
+      getSession: (...a) => mockGetSession(...a),
+      onAuthStateChange: (...a) => mockOnAuthStateChange(...a),
+      signInWithPassword: (...a) => mockSignInWithPassword(...a),
+      signOut: (...a) => mockSignOut(...a),
     },
   },
 }));
@@ -25,6 +25,10 @@ function fetchUrl(input) {
   if (typeof input === "string") return input;
   if (input && typeof input === "object" && "url" in input) return String(input.url);
   return String(input ?? "");
+}
+
+function signedIn(email = "me@example.com", token = "tok") {
+  return { data: { session: { access_token: token, user: { email } } } };
 }
 
 describe("Settings", () => {
@@ -47,26 +51,16 @@ describe("Settings", () => {
     const user = userEvent.setup();
     mockGetSession.mockResolvedValue({ data: { session: null } });
     mockSignInWithPassword.mockResolvedValue({ error: { message: "Invalid login" } });
-
     render(<Settings />);
     await screen.findByRole("heading", { name: "Sign In" });
-
     await user.type(screen.getByLabelText(/Email/i), "a@b.com");
     await user.type(screen.getByLabelText(/Password/i), "secret");
     await user.click(screen.getByRole("button", { name: /Sign in/i }));
-
     expect(await screen.findByText("Invalid login")).toBeInTheDocument();
   });
 
   it("lists groups and devices when signed in", async () => {
-    mockGetSession.mockResolvedValue({
-      data: {
-        session: {
-          access_token: "tok",
-          user: { email: "me@example.com" },
-        },
-      },
-    });
+    mockGetSession.mockResolvedValue(signedIn());
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/groups")) {
@@ -87,34 +81,29 @@ describe("Settings", () => {
       }
       return { ok: false, json: async () => ({}) };
     });
-
     render(<Settings />);
     expect(await screen.findByRole("heading", { name: "My Account" })).toBeInTheDocument();
     expect(screen.getByText(/me@example.com/)).toBeInTheDocument();
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
         "/api/groups",
-        expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer tok" }) })
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: "Bearer tok" }),
+        })
       );
       expect(globalThis.fetch).toHaveBeenCalledWith(
         "/api/devices",
-        expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer tok" }) })
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: "Bearer tok" }),
+        })
       );
     });
-    const lists = screen.getAllByRole("list");
-    expect(lists.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByRole("list").length).toBeGreaterThanOrEqual(2);
   });
 
   it("signs out and clears group and device lists", async () => {
     const user = userEvent.setup();
-    mockGetSession.mockResolvedValue({
-      data: {
-        session: {
-          access_token: "tok",
-          user: { email: "me@example.com" },
-        },
-      },
-    });
+    mockGetSession.mockResolvedValue(signedIn());
     globalThis.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -123,13 +112,10 @@ describe("Settings", () => {
       }),
     });
     mockSignOut.mockResolvedValue({});
-
     render(<Settings />);
     await screen.findByRole("heading", { name: "My Account" });
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
-
     await user.click(screen.getByRole("button", { name: /sign out/i }));
-
     expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
     await waitFor(() => {
       expect(screen.getByText("No groups found for this account.")).toBeInTheDocument();
@@ -144,10 +130,7 @@ describe("Settings", () => {
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
     mockGetSession.mockResolvedValue({ data: { session: null } });
-    globalThis.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ groups: [], devices: [] }),
-    });
+    globalThis.fetch.mockResolvedValue({ ok: true, json: async () => ({ groups: [], devices: [] }) });
     render(<Settings />);
     await screen.findByRole("heading", { name: "Sign In" });
     await act(async () => {
@@ -157,11 +140,7 @@ describe("Settings", () => {
   });
 
   it("shows load errors from account APIs", async () => {
-    mockGetSession.mockResolvedValue({
-      data: {
-        session: { access_token: "tok", user: { email: "me@example.com" } },
-      },
-    });
+    mockGetSession.mockResolvedValue(signedIn());
     globalThis.fetch.mockRejectedValue(new Error("network down"));
     render(<Settings />);
     expect(await screen.findByText("network down")).toBeInTheDocument();
@@ -171,15 +150,71 @@ describe("Settings", () => {
     const user = userEvent.setup();
     mockGetSession.mockResolvedValue({ data: { session: null } });
     mockSignInWithPassword.mockResolvedValue({ error: null });
-
     render(<Settings />);
     await screen.findByRole("heading", { name: "Sign In" });
     const pw = screen.getByLabelText(/Password/i);
     await user.type(screen.getByLabelText(/Email/i), "a@b.com");
     await user.type(pw, "secret123");
     await user.click(screen.getByRole("button", { name: /Sign in/i }));
+    await waitFor(() => expect(pw).toHaveValue(""));
+  });
+
+  it("defaults missing groups and devices keys after load", async () => {
+    mockGetSession.mockResolvedValue(signedIn());
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/groups") || url.includes("/api/devices")) {
+        return { ok: true, json: async () => ({}) };
+      }
+      return { ok: false, json: async () => ({}) };
+    });
+    render(<Settings />);
+    await screen.findByRole("heading", { name: "My Account" });
     await waitFor(() => {
-      expect(pw).toHaveValue("");
+      expect(screen.getByText("No groups found for this account.")).toBeInTheDocument();
+      expect(screen.getByText("No devices found for this account.")).toBeInTheDocument();
+    });
+  });
+
+  it("shows device_id when device_name is absent", async () => {
+    mockGetSession.mockResolvedValue(signedIn());
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/groups")) return { ok: true, json: async () => ({ groups: [] }) };
+      if (url.includes("/api/devices")) {
+        return {
+          ok: true,
+          json: async () => ({
+            devices: [{ id: "9", device_name: null, device_id: "hw-only", status: "active" }],
+          }),
+        };
+      }
+      return { ok: false, json: async () => ({}) };
+    });
+    render(<Settings />);
+    expect(await screen.findByText(/hw-only · active/)).toBeInTheDocument();
+  });
+
+  it("maps HTTP errors without JSON error field", async () => {
+    mockGetSession.mockResolvedValue(signedIn("e@e.com"));
+    globalThis.fetch.mockResolvedValue({ ok: false, status: 502, json: async () => ({}) });
+    render(<Settings />);
+    expect(await screen.findByText("Request failed (502)")).toBeInTheDocument();
+  });
+
+  it("clears session when auth callback omits session", async () => {
+    let authCallback;
+    mockOnAuthStateChange.mockImplementation((cb) => {
+      authCallback = cb;
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
+    });
+    mockGetSession.mockResolvedValue(signedIn("x@y.com", "t"));
+    globalThis.fetch.mockResolvedValue({ ok: true, json: async () => ({ groups: [], devices: [] }) });
+    render(<Settings />);
+    await screen.findByRole("heading", { name: "My Account" });
+    await act(async () => authCallback("TOKEN_REFRESHED", undefined));
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Sign In" })).toBeInTheDocument();
     });
   });
 });

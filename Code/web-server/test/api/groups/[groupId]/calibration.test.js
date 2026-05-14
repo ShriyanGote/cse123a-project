@@ -11,31 +11,7 @@ vi.mock("../../../../api/_lib/supabaseAdmin.js", () => ({
 import handler from "../../../../api/groups/[groupId]/calibration.js";
 import { requireUserAuth } from "../../../../api/_lib/auth.js";
 import { supabaseAdmin } from "../../../../api/_lib/supabaseAdmin.js";
-
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    _headers: {},
-    setHeader(k, v) {
-      res._headers[k] = v;
-      return res;
-    },
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-    end() {
-      res._ended = true;
-      return res;
-    },
-  };
-  return res;
-}
+import { createMockRes as mockRes } from "../../../createMockRes.js";
 
 describe("api/groups/[groupId]/calibration", () => {
   beforeEach(() => {
@@ -363,5 +339,80 @@ describe("api/groups/[groupId]/calibration", () => {
     const res = mockRes();
     await handler({ method: "POST", query: { groupId: "g1" }, body: { action: "reset" } }, res);
     expect(res._status).toBe(500);
+  });
+
+  it("returns early when calibration POST has no auth", async () => {
+    requireUserAuth.mockResolvedValue(null);
+    const res = mockRes();
+    await handler({ method: "POST", query: { groupId: "g1" }, body: { action: "reset" } }, res);
+    expect(res._status).toBeNull();
+  });
+
+  it("returns 400 when action is not a string", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", query: { groupId: "g1" }, body: { action: 1 } }, res);
+    expect(res._status).toBe(400);
+  });
+
+  it("returns 400 when latest reading has no weight", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({ data: { device_id: "d1" }, error: null }),
+        };
+      }
+      if (table === "water_readings") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: {}, error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", query: { groupId: "g1" }, body: { action: "empty" } }, res);
+    expect(res._status).toBe(400);
+  });
+
+  it("maps calibration catch errors without message", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockRejectedValue({}),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", query: { groupId: "g1" }, body: { action: "reset" } }, res);
+    expect(res._status).toBe(500);
+    expect(res._json.error).toBe("Calibration failed.");
   });
 });

@@ -11,32 +11,7 @@ vi.mock("../../../api/_lib/supabaseAdmin.js", () => ({
 import handler from "../../../api/devices/index.js";
 import { requireUserAuth } from "../../../api/_lib/auth.js";
 import { supabaseAdmin } from "../../../api/_lib/supabaseAdmin.js";
-
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    _ended: false,
-    _headers: {},
-    setHeader(k, v) {
-      res._headers[k] = v;
-      return res;
-    },
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-    end() {
-      res._ended = true;
-      return res;
-    },
-  };
-  return res;
-}
+import { createMockRes as mockRes } from "../../createMockRes.js";
 
 describe("api/devices/index", () => {
   beforeEach(() => {

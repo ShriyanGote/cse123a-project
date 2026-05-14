@@ -14,26 +14,18 @@ vi.mock("../../api/_lib/supabaseAdmin.js", () => ({
   },
 }));
 
-import handler from "../../api/ingest.js";
+import handler, { getLevelPercent } from "../../api/ingest.js";
 import { requireDeviceAuth } from "../../api/_lib/auth.js";
 import { sendExpoPushNotifications } from "../../api/_lib/expoPush.js";
 import { supabaseAdmin } from "../../api/_lib/supabaseAdmin.js";
+import { createMockRes as mockRes } from "../createMockRes.js";
 
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-  };
-  return res;
-}
+describe("getLevelPercent", () => {
+  it("uses default calibration when calibration is null or undefined", () => {
+    expect(getLevelPercent(1250, null)).toBe(50);
+    expect(getLevelPercent(1250, undefined)).toBe(50);
+  });
+});
 
 describe("ingest handler", () => {
   beforeEach(() => {
@@ -1078,5 +1070,492 @@ describe("ingest handler", () => {
     await handler({ method: "POST", body: { device_id: "patch-fail", weight_g: 1 } }, res);
     expect(res._status).toBe(500);
     expect(res._json.error).toBe("patch row missing");
+  });
+
+  it("maps push failures without message to Unknown push error", async () => {
+    sendExpoPushNotifications.mockResolvedValue({
+      tickets: [],
+      invalidTokens: [],
+      failures: [{}],
+    });
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "fail-nomsg" },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 0, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 30 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [{ user_id: "u1" }], error: null }),
+        };
+      }
+      if (table === "notification_tokens") {
+        const chain = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          in: vi.fn().mockResolvedValue({ data: [{ token: "ExponentPushToken[x]" }], error: null }),
+        };
+        chain.eq.mockReturnValue(chain);
+        return chain;
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: "fail-nomsg", weight_g: 5 } }, res);
+    expect(res._status).toBe(200);
+    expect(res._json.debug.failedReasons[0].message).toBe("Unknown push error");
+  });
+
+  it("handles null token rows and legacy Expo push token prefix", async () => {
+    sendExpoPushNotifications.mockResolvedValue({
+      tickets: [],
+      invalidTokens: [],
+      failures: [],
+    });
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "tok-null" },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 0, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 30 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [{ user_id: "u1" }], error: null }),
+        };
+      }
+      if (table === "notification_tokens") {
+        const chain = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          in: vi.fn().mockResolvedValue({
+            data: [null, { token: "ExpoPushToken[legacy]" }],
+            error: null,
+          }),
+        };
+        chain.eq.mockReturnValue(chain);
+        return chain;
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: "tok-null", weight_g: 5 } }, res);
+    expect(res._status).toBe(200);
+    expect(sendExpoPushNotifications).toHaveBeenCalled();
+    const queued = sendExpoPushNotifications.mock.calls[0][0];
+    expect(queued.some((m) => m.to === "ExpoPushToken[legacy]")).toBe(true);
+  });
+
+  it("treats undefined tokenRows as empty list", async () => {
+    sendExpoPushNotifications.mockResolvedValue({
+      tickets: [],
+      invalidTokens: [],
+      failures: [],
+    });
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "undef-tokrows" },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 0, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 30 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [{ user_id: "u1" }], error: null }),
+        };
+      }
+      if (table === "notification_tokens") {
+        const chain = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          in: vi.fn().mockResolvedValue({ data: undefined, error: null }),
+        };
+        chain.eq.mockReturnValue(chain);
+        return chain;
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: "undef-tokrows", weight_g: 5 } }, res);
+    expect(res._status).toBe(200);
+    expect(sendExpoPushNotifications).not.toHaveBeenCalled();
+    expect(res._json.debug.notificationsQueued).toBe(0);
+    expect(res._json.debug.perGroup[0].pushTokensQueued).toBe(0);
+  });
+
+  it("treats undefined owned list as empty during auto-link", async () => {
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "owned-null-rows" },
+    });
+    let groupsCalls = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        groupsCalls += 1;
+        if (groupsCalls === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: undefined, error: null }),
+        };
+      }
+      if (table === "devices") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: { id: 1, created_by: "u1" },
+            error: null,
+          }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: "owned-null-rows", weight_g: 1 } }, res);
+    expect(res._status).toBe(404);
+  });
+
+  it("uses req.body fallback when body is undefined", async () => {
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "no-body" },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 0, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 50 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: undefined, error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", headers: {} }, res);
+    expect(res._status).toBe(200);
+  });
+
+  it("stringifies non-string hardware id from device auth", async () => {
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: 777001 },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 0, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 50 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: {}, headers: {} }, res);
+    expect(res._status).toBe(200);
+  });
+
+  it("resolves hardware id from non-string device_id in body", async () => {
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "ignored" },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 0, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 50 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: {}, weight_g: 1 }, headers: {} }, res);
+    expect(res._status).toBe(200);
+  });
+
+  it("returns 404 when resolved hardware id is empty", async () => {
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "   " },
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { weight_g: 1 }, headers: {} }, res);
+    expect(res._status).toBe(404);
+  });
+
+  it("treats undefined direct group rows as empty", async () => {
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "direct-undef" },
+    });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: undefined, error: null }),
+        };
+      }
+      if (table === "devices") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: "direct-undef", weight_g: 1 } }, res);
+    expect(res._status).toBe(404);
+  });
+
+  it("treats null member list as empty for notifications", async () => {
+    sendExpoPushNotifications.mockResolvedValue({
+      tickets: [],
+      invalidTokens: [],
+      failures: [],
+    });
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "mem-null" },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 0, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 30 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: "mem-null", weight_g: 5 } }, res);
+    expect(res._status).toBe(200);
+    expect(sendExpoPushNotifications).not.toHaveBeenCalled();
+  });
+
+  it("treats flat calibration range as zero percent", async () => {
+    requireDeviceAuth.mockResolvedValue({
+      type: "device",
+      token: "t",
+      device: { deviceId: "cal-flat" },
+    });
+    let wr = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ id: 1, name: "G", empty_g: 100, full_g: 100 }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        wr += 1;
+        if (wr === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            order: vi.fn().mockReturnThis(),
+            limit: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: { weight_g: 50 }, error: null }),
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return { insert: vi.fn().mockResolvedValue({ error: null }) };
+      }
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { device_id: "cal-flat", weight_g: 120 }, headers: {} }, res);
+    expect(res._status).toBe(200);
   });
 });

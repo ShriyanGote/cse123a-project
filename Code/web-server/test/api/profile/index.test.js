@@ -11,31 +11,7 @@ vi.mock("../../../api/_lib/supabaseAdmin.js", () => ({
 import handler from "../../../api/profile/index.js";
 import { requireUserAuth } from "../../../api/_lib/auth.js";
 import { supabaseAdmin } from "../../../api/_lib/supabaseAdmin.js";
-
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    _headers: {},
-    setHeader(k, v) {
-      res._headers[k] = v;
-      return res;
-    },
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-    end() {
-      res._ended = true;
-      return res;
-    },
-  };
-  return res;
-}
+import { createMockRes as mockRes } from "../../createMockRes.js";
 
 describe("api/profile/index", () => {
   beforeEach(() => {
@@ -209,5 +185,93 @@ describe("api/profile/index", () => {
     const res = mockRes();
     await handler({ method: "POST", body: { is_active: false }, headers: {} }, res);
     expect(res._status).toBe(500);
+  });
+
+  it("returns early on GET when not authenticated", async () => {
+    requireUserAuth.mockResolvedValue(null);
+    const res = mockRes();
+    await handler({ method: "GET", headers: {} }, res);
+    expect(res._status).toBeNull();
+  });
+
+  it("GET defaults profile fields when row is missing", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: { id: "u1", email: "a@b.com", user_metadata: {} },
+    });
+    supabaseAdmin.from.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    });
+    const res = mockRes();
+    await handler({ method: "GET", headers: {} }, res);
+    expect(res._status).toBe(200);
+    expect(res._json.display_name).toBeNull();
+    expect(res._json.is_active).toBe(true);
+  });
+
+  it("uses user_metadata display_name when ensuring with empty body name", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: {
+        id: "u1",
+        email: "ada@example.com",
+        user_metadata: { display_name: "MetaName" },
+      },
+    });
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    supabaseAdmin.from.mockReturnValue({ upsert });
+    const res = mockRes();
+    await handler({ method: "POST", body: { display_name: "" }, headers: {} }, res);
+    expect(res._status).toBe(200);
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ display_name: "MetaName" })
+    );
+  });
+
+  it("reactivates profile and restores devices without signOut", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: { id: "u1", email: "a@b.com", user_metadata: {} },
+    });
+    const profileChain = { upsert: vi.fn().mockResolvedValue({ error: null }) };
+    const devicesChain = {
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    devicesChain.update.mockReturnValue(devicesChain);
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "profiles") return profileChain;
+      if (table === "devices") return devicesChain;
+      return profileChain;
+    });
+    const res = mockRes();
+    await handler({ method: "POST", body: { is_active: true }, headers: {} }, res);
+    expect(res._status).toBe(200);
+    expect(res._json.is_active).toBe(true);
+    expect(supabaseAdmin.auth.admin.signOut).not.toHaveBeenCalled();
+    expect(devicesChain.update).toHaveBeenCalledWith({ status: "active" });
+  });
+
+  it("treats non-string display_name as empty when ensuring profile", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: { id: "u1", email: "ada@example.com", user_metadata: {} },
+    });
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    supabaseAdmin.from.mockReturnValue({ upsert });
+    const res = mockRes();
+    await handler({ method: "POST", body: { display_name: 12345 }, headers: {} }, res);
+    expect(res._status).toBe(200);
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ display_name: "ada" }));
+  });
+
+  it("falls back to User when ensuring without email or metadata name", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: { id: "u1", user_metadata: {} },
+    });
+    const upsert = vi.fn().mockResolvedValue({ error: null });
+    supabaseAdmin.from.mockReturnValue({ upsert });
+    const res = mockRes();
+    await handler({ method: "POST", body: { display_name: "" }, headers: {} }, res);
+    expect(res._status).toBe(200);
+    expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ display_name: "User" }));
   });
 });

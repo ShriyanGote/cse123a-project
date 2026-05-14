@@ -12,22 +12,7 @@ vi.mock("../../../api/_lib/supabaseAdmin.js", () => ({
 
 import { requireDeviceAuth, requireUserAuth } from "../../../api/_lib/auth.js";
 import { supabaseAdmin } from "../../../api/_lib/supabaseAdmin.js";
-
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-  };
-  return res;
-}
+import { createMockRes as mockRes } from "../../createMockRes.js";
 
 describe("requireUserAuth", () => {
   beforeEach(() => {
@@ -175,6 +160,53 @@ describe("requireUserAuth", () => {
     await requireUserAuth(req, res);
     expect(res._json.error).toBe("Invalid user token.");
   });
+
+  it("uses default aud claim when user JWT has no aud", async () => {
+    supabaseAdmin.auth.getUser.mockResolvedValue({
+      data: { user: { id: "u1" } },
+      error: null,
+    });
+    supabaseAdmin.from.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { is_active: true }, error: null }),
+    });
+    delete process.env.USER_JWT_AUDIENCE;
+    const req = { headers: { authorization: "Bearer t" } };
+    const res = mockRes();
+    await expect(requireUserAuth(req, res)).resolves.toMatchObject({ type: "user" });
+  });
+
+  it("falls back to default audience list when env is only commas", async () => {
+    process.env.USER_JWT_AUDIENCE = " , , ";
+    supabaseAdmin.auth.getUser.mockResolvedValue({
+      data: { user: { id: "u1", aud: "authenticated" } },
+      error: null,
+    });
+    supabaseAdmin.from.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { is_active: true }, error: null }),
+    });
+    const req = { headers: { authorization: "Bearer t" } };
+    const res = mockRes();
+    await expect(requireUserAuth(req, res)).resolves.toMatchObject({ type: "user" });
+  });
+
+  it("treats profile row without is_active field as active", async () => {
+    supabaseAdmin.auth.getUser.mockResolvedValue({
+      data: { user: { id: "u1", aud: "authenticated" } },
+      error: null,
+    });
+    supabaseAdmin.from.mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: "u1" }, error: null }),
+    });
+    const req = { headers: { authorization: "Bearer t" } };
+    const res = mockRes();
+    await expect(requireUserAuth(req, res)).resolves.toMatchObject({ type: "user" });
+  });
 });
 
 describe("requireDeviceAuth", () => {
@@ -185,6 +217,15 @@ describe("requireDeviceAuth", () => {
     supabaseAdmin.auth.getUser.mockReset();
   });
 
+  function stubDevicesMaybeSingle(result) {
+    const chain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue(result),
+    };
+    supabaseAdmin.from.mockImplementation(() => chain);
+  }
+
   it("returns null and 401 when token is missing", async () => {
     const req = { method: "POST", headers: {}, body: {} };
     const res = mockRes();
@@ -193,33 +234,59 @@ describe("requireDeviceAuth", () => {
     expect(res._status).toBe(401);
   });
 
+  it("returns null when provision token matches length but not bytes", async () => {
+    stubDevicesMaybeSingle({
+      data: { id: 9, device_id: "dev-1", auth_token: "aaaaaaaaaa", status: "active" },
+      error: null,
+    });
+    const res = mockRes();
+    expect(
+      await requireDeviceAuth(
+        {
+          method: "POST",
+          headers: { authorization: "Bearer bbbbbbbbbb" },
+          body: { device_id: "dev-1" },
+        },
+        res
+      )
+    ).toBeNull();
+    expect(res._status).toBe(401);
+  });
+
+  it("returns null when provision token length mismatches stored token", async () => {
+    stubDevicesMaybeSingle({
+      data: { id: 1, device_id: "d1", auth_token: "short", status: "active" },
+      error: null,
+    });
+    const res = mockRes();
+    expect(
+      await requireDeviceAuth(
+        {
+          method: "POST",
+          headers: { authorization: "Bearer much-longer-token" },
+          body: { device_id: "d1" },
+        },
+        res
+      )
+    ).toBeNull();
+    expect(res._status).toBe(401);
+  });
+
   it("uses provision token flow when devices row matches", async () => {
     const token = "secret-token";
-    const deviceTable = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: {
-          id: 9,
-          device_id: "dev-1",
-          auth_token: token,
-          status: "active",
-        },
-        error: null,
-      }),
-    };
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === "devices") return deviceTable;
-      return deviceTable;
+    stubDevicesMaybeSingle({
+      data: { id: 9, device_id: "dev-1", auth_token: token, status: "active" },
+      error: null,
     });
-
-    const req = {
-      method: "POST",
-      headers: { authorization: `Bearer ${token}` },
-      body: { device_id: "dev-1" },
-    };
     const res = mockRes();
-    const auth = await requireDeviceAuth(req, res);
+    const auth = await requireDeviceAuth(
+      {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}` },
+        body: { device_id: "dev-1" },
+      },
+      res
+    );
     expect(auth).toEqual(
       expect.objectContaining({
         type: "device",
@@ -230,65 +297,41 @@ describe("requireDeviceAuth", () => {
 
   it("returns null and 401 when nested verification fails", async () => {
     process.env.DEVICE_JWE_PRIVATE_JWK = "not-json";
-    supabaseAdmin.from.mockImplementation(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    }));
-
-    const req = {
-      method: "POST",
-      headers: { authorization: "Bearer some-token" },
-      body: {},
-    };
+    stubDevicesMaybeSingle({ data: null, error: null });
     const res = mockRes();
-    const auth = await requireDeviceAuth(req, res);
+    const auth = await requireDeviceAuth(
+      { method: "POST", headers: { authorization: "Bearer some-token" }, body: {} },
+      res
+    );
     expect(auth).toBeNull();
     expect(res._status).toBe(401);
   });
 
   it("returns null when provision device_id is not a string", async () => {
-    supabaseAdmin.from.mockImplementation(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    }));
-    const req = {
-      method: "POST",
-      headers: { authorization: "Bearer t" },
-      body: { device_id: 123 },
-    };
+    stubDevicesMaybeSingle({ data: null, error: null });
     const res = mockRes();
-    const auth = await requireDeviceAuth(req, res);
+    const auth = await requireDeviceAuth(
+      { method: "POST", headers: { authorization: "Bearer t" }, body: { device_id: 123 } },
+      res
+    );
     expect(auth).toBeNull();
     expect(res._status).toBe(401);
   });
 
   it("returns null when devices lookup errors for provision flow", async () => {
-    supabaseAdmin.from.mockImplementation(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: { message: "db" } }),
-    }));
-    const req = {
-      method: "POST",
-      headers: { authorization: "Bearer t" },
-      body: { device_id: "d1" },
-    };
+    stubDevicesMaybeSingle({ data: null, error: { message: "db" } });
     const res = mockRes();
-    expect(await requireDeviceAuth(req, res)).toBeNull();
+    expect(
+      await requireDeviceAuth(
+        { method: "POST", headers: { authorization: "Bearer t" }, body: { device_id: "d1" } },
+        res
+      )
+    ).toBeNull();
     expect(res._status).toBe(401);
   });
 
   it("returns null when provision row has no auth_token", async () => {
-    supabaseAdmin.from.mockImplementation(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: { id: 1, device_id: "d1", status: "active" },
-        error: null,
-      }),
-    }));
+    stubDevicesMaybeSingle({ data: { id: 1, device_id: "d1", status: "active" }, error: null });
     const res = mockRes();
     expect(
       await requireDeviceAuth(
@@ -300,14 +343,10 @@ describe("requireDeviceAuth", () => {
   });
 
   it("returns null when provision row is revoked", async () => {
-    supabaseAdmin.from.mockImplementation(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: { id: 1, device_id: "d1", auth_token: "secret", status: "revoked" },
-        error: null,
-      }),
-    }));
+    stubDevicesMaybeSingle({
+      data: { id: 1, device_id: "d1", auth_token: "secret", status: "revoked" },
+      error: null,
+    });
     const res = mockRes();
     expect(
       await requireDeviceAuth(
@@ -317,21 +356,26 @@ describe("requireDeviceAuth", () => {
     ).toBeNull();
   });
 
-  it("returns null when provision bearer does not match stored token", async () => {
-    supabaseAdmin.from.mockImplementation(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({
-        data: { id: 1, device_id: "d1", auth_token: "a", status: "active" },
-        error: null,
-      }),
-    }));
+  it("returns null when stored auth_token is not a string", async () => {
+    stubDevicesMaybeSingle({
+      data: { id: 1, device_id: "d1", auth_token: 999, status: "active" },
+      error: null,
+    });
     const res = mockRes();
     expect(
       await requireDeviceAuth(
-        { method: "POST", headers: { authorization: "Bearer wrong" }, body: { device_id: "d1" } },
+        { method: "POST", headers: { authorization: "Bearer x" }, body: { device_id: "d1" } },
         res
       )
     ).toBeNull();
+    expect(res._status).toBe(401);
+  });
+
+  it("treats non-object body as empty for device_id resolution", async () => {
+    process.env.DEVICE_JWE_PRIVATE_JWK = "not-json";
+    stubDevicesMaybeSingle({ data: null, error: null });
+    const res = mockRes();
+    await requireDeviceAuth({ method: "POST", headers: { authorization: "Bearer t" }, body: "nope" }, res);
+    expect(res._status).toBe(401);
   });
 });

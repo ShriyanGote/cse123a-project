@@ -7,7 +7,7 @@ const DEFAULT_EMPTY_G = 0;
 const LOW_WATER_THRESHOLD_PERCENT = 20;
 const OFF_SENSOR_PERCENT = 0;
 
-function getLevelPercent(weightG, calibration) {
+export function getLevelPercent(weightG, calibration) {
   if (weightG == null) return 0;
 
   const empty = calibration?.empty ?? DEFAULT_EMPTY_G;

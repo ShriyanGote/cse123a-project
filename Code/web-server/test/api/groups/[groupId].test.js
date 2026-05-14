@@ -11,31 +11,7 @@ vi.mock("../../../api/_lib/supabaseAdmin.js", () => ({
 import handler from "../../../api/groups/[groupId].js";
 import { requireUserAuth } from "../../../api/_lib/auth.js";
 import { supabaseAdmin } from "../../../api/_lib/supabaseAdmin.js";
-
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    _headers: {},
-    setHeader(k, v) {
-      res._headers[k] = v;
-      return res;
-    },
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-    end() {
-      res._ended = true;
-      return res;
-    },
-  };
-  return res;
-}
+import { createMockRes as mockRes } from "../../createMockRes.js";
 
 function mockReq(method, query, body = {}) {
   return { method, query, body, headers: {} };
@@ -552,6 +528,282 @@ describe("api/groups/[groupId]", () => {
     });
     const res = mockRes();
     await handler(mockReq("GET", { groupId: "g1" }), res);
+    expect(res._status).toBe(500);
+  });
+
+  it("maps membership rejection without message in outer catch", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockRejectedValue({}),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler(mockReq("GET", { groupId: "g1" }), res);
+    expect(res._status).toBe(500);
+    expect(res._json.error).toBe("Request failed.");
+  });
+
+  it("GET uses null latestReading when water row is absent", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    let gm = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        gm += 1;
+        if (gm === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { group_id: "g1", user_id: "u1", role: "member" },
+              error: null,
+            }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({
+            data: [{ group_id: "g1", user_id: "u1", role: "member", created_at: "t" }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
+          delete: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: "g1",
+              name: "G",
+              invite_code: "X",
+              device_id: "d1",
+              empty_g: 0,
+              full_g: 100,
+              created_by: "u1",
+              created_at: "t",
+            },
+            error: null,
+          }),
+        };
+      }
+      if (table === "water_readings") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockReturnThis(),
+          limit: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        };
+      }
+      if (table === "profiles") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          in: vi.fn().mockResolvedValue({ data: [{ id: "u1", display_name: 99 }], error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler(mockReq("GET", { groupId: "g1" }), res);
+    expect(res._status).toBe(200);
+    expect(res._json.latestReading).toBeNull();
+    expect(res._json.members[0].display_name).toBeNull();
+  });
+
+  it("returns 400 when PATCH name is not a string", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler(mockReq("PATCH", { groupId: "g1" }, { name: 123 }), res);
+    expect(res._status).toBe(400);
+  });
+
+  it("returns 500 when DELETE fails", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      if (table === "groups") {
+        const chain = {
+          delete: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({ error: { message: "cannot delete" } }),
+        };
+        chain.delete.mockReturnValue(chain);
+        return chain;
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler(mockReq("DELETE", { groupId: "g1" }), res);
+    expect(res._status).toBe(500);
+  });
+
+  it("returns early on GET when not authenticated", async () => {
+    requireUserAuth.mockResolvedValue(null);
+    const res = mockRes();
+    await handler(mockReq("GET", { groupId: "g1" }), res);
+    expect(res._status).toBeNull();
+  });
+
+  it("GET maps undefined member rows to empty list", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    let gm = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        gm += 1;
+        if (gm === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { group_id: "g1", user_id: "u1", role: "member" },
+              error: null,
+            }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({ data: undefined, error: null }),
+        };
+      }
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
+          delete: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: "g1",
+              name: "G",
+              invite_code: "X",
+              device_id: null,
+              empty_g: 0,
+              full_g: 100,
+              created_by: "u1",
+              created_at: "t",
+            },
+            error: null,
+          }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler(mockReq("GET", { groupId: "g1" }), res);
+    expect(res._status).toBe(200);
+    expect(res._json.members).toEqual([]);
+  });
+
+  it("GET uses empty profile list when query returns undefined rows", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    let gm = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        gm += 1;
+        if (gm === 1) {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { group_id: "g1", user_id: "u1", role: "member" },
+              error: null,
+            }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          order: vi.fn().mockResolvedValue({
+            data: [{ group_id: "g1", user_id: "u1", role: "member", created_at: "t" }],
+            error: null,
+          }),
+        };
+      }
+      if (table === "groups") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
+          delete: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: "g1",
+              name: "G",
+              invite_code: "X",
+              device_id: null,
+              empty_g: 0,
+              full_g: 100,
+              created_by: "u1",
+              created_at: "t",
+            },
+            error: null,
+          }),
+        };
+      }
+      if (table === "profiles") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          in: vi.fn().mockResolvedValue({ data: undefined, error: null }),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler(mockReq("GET", { groupId: "g1" }), res);
+    expect(res._status).toBe(200);
+    expect(res._json.members[0].display_name).toBeNull();
+  });
+
+  it("returns 500 when PATCH update fails", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      if (table === "groups") {
+        const chain = {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
+          single: vi.fn(),
+        };
+        chain.update.mockReturnValue(chain);
+        chain.eq.mockResolvedValue({ error: { message: "patch db" } });
+        return chain;
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler(mockReq("PATCH", { groupId: "g1" }, { name: "N" }), res);
     expect(res._status).toBe(500);
   });
 });

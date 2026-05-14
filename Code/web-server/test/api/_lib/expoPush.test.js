@@ -147,4 +147,20 @@ describe("sendExpoPushNotifications", () => {
     expect(out.failures[0].message).toBe("Expo ticket error");
     expect(out.failures[0].details).toBeNull();
   });
+
+  it("throws synthetic error when fetch rejects with null (covers lastError nullish)", async () => {
+    globalThis.fetch.mockImplementation(() => Promise.reject(null));
+    const out = await sendExpoPushNotifications([
+      { to: "ExponentPushToken[nullish]", title: "T", body: "B", data: {} },
+    ]);
+    expect(out.failures[0].message).toBe("Expo push request failed.");
+  });
+
+  it("uses default chunk failure message when error has no message", async () => {
+    globalThis.fetch.mockImplementation(() => Promise.reject({ statusCode: 400 }));
+    const out = await sendExpoPushNotifications([
+      { to: "ExponentPushToken[nomsg]", title: "T", body: "B", data: {} },
+    ]);
+    expect(out.failures[0].message).toBe("Expo send request failed.");
+  });
 });

@@ -11,31 +11,7 @@ vi.mock("../../../../../api/_lib/supabaseAdmin.js", () => ({
 import handler from "../../../../../api/groups/[groupId]/members/[userId].js";
 import { requireUserAuth } from "../../../../../api/_lib/auth.js";
 import { supabaseAdmin } from "../../../../../api/_lib/supabaseAdmin.js";
-
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    _headers: {},
-    setHeader(k, v) {
-      res._headers[k] = v;
-      return res;
-    },
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-    end() {
-      res._ended = true;
-      return res;
-    },
-  };
-  return res;
-}
+import { createMockRes as mockRes } from "../../../../createMockRes.js";
 
 describe("api/groups/[groupId]/members/[userId]", () => {
   beforeEach(() => {
@@ -481,5 +457,141 @@ describe("api/groups/[groupId]/members/[userId]", () => {
     await handler({ method: "DELETE", query: { groupId: "g1", userId: "u1" } }, res);
     expect(res._status).toBe(400);
     expect(res._json.error).toMatch(/cannot remove themselves/i);
+  });
+
+  it("returns 500 when promote update fails", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    let calls = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table !== "group_members") return {};
+      calls += 1;
+      if (calls === 1) {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      if (calls === 2) {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "member" }, error: null }),
+        };
+      }
+      const chain = { update: vi.fn().mockReturnThis(), eq: vi.fn() };
+      chain.eq.mockReturnValueOnce(chain).mockResolvedValueOnce({ error: { message: "promote fail" } });
+      return chain;
+    });
+    const res = mockRes();
+    await handler({ method: "PATCH", query: { groupId: "g1", userId: "u2" }, body: { role: "owner" } }, res);
+    expect(res._status).toBe(500);
+  });
+
+  it("returns 500 when member PATCH update fails", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    let calls = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table !== "group_members") return {};
+      calls += 1;
+      if (calls === 1) {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      if (calls === 2) {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "member" }, error: null }),
+        };
+      }
+      const chain = { update: vi.fn().mockReturnThis(), eq: vi.fn() };
+      chain.eq.mockReturnValueOnce(chain).mockResolvedValueOnce({ error: { message: "patch fail" } });
+      return chain;
+    });
+    const res = mockRes();
+    await handler({ method: "PATCH", query: { groupId: "g1", userId: "u2" }, body: { role: "member" } }, res);
+    expect(res._status).toBe(500);
+  });
+
+  it("returns 500 when DELETE remove fails", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    let calls = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table !== "group_members") return {};
+      calls += 1;
+      if (calls === 1) {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      if (calls === 2) {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "member" }, error: null }),
+        };
+      }
+      const chain = { delete: vi.fn().mockReturnThis(), eq: vi.fn() };
+      chain.eq.mockReturnValueOnce(chain).mockResolvedValueOnce({ error: { message: "del fail" } });
+      return chain;
+    });
+    const res = mockRes();
+    await handler({ method: "DELETE", query: { groupId: "g1", userId: "u2" } }, res);
+    expect(res._status).toBe(500);
+  });
+
+  it("maps member handler catch errors without message", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockRejectedValue({}),
+        };
+      }
+      return {};
+    });
+    const res = mockRes();
+    await handler({ method: "PATCH", query: { groupId: "g1", userId: "u2" }, body: { role: "member" } }, res);
+    expect(res._status).toBe(500);
+    expect(res._json.error).toBe("Request failed.");
+  });
+
+  it("returns early when PATCH has no auth", async () => {
+    requireUserAuth.mockResolvedValue(null);
+    const res = mockRes();
+    await handler({ method: "PATCH", query: { groupId: "g1", userId: "u2" }, body: { role: "member" } }, res);
+    expect(res._status).toBeNull();
+  });
+
+  it("returns 400 when role is not a string", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    let calls = 0;
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table !== "group_members") return {};
+      calls += 1;
+      if (calls === 1) {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: { role: "owner" }, error: null }),
+        };
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { role: "member" }, error: null }),
+      };
+    });
+    const res = mockRes();
+    await handler({ method: "PATCH", query: { groupId: "g1", userId: "u2" }, body: { role: 1 } }, res);
+    expect(res._status).toBe(400);
   });
 });

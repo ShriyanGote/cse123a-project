@@ -11,31 +11,7 @@ vi.mock("../../../api/_lib/supabaseAdmin.js", () => ({
 import handler from "../../../api/groups/join.js";
 import { requireUserAuth } from "../../../api/_lib/auth.js";
 import { supabaseAdmin } from "../../../api/_lib/supabaseAdmin.js";
-
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    _headers: {},
-    setHeader(k, v) {
-      res._headers[k] = v;
-      return res;
-    },
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-    end() {
-      res._ended = true;
-      return res;
-    },
-  };
-  return res;
-}
+import { createMockRes as mockRes } from "../../createMockRes.js";
 
 describe("api/groups/join", () => {
   beforeEach(() => {
@@ -165,5 +141,25 @@ describe("api/groups/join", () => {
     const res = mockRes();
     await handler({ method: "POST", body: { invite_code: "ABCDEF" } }, res);
     expect(res._status).toBe(500);
+  });
+
+  it("returns early when join POST has no auth", async () => {
+    requireUserAuth.mockResolvedValue(null);
+    const res = mockRes();
+    await handler({ method: "POST", body: { invite_code: "ABC" } }, res);
+    expect(res._status).toBeNull();
+  });
+
+  it("maps join catch errors without message", async () => {
+    requireUserAuth.mockResolvedValue({ user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockRejectedValue({}),
+    }));
+    const res = mockRes();
+    await handler({ method: "POST", body: { invite_code: "ABCDEF" } }, res);
+    expect(res._status).toBe(500);
+    expect(res._json.error).toBe("Could not join group.");
   });
 });
