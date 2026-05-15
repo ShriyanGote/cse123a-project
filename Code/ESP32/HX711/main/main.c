@@ -12,6 +12,7 @@
 
 #include "HX711.h"
 
+#define WIFI_CONNECT_TIMEOUT_MS 30000
 #define DEBUG 1
 
 static bool tareDone = false;
@@ -19,6 +20,8 @@ static bool notFirstBoot = false;
 static int32_t gramBefore = 0;
 
 static const char *TAG = "MAIN";
+
+
 
 static void load_state(void)
 {
@@ -68,6 +71,17 @@ static void post_ingest_grams(int32_t grams)
     }
 }
 
+static void reboot_to_provisioning(void)
+{
+    ESP_LOGW(TAG, "Wi-Fi failed; clearing provisioning and rebooting to BLE prov");
+
+    wifi_clear_prov();   // implement this to erase saved SSID/password/token if needed
+    save_state();        // optional, only if you want to preserve scale state
+
+    vTaskDelay(pdMS_TO_TICKS(500));
+    esp_restart();
+}
+
 void app_main(void)
 {
     esp_err_t ret = nvs_flash_init();
@@ -88,7 +102,11 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Provisioning found in NVS; connecting Wi-Fi");
     ESP_ERROR_CHECK(wifi_apply_prov_and_connect());
-    wifi_wait_connected();
+    
+    
+    if (!wifi_wait_connected_timeout(pdMS_TO_TICKS(WIFI_CONNECT_TIMEOUT_MS))) {
+        reboot_to_provisioning();
+    }
 
     sensor_init();
     hx711_power_up();

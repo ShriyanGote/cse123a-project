@@ -2,6 +2,11 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "esp_err.h"
+#include "esp_log.h"
+#include "esp_mac.h"
+#include "esp_wifi.h"
+#include "esp_event.h"
+#include "esp_netif.h"
 
 /**
  * @file wifi_manager.h
@@ -44,3 +49,7 @@ void wifi_get_device_id_from_mac(char *out, size_t cap);
  * Requires wifi_init() already called.
  */
 esp_err_t wifi_apply_prov_and_connect(void);
+
+bool wifi_wait_connected_timeout(TickType_t timeout_ticks);
+
+esp_err_t wifi_clear_prov(void);
