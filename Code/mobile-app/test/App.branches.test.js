@@ -229,7 +229,7 @@ describe("App branch coverage", () => {
     expect(screen.queryByText("Account deactivated")).toBeNull();
   });
 
-  it("reactivates account when profile realtime update restores access", async () => {
+  it("stays deactivated when profile realtime update sets is_active true", async () => {
     signIn();
     fetchMyProfile.mockResolvedValueOnce({ is_active: false });
     const { supabase } = require("../src/supabase");
@@ -248,7 +248,9 @@ describe("App branch coverage", () => {
     await act(async () => {
       updateHandler({ new: { is_active: true } });
     });
-    await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
+    expect(screen.getByText("Account deactivated")).toBeTruthy();
+    expect(screen.getByText(/cannot be recovered/i)).toBeTruthy();
+    expect(screen.queryByText("Home")).toBeNull();
   });
 
   it("warns with fallback text when intro save fails without a message", async () => {

@@ -140,6 +140,8 @@ describe("App", () => {
     await act(async () => {
       updateHandler({ new: { is_active: true } });
     });
+    expect(screen.getByText("Account deactivated")).toBeTruthy();
+    expect(screen.getByText(/cannot be recovered/i)).toBeTruthy();
   });
 
   it("falls back when intro storage fails and profile upsert warns", async () => {
@@ -220,20 +222,6 @@ describe("App", () => {
     await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
     expect(screen.getByText("Device Provisioning")).toBeTruthy();
     expect(screen.getByText("Members")).toBeTruthy();
-  });
-
-  it("opens intro from the signed-in dashboard", async () => {
-    signIn();
-    render(<App />);
-    await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
-    await act(async () => {
-      fireEvent.press(screen.getByText("How it works"));
-    });
-    await waitFor(() =>
-      expect(
-        screen.getByText("Household water filter monitoring made simple.")
-      ).toBeTruthy()
-    );
   });
 
   it("clears low-water state when session ends", async () => {

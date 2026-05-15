@@ -63,6 +63,9 @@ describe("Settings", () => {
     mockGetSession.mockResolvedValue(signedIn());
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: true }) };
+      }
       if (url.includes("/api/groups")) {
         return {
           ok: true,
@@ -104,18 +107,34 @@ describe("Settings", () => {
   it("signs out and clears group and device lists", async () => {
     const user = userEvent.setup();
     mockGetSession.mockResolvedValue(signedIn());
-    globalThis.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        groups: [{ id: "1", name: "Home", role: "owner", device_id: null }],
-        devices: [{ id: "9", device_name: "Kitchen", device_id: "d1", status: "active" }],
-      }),
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ id: "u1", is_active: true }) };
+      }
+      if (url.includes("/api/groups")) {
+        return {
+          ok: true,
+          json: async () => ({
+            groups: [{ id: "1", name: "Home", role: "owner", device_id: null }],
+          }),
+        };
+      }
+      if (url.includes("/api/devices")) {
+        return {
+          ok: true,
+          json: async () => ({
+            devices: [{ id: "9", device_name: "Kitchen", device_id: "d1", status: "active" }],
+          }),
+        };
+      }
+      return { ok: false, json: async () => ({}) };
     });
     mockSignOut.mockResolvedValue({});
     render(<Settings />);
     await screen.findByRole("heading", { name: "My Account" });
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
-    await user.click(screen.getByRole("button", { name: /sign out/i }));
+    await user.click(screen.getByRole("button", { name: "(sign out)" }));
     expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
     await waitFor(() => {
       expect(screen.getByText("No groups found for this account.")).toBeInTheDocument();
@@ -130,7 +149,13 @@ describe("Settings", () => {
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
     mockGetSession.mockResolvedValue({ data: { session: null } });
-    globalThis.fetch.mockResolvedValue({ ok: true, json: async () => ({ groups: [], devices: [] }) });
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ is_active: true }) };
+      }
+      return { ok: true, json: async () => ({ groups: [], devices: [] }) };
+    });
     render(<Settings />);
     await screen.findByRole("heading", { name: "Sign In" });
     await act(async () => {
@@ -163,6 +188,9 @@ describe("Settings", () => {
     mockGetSession.mockResolvedValue(signedIn());
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ is_active: true }) };
+      }
       if (url.includes("/api/groups") || url.includes("/api/devices")) {
         return { ok: true, json: async () => ({}) };
       }
@@ -180,6 +208,9 @@ describe("Settings", () => {
     mockGetSession.mockResolvedValue(signedIn());
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ is_active: true }) };
+      }
       if (url.includes("/api/groups")) return { ok: true, json: async () => ({ groups: [] }) };
       if (url.includes("/api/devices")) {
         return {
@@ -197,9 +228,94 @@ describe("Settings", () => {
 
   it("maps HTTP errors without JSON error field", async () => {
     mockGetSession.mockResolvedValue(signedIn("e@e.com"));
-    globalThis.fetch.mockResolvedValue({ ok: false, status: 502, json: async () => ({}) });
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ is_active: true }) };
+      }
+      return { ok: false, status: 502, json: async () => ({}) };
+    });
     render(<Settings />);
     expect(await screen.findByText("Request failed (502)")).toBeInTheDocument();
+  });
+
+  it("deactivates account after confirmation", async () => {
+    const user = userEvent.setup();
+    mockGetSession.mockResolvedValue(signedIn());
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    globalThis.fetch.mockImplementation(async (input, init) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/profile") && init?.method === "POST") {
+        const body = JSON.parse(init.body);
+        if (body.is_active === false) {
+          return { ok: true, json: async () => ({ ok: true, is_active: false }) };
+        }
+      }
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: true }) };
+      }
+      if (url.includes("/api/groups")) return { ok: true, json: async () => ({ groups: [] }) };
+      if (url.includes("/api/devices")) return { ok: true, json: async () => ({ devices: [] }) };
+      return { ok: false, json: async () => ({}) };
+    });
+    mockSignOut.mockResolvedValue({});
+    render(<Settings />);
+    await screen.findByRole("heading", { name: "My Account" });
+    await user.click(screen.getByRole("button", { name: /Delete account/i }));
+    expect(confirmSpy).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        "/api/profile",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ is_active: false }),
+        })
+      );
+      expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
+    });
+    confirmSpy.mockRestore();
+  });
+
+  it("does not deactivate account when delete is cancelled", async () => {
+    const user = userEvent.setup();
+    mockGetSession.mockResolvedValue(signedIn());
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: true }) };
+      }
+      if (url.includes("/api/groups")) return { ok: true, json: async () => ({ groups: [] }) };
+      if (url.includes("/api/devices")) return { ok: true, json: async () => ({ devices: [] }) };
+      return { ok: false, json: async () => ({}) };
+    });
+    render(<Settings />);
+    await screen.findByRole("heading", { name: "My Account" });
+    await user.click(screen.getByRole("button", { name: /Delete account/i }));
+    expect(
+      globalThis.fetch.mock.calls.some(
+        ([url, init]) =>
+          fetchUrl(url).includes("/api/profile") && init?.method === "POST" && init.body?.includes("is_active")
+      )
+    ).toBe(false);
+    confirmSpy.mockRestore();
+  });
+
+  it("shows deleted account view without reactivate option", async () => {
+    mockGetSession.mockResolvedValue(signedIn());
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: false }) };
+      }
+      return { ok: false, json: async () => ({}) };
+    });
+    render(<Settings />);
+    expect(await screen.findByRole("heading", { name: "Account deleted" })).toBeInTheDocument();
+    expect(screen.getByText(/cannot be recovered/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Reactivate account/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Delete account/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "My Groups" })).not.toBeInTheDocument();
   });
 
   it("clears session when auth callback omits session", async () => {
@@ -209,7 +325,13 @@ describe("Settings", () => {
       return { data: { subscription: { unsubscribe: vi.fn() } } };
     });
     mockGetSession.mockResolvedValue(signedIn("x@y.com", "t"));
-    globalThis.fetch.mockResolvedValue({ ok: true, json: async () => ({ groups: [], devices: [] }) });
+    globalThis.fetch.mockImplementation(async (input) => {
+      const url = fetchUrl(input);
+      if (url.includes("/api/profile")) {
+        return { ok: true, json: async () => ({ is_active: true }) };
+      }
+      return { ok: true, json: async () => ({ groups: [], devices: [] }) };
+    });
     render(<Settings />);
     await screen.findByRole("heading", { name: "My Account" });
     await act(async () => authCallback("TOKEN_REFRESHED", undefined));

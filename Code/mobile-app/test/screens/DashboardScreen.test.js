@@ -23,7 +23,6 @@ function renderScreen(overrides = {}) {
   return renderDashboard({
     user,
     navigation,
-    onOpenIntro: jest.fn(),
     onSignOut: jest.fn(),
     ...overrides,
   });
@@ -212,12 +211,6 @@ describe("DashboardScreen", () => {
     );
   });
 
-  it("omits intro link when onOpenIntro is not provided", async () => {
-    renderDashboard({ user, navigation, onSignOut: jest.fn(), onOpenIntro: null });
-    await waitFor(() => expect(screen.getByText("Kitchen")).toBeTruthy());
-    expect(screen.queryByText("How it works")).toBeNull();
-  });
-
   it("handles join when invite_code is missing on a group", async () => {
     fetchMyGroups.mockResolvedValue({
       groups: [{ id: "g1", name: "Kitchen", device_id: null, role: "owner" }],
@@ -263,14 +256,6 @@ describe("DashboardScreen", () => {
     await act(async () => {
       resolveCreate();
     });
-  });
-
-  it("opens the intro walkthrough when requested", async () => {
-    const onOpenIntro = jest.fn();
-    renderScreen({ onOpenIntro });
-    await waitFor(() => expect(screen.getByText("How it works")).toBeTruthy());
-    fireEvent.press(screen.getByText("How it works"));
-    expect(onOpenIntro).toHaveBeenCalled();
   });
 
   it("labels devices without a name using device id", async () => {

@@ -6,7 +6,7 @@ import { supabaseAdmin } from "../_lib/supabaseAdmin.js";
 // 12-function limit on Hobby plans.
 //   GET  /api/profile                        -> current profile
 //   POST /api/profile { display_name }       -> upsert display name (formerly /ensure)
-//   POST /api/profile { is_active: bool }    -> activate/deactivate account
+//   POST /api/profile { is_active: false }   -> deactivate (delete) account
 //   POST /api/profile { sign_out_all: true } -> revoke refresh tokens on all devices
 export default async function handler(req, res) {
   setCors(res, "GET, POST, OPTIONS");
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
 
-  // Allow deactivated users to read their own status and to reactivate.
+  // Allow deactivated users to read their own status only.
   const auth = await requireUserAuth(req, res, { allowDeactivated: true });
   if (!auth) return;
 
@@ -74,6 +74,10 @@ async function handleSetActive(req, res, auth) {
   const isActive = req.body.is_active;
   const userId = auth.user.id;
 
+  if (isActive) {
+    return res.status(403).json({ error: "Deleted accounts cannot be reactivated." });
+  }
+
   const { error: profileError } = await supabaseAdmin
     .from("profiles")
     .upsert({ id: userId, is_active: isActive });
@@ -81,8 +85,8 @@ async function handleSetActive(req, res, auth) {
     return res.status(500).json({ error: profileError.message });
   }
 
-  // Cascade to devices the user owns: revoke on deactivate, restore on reactivate.
-  const nextDeviceStatus = isActive ? "active" : "revoked";
+  // Cascade to devices the user owns: revoke on deactivate.
+  const nextDeviceStatus = "revoked";
   const { error: devicesError } = await supabaseAdmin
     .from("devices")
     .update({ status: nextDeviceStatus })
