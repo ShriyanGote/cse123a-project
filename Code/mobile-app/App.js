@@ -1,3 +1,5 @@
+// Help
+
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -88,7 +90,8 @@ export default function App() {
       };
       return;
     }
-    if (!navigationRef.isReady()) {
+    if (!navigationRef.isReady()
+    ) {
       pendingGroupNavRef.current = {
         groupId,
         groupName: resolveGroupNavName(groupName),
