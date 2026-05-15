@@ -203,12 +203,46 @@ esp_err_t wifi_apply_prov_and_connect(void)
     strncpy((char *)wifi_config.sta.password, password, sizeof(wifi_config.sta.password) - 1);
 
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    
     ESP_LOGI(TAG, "Applying stored SSID and connecting...");
-
+    ESP_LOGI(TAG, "NVS Wi-Fi SSID: '%s'", ssid);
+    ESP_LOGI(TAG, "NVS Wi-Fi password: '%s'", password);
+    ESP_LOGI(TAG, "NVS SSID len=%d, password len=%d", strlen(ssid), strlen(password));
     err = esp_wifi_connect();
     if (err == ESP_ERR_WIFI_CONN) {
         ESP_LOGW(TAG, "Connect already in progress; waiting for result");
         return ESP_OK;
     }
+    return err;
+}
+
+bool wifi_wait_connected_timeout(TickType_t timeout_ticks)
+{
+    EventBits_t bits = xEventGroupWaitBits(
+        wifi_event_group,
+        WIFI_CONNECTED_BIT,
+        pdFALSE,
+        pdTRUE,
+        timeout_ticks
+    );
+
+    return (bits & WIFI_CONNECTED_BIT) != 0;
+}
+
+esp_err_t wifi_clear_prov(void)
+{
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(PROV_NVS_NS, NVS_READWRITE, &h);
+    if (err != ESP_OK) {
+        return err;
+    }
+
+    nvs_erase_key(h, PROV_KEY_AUTH);
+    nvs_erase_key(h, PROV_KEY_SSID);
+    nvs_erase_key(h, PROV_KEY_PWD);
+
+    err = nvs_commit(h);
+    nvs_close(h);
+
     return err;
 }

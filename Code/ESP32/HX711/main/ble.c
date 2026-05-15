@@ -195,6 +195,11 @@ static int handle_wifi_write(struct os_mbuf *om)
     const char *ssid = decoded;
     const char *pwd = colon + 1;
 
+    ESP_LOGI(TAG2, "Received Wi-Fi SSID: '%s'", ssid);
+    ESP_LOGI(TAG2, "Received Wi-Fi password: '%s'", pwd);
+    ESP_LOGI(TAG2, "SSID len=%d, password len=%d", strlen(ssid), strlen(pwd));
+
+    
     if (s_auth_token[0] == '\0') {
         ESP_LOGW(TAG2, "wifi received but auth token not set yet");
         notify_status("auth_missing");
