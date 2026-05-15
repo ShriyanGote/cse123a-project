@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { supabase } from "../supabase";
 
 const DEFAULT_AUTH_REDIRECT_URL = "https://cse123a-project-6a3s.vercel.app";
@@ -120,11 +121,13 @@ export default function AuthScreen({ onOpenIntro }) {
 
   return (
     <SafeAreaView style={styles.safeArea} {...swipeToIntroResponder.panHandlers}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <KeyboardAvoidingWrapper>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets
+        >
         <Animated.View
           style={[
             styles.card,
@@ -260,7 +263,8 @@ export default function AuthScreen({ onOpenIntro }) {
             </View>
           </Animated.View>
         </Animated.View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingWrapper>
     </SafeAreaView>
   );
 }

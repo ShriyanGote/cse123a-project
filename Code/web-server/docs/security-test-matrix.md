@@ -2,7 +2,7 @@
 
 ## Automated
 
-- `api/_lib/auth.test.js`
+- `test/api/_lib/auth.test.js`
   - Bearer parsing
   - Nested JWE + JWT verification
   - Replay rejection (`jti` reuse)

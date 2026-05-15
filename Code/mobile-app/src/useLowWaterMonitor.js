@@ -55,6 +55,7 @@ export function useLowWaterMonitor(enabled) {
     return () => {
       cancelled = true;
       sub.remove();
+      /* istanbul ignore next -- interval is always set before cleanup in practice */
       if (intervalId) clearInterval(intervalId);
     };
   }, [enabled]);

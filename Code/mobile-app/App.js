@@ -36,7 +36,22 @@ import { useLowWaterMonitor } from "./src/useLowWaterMonitor";
 const Stack = createNativeStackNavigator();
 const INTRO_COMPLETED_KEY = "app:intro-completed";
 
-const navigationRef = createNavigationContainerRef();
+export const navigationRef = createNavigationContainerRef();
+
+export function groupScreenTitle(route) {
+  return route?.params?.groupName ?? "Group";
+}
+
+export function resolveGroupNavName(groupName) {
+  return groupName || "Group";
+}
+
+export function groupStackScreenOptions({ route }) {
+  return {
+    title: groupScreenTitle(route),
+    animation: "slide_from_right",
+  };
+}
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -66,14 +81,14 @@ export default function App() {
     if (!gate.hasUser || gate.showIntro || gate.isDeactivated) {
       pendingGroupNavRef.current = {
         groupId,
-        groupName: groupName || "Group",
+        groupName: resolveGroupNavName(groupName),
       };
       return;
     }
     if (!navigationRef.isReady()) {
       pendingGroupNavRef.current = {
         groupId,
-        groupName: groupName || "Group",
+        groupName: resolveGroupNavName(groupName),
       };
       return;
     }
@@ -81,10 +96,13 @@ export default function App() {
     try {
       navigationRef.navigate("Group", {
         groupId,
-        groupName: groupName || "Group",
+        groupName: resolveGroupNavName(groupName),
       });
     } catch {
-      pendingGroupNavRef.current = { groupId, groupName: groupName || "Group" };
+      pendingGroupNavRef.current = {
+        groupId,
+        groupName: resolveGroupNavName(groupName),
+      };
     }
   }
 
@@ -253,7 +271,6 @@ export default function App() {
         },
         (payload) => {
           if (payload.new?.is_active === false) setIsDeactivated(true);
-          if (payload.new?.is_active === true) setIsDeactivated(false);
         }
       )
       .subscribe();
@@ -350,8 +367,7 @@ export default function App() {
             <View style={styles.deactivatedWrap}>
               <Text style={styles.deactivatedTitle}>Account deactivated</Text>
               <Text style={styles.deactivatedText}>
-                Your account has been deactivated. Sign in to the web app to
-                reactivate it, then sign in again here.
+                Your account has been deleted and cannot be recovered.
               </Text>
               <TouchableOpacity style={styles.deactivatedButton} onPress={handleDeactivatedSignOut}>
                 <Text style={styles.deactivatedButtonText}>Sign out</Text>
@@ -371,7 +387,6 @@ export default function App() {
                   <DashboardScreen
                     {...props}
                     user={session.user}
-                    onOpenIntro={() => setShowIntro(true)}
                     onSignOut={runSignOut}
                   />
                 )}
@@ -382,13 +397,7 @@ export default function App() {
               >
                 {(props) => <ProvisionDeviceScreen {...props} user={session.user} />}
               </Stack.Screen>
-              <Stack.Screen
-                name="Group"
-                options={({ route }) => ({
-                  title: route.params?.groupName ?? "Group",
-                  animation: "slide_from_right",
-                })}
-              >
+              <Stack.Screen name="Group" options={groupStackScreenOptions}>
                 {(props) => <GroupScreen {...props} user={session.user} />}
               </Stack.Screen>
             </Stack.Navigator>

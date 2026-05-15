@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import App from "../App";
+import App from "../src/App";
 
 const mockGetSession = vi.fn(() =>
   Promise.resolve({ data: { session: null }, error: null })
 );
 const mockUnsubscribe = vi.fn();
 
-vi.mock("../supabase", () => ({
+vi.mock("../src/supabase", () => ({
   supabase: {
     auth: {
       getSession: (...args) => mockGetSession(...args),

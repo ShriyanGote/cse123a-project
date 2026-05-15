@@ -1,4 +1,4 @@
-import { getLevelPercent, hasWater } from "./water";
+import { getLevelPercent, hasWater } from "../../src/lib/water";
 
 describe("getLevelPercent", () => {
   it("returns 0 when weight is null", () => {
@@ -8,6 +8,11 @@ describe("getLevelPercent", () => {
   it("returns 0 when weight is at or below empty", () => {
     expect(getLevelPercent(0, 0, 100)).toBe(0);
     expect(getLevelPercent(-1, 0, 100)).toBe(0);
+  });
+
+  it("returns 0 when full is less than or equal to empty", () => {
+    expect(getLevelPercent(50, 100, 100)).toBe(0);
+    expect(getLevelPercent(50, 200, 100)).toBe(0);
   });
 
   it("returns 100 when weight is at full", () => {
@@ -20,6 +25,7 @@ describe("getLevelPercent", () => {
 
   it("uses defaults when empty/full omitted", () => {
     expect(getLevelPercent(1250, 0, 2500)).toBe(50);
+    expect(getLevelPercent(1250)).toBe(50);
   });
 });
 
@@ -35,5 +41,10 @@ describe("hasWater", () => {
 
   it("is true when weight is above empty", () => {
     expect(hasWater(1, 0)).toBe(true);
+  });
+
+  it("uses default empty when emptyG omitted", () => {
+    expect(hasWater(1)).toBe(true);
+    expect(hasWater(0)).toBe(false);
   });
 });

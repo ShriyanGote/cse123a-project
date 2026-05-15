@@ -1,53 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock the auth and supabase modules before importing the handler
-vi.mock("./_lib/auth.js", () => ({
+vi.mock("../../api/_lib/auth.js", () => ({
   requireUserAuth: vi.fn(),
 }));
 
-vi.mock("./_lib/supabaseAdmin.js", () => ({
+vi.mock("../../api/_lib/supabaseAdmin.js", () => ({
   supabaseAdmin: {
     from: vi.fn(),
   },
 }));
 
-import handler from "./app-state.js";
-import { requireUserAuth } from "./_lib/auth.js";
-import { supabaseAdmin } from "./_lib/supabaseAdmin.js";
+import handler from "../../api/app-state.js";
+import { requireUserAuth } from "../../api/_lib/auth.js";
+import { supabaseAdmin } from "../../api/_lib/supabaseAdmin.js";
+import { createMockRes as mockRes } from "../createMockRes.js";
 
-// Helper: build a fake req object
 function mockReq(method = "GET", headers = {}) {
   return { method, headers };
 }
 
-// Helper: build a fake res object that records status + body
-function mockRes() {
-  const res = {
-    _status: null,
-    _json: null,
-    _ended: false,
-    _headers: {},
-    setHeader(key, value) {
-      res._headers[key] = value;
-      return res;
-    },
-    status(code) {
-      res._status = code;
-      return res;
-    },
-    json(body) {
-      res._json = body;
-      return res;
-    },
-    end() {
-      res._ended = true;
-      return res;
-    },
-  };
-  return res;
-}
-
-// Helper: set up supabaseAdmin.from() to return chained query results
 function mockSupabaseChain(resolvedValue) {
   const chain = {
     select: vi.fn().mockReturnThis(),
@@ -92,7 +63,6 @@ describe("app-state handler", () => {
 
     await handler(req, res);
 
-    // requireUserAuth sets the 401 response itself and returns null
     expect(requireUserAuth).toHaveBeenCalledWith(req, res);
   });
 
@@ -150,6 +120,21 @@ describe("app-state handler", () => {
 
     expect(res._status).toBe(500);
     expect(res._json).toEqual({ error: "DB read error" });
+  });
+
+  it("returns 500 when the handler throws unexpectedly", async () => {
+    requireUserAuth.mockResolvedValue({ type: "user", user: { id: "u1" } });
+    supabaseAdmin.from.mockImplementation(() => {
+      throw new Error("unexpected failure");
+    });
+
+    const req = mockReq("GET", { authorization: "Bearer valid-token" });
+    const res = mockRes();
+
+    await handler(req, res);
+
+    expect(res._status).toBe(500);
+    expect(res._json).toEqual({ error: "unexpected failure" });
   });
 
   it("returns 500 when calibration query fails", async () => {

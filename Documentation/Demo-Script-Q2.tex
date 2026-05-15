@@ -1,0 +1,159 @@
+\documentclass[12pt]{article}
+
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{url}
+
+\geometry{margin=1in}
+
+\title{CSE 123 - Demo Script\\Smart Water Pitcher Base\\NOT TURNED IN DONT MAKE IT LOOK GOOD}
+\author{Group 8}
+\date{}
+
+\begin{document}
+\pagestyle{fancy}
+\maketitle
+\fancyfoot{}
+\fancyhead{}
+% \fancyfoot[R]{\thepage}
+
+%% --------------------------------------------------------
+\section*{Introduction}
+\noindent\textbf{Presenter:} todo\\  
+\noindent\textbf{Estimated Time:} 1 minute
+
+\noindent\textbf{Action:} Hold up or gesture toward the water pitcher.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+this is old intro, can modify/improv as needed\\
+
+``Has this ever happened to you? You come home after a long day, you're thirsty, and you go to grab the water filter pitcher---only to find it completely empty. Nobody refilled it.
+This is a common problem in shared living spaces---dorms, family homes, offices. Everyone uses the filtered water, but nobody knows when it's running low until it's too late. We want a way to know if the container is out of water when we need water. The goal is if the container is empty, we inform users.
+Our project hopes to solve this. We built a smart water level monitoring system that sits underneath your water filter pitcher, continuously tracking how much water is left, and sends a notification to everyone in the household when it's time to refill.''
+\end{quote}
+
+%% --------------------------------------------------------
+\section{Typical Usage}
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO\\
+
+\noindent\textbf{Action:} Screen should show app and camera pointed at prototype.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{itemize}[itemsep=-3pt]
+\item screen shows current water lvl
+\item \textbf{Action: }\textit{Take out some water}
+\item now it shows the new level
+\item now i'll completely empty it
+\item \textbf{Action: }\textit{Empty pitcher}
+\item as you can see the water level updated and everyone in the group rcvd a notification to refill
+\item \textbf{Action: }\textit{Refill pitcher}
+\item and now it shows that its full again
+\end{itemize}
+
+
+%% --------------------------------------------------------
+\section{Account Creation}
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO\\
+
+\noindent\textbf{Action:} Screen should show app and camera pointed at prototype.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{itemize}[itemsep=-3pt]
+\item create account w email, name etc
+\item show email verification and verify
+\item sign in on app
+\end{itemize}
+
+
+%% --------------------------------------------------------
+\section{Provisioning}
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+
+``When first purchasing product, users need to set up the device. they start by opening app and click setup.''
+\vspace{5px}\\\textbf{Action: }\textit{Open setup page on mobile app}\vspace{5px}\\
+``First scan qr code that comes with the device to connect to it over bluetooth.''
+\vspace{5px}\\\textbf{Action: }\textit{Scan QR code}\vspace{5px}\\
+``Next enter the home wifi name and password, which will be sent to the device along with an auth token so it can communicate with the server.''
+\vspace{5px}\\\textbf{Action: }\textit{Enter WiFi credentials}\vspace{5px}\\
+``Once it is connected, users can create a group and invite other users to it, so they can all see the water level and get notifications when it needs to be refilled.''
+\\\textit{}\\
+\end{quote}
+
+%% --------------------------------------------------------
+\section{Joining a Group}
+\noindent\textbf{Presenter:} TODO\\  
+\noindent\textbf{Estimated Time:} TODO
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{itemize}[itemsep=-3pt]
+\item open group page
+\item select device, enter name,  and create group
+\item open group and show current water level
+\item pour some water out and show it reflects change
+\item show group code, let other person join, show that they joined on the group page
+\item textbf{hold other phone under camera for other person joining}
+\item empty water filter and show both ppl got the notif
+\item change group name
+\item delete group
+\end{itemize}
+
+%% --------------------------------------------------------
+\section{Calibration}
+\noindent\textbf{Presenter:} TODO\\
+\noindent\textbf{Estimated Time:} TODO
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{itemize}[itemsep=-3pt]
+\item open group
+\item explain why calibrate
+\item do empty and full
+\end{itemize}
+
+%% --------------------------------------------------------
+\section{Webpage}
+\noindent\textbf{Presenter:} TODO\\
+\noindent\textbf{Estimated Time:} TODO
+
+\noindent\textbf{Action:} Screen should show the webpage open in a browser.
+
+\bigskip
+\noindent\textit{Script:}
+
+\begin{quote}
+``Alongside the mobile app, we also have a webpage that users can access from the browser.''
+\vspace{5px}\\\textbf{Action: }\textit{Setup Guide panel}\vspace{5px}\\
+``The webpage hosts our setup guide, so a new user can walk through provisioning instructions on their laptop while they have the smart base and phone in hand.''
+\vspace{5px}\\\textbf{Action: }\textit{Open the webpage and sign in}\vspace{5px}\\
+``The webpage also focuses on account management rather than day-to-day monitoring. Once signed in, users land on their account page where they can see all the groups they belong to and all the devices linked to their account.''
+\vspace{5px}\\\textbf{Action: }\textit{Point out the My Groups and My Devices sections}\vspace{5px}\\
+``This is where users can go to view group membership, and devices, things that are easier to see on a full-size screen rather than on a phone.''
+\vspace{5px}\\\textbf{Action: }\textit{Scroll to the Security section and point at the ``Sign out everywhere'' button}\vspace{5px}\\
+``One feature that's only on the webpage has is a ``Sign out everywhere.'' If a user loses their phone and doesn't want someone else to access their water filter app, they can log in to the webpage from any computer and click this button. It revokes the login on every device tied to their account, so the lost phone gets kicked out the next time it tries to talk to our server.''
+\end{quote}
+%% --------------------------------------------------------
+
+% conclusion
+\end{document}
+

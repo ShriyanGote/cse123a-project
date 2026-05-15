@@ -11,10 +11,13 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
+import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { createGroup, fetchMyDevices, fetchMyGroups, joinGroupByInvite } from "../api";
 
-export default function DashboardScreen({ user, navigation, onOpenIntro, onSignOut }) {
+export default function DashboardScreen({ user, navigation, onSignOut }) {
+  const headerHeight = useHeaderHeight();
   const [groups, setGroups] = useState([]);
   const [devices, setDevices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -137,13 +140,15 @@ export default function DashboardScreen({ user, navigation, onOpenIntro, onSignO
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-        keyboardShouldPersistTaps="handled"
-      >
+      <KeyboardAvoidingWrapper keyboardVerticalOffset={headerHeight}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
+        >
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
             <Text style={styles.title}>Home</Text>
@@ -297,7 +302,8 @@ export default function DashboardScreen({ user, navigation, onOpenIntro, onSignO
             ))}
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingWrapper>
     </SafeAreaView>
   );
 }
