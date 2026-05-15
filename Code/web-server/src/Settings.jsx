@@ -84,6 +84,28 @@ export default function Settings() {
     setDevices([]);
   }
 
+  async function handleSignOutEverywhere() {
+    const confirmed = window.confirm(
+      "Sign out of every device, including phones? Other devices will be kicked out within a few minutes."
+    );
+    if (!confirmed) return;
+    setError("");
+    setWorking(true);
+    try {
+      await authedFetch("/api/profile", {
+        method: "POST",
+        body: JSON.stringify({ sign_out_all: true }),
+      });
+      await supabase.auth.signOut({ scope: "local" });
+      setGroups([]);
+      setDevices([]);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
   if (loading) {
     return <div className="settings-page"><p>Loading…</p></div>;
   }
@@ -149,6 +171,20 @@ export default function Settings() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="settings-section">
+        <h3>Security</h3>
+        <p className="settings-hint">
+          Lost your phone? Sign out of every device that's currently signed in to this account.
+        </p>
+        <button
+          type="button"
+          onClick={handleSignOutEverywhere}
+          disabled={working}
+        >
+          {working ? "Working…" : "Sign out everywhere"}
+        </button>
       </section>
 
       <section className="settings-section">

@@ -7,6 +7,7 @@ import { supabaseAdmin } from "../_lib/supabaseAdmin.js";
 //   GET  /api/profile                        -> current profile
 //   POST /api/profile { display_name }       -> upsert display name (formerly /ensure)
 //   POST /api/profile { is_active: bool }    -> activate/deactivate account
+//   POST /api/profile { sign_out_all: true } -> revoke refresh tokens on all devices
 export default async function handler(req, res) {
   setCors(res, "GET, POST, OPTIONS");
 
@@ -22,6 +23,9 @@ export default async function handler(req, res) {
     return handleGet(req, res, auth);
   }
   if (req.method === "POST") {
+    if (req.body?.sign_out_all === true) {
+      return handleSignOutAll(req, res, auth);
+    }
     if (typeof req.body?.is_active === "boolean") {
       return handleSetActive(req, res, auth);
     }
@@ -98,4 +102,12 @@ async function handleSetActive(req, res, auth) {
   }
 
   return res.status(200).json({ ok: true, is_active: isActive });
+}
+
+async function handleSignOutAll(_req, res, auth) {
+  const { error } = await supabaseAdmin.auth.admin.signOut(auth.token, "global");
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  return res.status(200).json({ ok: true });
 }
