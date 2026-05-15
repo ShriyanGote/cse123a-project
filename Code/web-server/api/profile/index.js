@@ -105,7 +105,7 @@ async function handleSetActive(req, res, auth) {
 }
 
 async function handleSignOutAll(_req, res, auth) {
-  const { error } = await supabaseAdmin.auth.admin.signOut(auth.user.id, "global");
+  const { error } = await supabaseAdmin.auth.admin.signOut(auth.token, "global");
   if (error) {
     return res.status(500).json({ error: error.message });
   }
