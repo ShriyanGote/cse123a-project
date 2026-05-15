@@ -16,7 +16,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { createGroup, fetchMyDevices, fetchMyGroups, joinGroupByInvite } from "../api";
 
-export default function DashboardScreen({ user, navigation, onOpenIntro, onSignOut }) {
+export default function DashboardScreen({ user, navigation, onSignOut }) {
   const headerHeight = useHeaderHeight();
   const [groups, setGroups] = useState([]);
   const [devices, setDevices] = useState([]);
@@ -173,11 +173,6 @@ export default function DashboardScreen({ user, navigation, onOpenIntro, onSignO
             Sign in, open Provision, connect to ESP via Bluetooth, then bind the generated
             device token to your account.
           </Text>
-          {onOpenIntro ? (
-            <Pressable onPress={onOpenIntro} style={styles.introLink}>
-              <Text style={styles.introLinkText}>How it works</Text>
-            </Pressable>
-          ) : null}
         </View>
 
         <View style={styles.card}>
@@ -362,15 +357,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#1e3a8a",
     lineHeight: 18,
-  },
-  introLink: {
-    marginTop: 8,
-    alignSelf: "flex-start",
-  },
-  introLinkText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#0369a1",
   },
   card: {
     backgroundColor: "#fff",

@@ -271,7 +271,6 @@ export default function App() {
         },
         (payload) => {
           if (payload.new?.is_active === false) setIsDeactivated(true);
-          if (payload.new?.is_active === true) setIsDeactivated(false);
         }
       )
       .subscribe();
@@ -368,8 +367,7 @@ export default function App() {
             <View style={styles.deactivatedWrap}>
               <Text style={styles.deactivatedTitle}>Account deactivated</Text>
               <Text style={styles.deactivatedText}>
-                Your account has been deactivated. Sign in to the web app to
-                reactivate it, then sign in again here.
+                Your account has been deleted and cannot be recovered.
               </Text>
               <TouchableOpacity style={styles.deactivatedButton} onPress={handleDeactivatedSignOut}>
                 <Text style={styles.deactivatedButtonText}>Sign out</Text>
@@ -389,7 +387,6 @@ export default function App() {
                   <DashboardScreen
                     {...props}
                     user={session.user}
-                    onOpenIntro={() => setShowIntro(true)}
                     onSignOut={runSignOut}
                   />
                 )}

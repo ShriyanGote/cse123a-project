@@ -20,9 +20,6 @@ export function renderDashboard(overrides = {}) {
     navigation: screenNavigation,
     ...props,
   };
-  if (!("onOpenIntro" in overrides)) {
-    screenProps.onOpenIntro = jest.fn();
-  }
   if (!("onSignOut" in overrides)) {
     screenProps.onSignOut = jest.fn();
   }
