@@ -35,6 +35,10 @@ export async function apiFetch(path, init = {}) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 401) {
+      await supabase.auth.signOut({ scope: "local" });
+      throw new Error(data.error || "Session expired. Please sign in again.");
+    }
     if (
       res.status === 404 &&
       (path.startsWith("/api/groups") ||

@@ -32,6 +32,7 @@ import {
 import { clearAllLowWaterAlertState } from "./src/groupLowWaterAlerts";
 import { isSupabaseConfigured, supabase } from "./src/supabase";
 import { useLowWaterMonitor } from "./src/useLowWaterMonitor";
+import { useRemoteAuthMonitor } from "./src/useRemoteAuthMonitor";
 
 const Stack = createNativeStackNavigator();
 const INTRO_COMPLETED_KEY = "app:intro-completed";
@@ -226,6 +227,11 @@ export default function App() {
     !isDeactivated;
 
   useLowWaterMonitor(lowWaterMonitorEnabled);
+
+  const remoteAuthMonitorEnabled =
+    Boolean(session?.user) && isSupabaseConfigured && !isDeactivated;
+
+  useRemoteAuthMonitor(remoteAuthMonitorEnabled);
 
   useEffect(() => {
     if (session?.user) return;

@@ -33,6 +33,9 @@ jest.mock("../src/groupLowWaterAlerts", () => ({
 jest.mock("../src/useLowWaterMonitor", () => ({
   useLowWaterMonitor: jest.fn(),
 }));
+jest.mock("../src/useRemoteAuthMonitor", () => ({
+  useRemoteAuthMonitor: jest.fn(),
+}));
 
 describe("App", () => {
   beforeEach(() => resetAppTestState(navigationRef));
@@ -222,6 +225,26 @@ describe("App", () => {
     await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
     expect(screen.getByText("Device Provisioning")).toBeTruthy();
     expect(screen.getByText("Members")).toBeTruthy();
+  });
+
+  it("enables remote auth monitoring for signed-in users", async () => {
+    const { useRemoteAuthMonitor } = require("../src/useRemoteAuthMonitor");
+    signIn();
+    render(<App />);
+    await waitFor(() => expect(ensureMyProfile).toHaveBeenCalled());
+    expect(useRemoteAuthMonitor).toHaveBeenCalledWith(true);
+  });
+
+  it("returns to auth when session is revoked globally", async () => {
+    signIn();
+    render(<App />);
+    await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
+    await act(async () => {
+      mockOnAuthStateChange("SIGNED_OUT", null);
+    });
+    await waitFor(() =>
+      expect(screen.getByText("Water Group Dashboard")).toBeTruthy()
+    );
   });
 
   it("clears low-water state when session ends", async () => {

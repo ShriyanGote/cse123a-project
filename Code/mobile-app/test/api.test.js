@@ -16,11 +16,13 @@ import {
 } from "../src/api";
 
 const mockGetSession = jest.fn();
+const mockSignOut = jest.fn(() => Promise.resolve());
 
 jest.mock("../src/supabase", () => ({
   supabase: {
     auth: {
       getSession: (...args) => mockGetSession(...args),
+      signOut: (...args) => mockSignOut(...args),
     },
   },
 }));
@@ -112,6 +114,17 @@ describe("api", () => {
     await expect(api.fetchMyGroups()).rejects.toThrow("API route not found");
     await expect(api.fetchMyProfile()).rejects.toThrow("API route not found");
     await expect(api.fetchMyDevices()).rejects.toThrow("API route not found");
+  });
+
+  it("signs out locally on 401 responses", async () => {
+    const api = loadApi();
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: "Invalid user bearer token." }),
+    });
+    await expect(api.fetchMyGroups()).rejects.toThrow("Invalid user bearer token.");
+    expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
   it("throws server error message from JSON body", async () => {

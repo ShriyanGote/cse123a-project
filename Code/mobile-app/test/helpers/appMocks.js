@@ -1,4 +1,6 @@
 const mockGetSession = jest.fn();
+const mockRefreshSession = jest.fn(() => Promise.resolve({ data: { session: null }, error: null }));
+const mockGetUser = jest.fn(() => Promise.resolve({ data: { user: { id: "u1" } }, error: null }));
 const mockOnAuthStateChange = jest.fn();
 const mockSignOut = jest.fn(() => Promise.resolve());
 const mockChannelOn = jest.fn().mockReturnThis();
@@ -15,6 +17,8 @@ function createSupabaseMock() {
     supabase: {
       auth: {
         getSession: (...args) => mockGetSession(...args),
+        refreshSession: (...args) => mockRefreshSession(...args),
+        getUser: (...args) => mockGetUser(...args),
         onAuthStateChange: (cb) => {
           mockOnAuthStateChange.mockImplementation(cb);
           return { data: { subscription: { unsubscribe: jest.fn() } } };
@@ -60,6 +64,8 @@ function resetAppTestState(navigationRef, { introCompleted = true } = {}) {
 
   configureNavigationRef(navigationRef);
   mockGetSession.mockResolvedValue({ data: { session: null } });
+  mockRefreshSession.mockResolvedValue({ data: { session: null }, error: null });
+  mockGetUser.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
   AsyncStorage.getItem.mockResolvedValue(introCompleted ? "true" : null);
   AsyncStorage.setItem.mockResolvedValue();
   fetchMyProfile.mockResolvedValue({ is_active: true });
@@ -68,6 +74,8 @@ function resetAppTestState(navigationRef, { introCompleted = true } = {}) {
 
 function signIn(mockSession = signedInSession) {
   mockGetSession.mockResolvedValue({ data: { session: mockSession } });
+  mockRefreshSession.mockResolvedValue({ data: { session: mockSession }, error: null });
+  mockGetUser.mockResolvedValue({ data: { user: mockSession.user }, error: null });
 }
 
 function captureNotificationHandler(listenerMock) {
@@ -81,6 +89,8 @@ function captureNotificationHandler(listenerMock) {
 
 module.exports = {
   mockGetSession,
+  mockRefreshSession,
+  mockGetUser,
   mockOnAuthStateChange,
   mockSignOut,
   mockChannelOn,
