@@ -22,7 +22,7 @@ import DashboardScreen from "./src/screens/DashboardScreen";
 import GroupScreen from "./src/screens/GroupScreen";
 import IntroScreen from "./src/screens/IntroScreen";
 import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
-import { ensureMyProfile, fetchMyProfile } from "./src/api";
+import { ensureMyProfile, fetchMyProfile, reactivateMyAccount } from "./src/api";
 import {
   addNotificationResponseListener,
   clearLowWaterNotificationsOnSignOut,
@@ -60,6 +60,8 @@ export default function App() {
   const [showIntro, setShowIntro] = useState(null);
   const [screenTransition] = useState(() => new Animated.Value(1));
   const [isDeactivated, setIsDeactivated] = useState(false);
+  const [isReactivating, setIsReactivating] = useState(false);
+  const [reactivateError, setReactivateError] = useState("");
   /** Latest auth / intro flags for notification handlers (avoid stale closures). */
   const navGateRef = useRef({
     hasUser: false,
@@ -252,8 +254,8 @@ export default function App() {
     async function checkStatus() {
       try {
         const profile = await fetchMyProfile();
-        if (!cancelled && profile?.is_active === false) {
-          setIsDeactivated(true);
+        if (!cancelled) {
+          setIsDeactivated(profile?.is_active === false);
         }
       } catch (error) {
         const message = error?.message ?? String(error);
@@ -276,7 +278,9 @@ export default function App() {
           filter: `id=eq.${session.user.id}`,
         },
         (payload) => {
-          if (payload.new?.is_active === false) setIsDeactivated(true);
+          if (typeof payload.new?.is_active === "boolean") {
+            setIsDeactivated(payload.new.is_active === false);
+          }
         }
       )
       .subscribe();
@@ -296,6 +300,20 @@ export default function App() {
   async function handleDeactivatedSignOut() {
     await runSignOut();
     setIsDeactivated(false);
+    setReactivateError("");
+  }
+
+  async function handleReactivateAccount() {
+    setReactivateError("");
+    setIsReactivating(true);
+    try {
+      await reactivateMyAccount();
+      setIsDeactivated(false);
+    } catch (error) {
+      setReactivateError(error?.message ?? "Could not reactivate account.");
+    } finally {
+      setIsReactivating(false);
+    }
   }
 
   useEffect(() => {
@@ -373,11 +391,30 @@ export default function App() {
             <View style={styles.deactivatedWrap}>
               <Text style={styles.deactivatedTitle}>Account deactivated</Text>
               <Text style={styles.deactivatedText}>
-                Your account has been deleted and cannot be recovered.
+                Your account is deactivated. Reactivate to restore access, or sign
+                out to use a different account.
               </Text>
-              <TouchableOpacity style={styles.deactivatedButton} onPress={handleDeactivatedSignOut}>
-                <Text style={styles.deactivatedButtonText}>Sign out</Text>
+              <TouchableOpacity
+                style={[styles.deactivatedButton, isReactivating && styles.deactivatedButtonDisabled]}
+                onPress={handleReactivateAccount}
+                disabled={isReactivating}
+              >
+                {isReactivating ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.deactivatedButtonText}>Reactivate account</Text>
+                )}
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deactivatedButtonSecondary}
+                onPress={handleDeactivatedSignOut}
+                disabled={isReactivating}
+              >
+                <Text style={styles.deactivatedButtonSecondaryText}>Sign out</Text>
+              </TouchableOpacity>
+              {reactivateError ? (
+                <Text style={styles.deactivatedError}>{reactivateError}</Text>
+              ) : null}
             </View>
           ) : (
             <Stack.Navigator
@@ -470,10 +507,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 8,
+    minWidth: 200,
+    alignItems: "center",
+  },
+  deactivatedButtonDisabled: {
+    opacity: 0.7,
   },
   deactivatedButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  deactivatedButtonSecondary: {
+    marginTop: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  deactivatedButtonSecondaryText: {
+    color: "#0ea5e9",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  deactivatedError: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#dc2626",
+    textAlign: "center",
   },
 });

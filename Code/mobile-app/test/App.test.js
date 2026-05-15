@@ -7,7 +7,7 @@ import App, {
   navigationRef,
   resolveGroupNavName,
 } from "../App";
-import { ensureMyProfile, fetchMyProfile } from "../src/api";
+import { ensureMyProfile, fetchMyProfile, reactivateMyAccount } from "../src/api";
 import {
   addNotificationResponseListener,
   clearLowWaterNotificationsOnSignOut,
@@ -143,8 +143,21 @@ describe("App", () => {
     await act(async () => {
       updateHandler({ new: { is_active: true } });
     });
-    expect(screen.getByText("Account deactivated")).toBeTruthy();
-    expect(screen.getByText(/cannot be recovered/i)).toBeTruthy();
+    await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
+  });
+
+  it("reactivates account from the deactivated screen", async () => {
+    signIn();
+    fetchMyProfile.mockResolvedValue({ is_active: false });
+    render(<App />);
+    await waitFor(() =>
+      expect(screen.getByText("Account deactivated")).toBeTruthy()
+    );
+    await act(async () => {
+      fireEvent.press(screen.getByText("Reactivate account"));
+    });
+    await waitFor(() => expect(reactivateMyAccount).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
   });
 
   it("falls back when intro storage fails and profile upsert warns", async () => {

@@ -38,6 +38,7 @@ function createApiMock() {
   return {
     ensureMyProfile: jest.fn(() => Promise.resolve()),
     fetchMyProfile: jest.fn(() => Promise.resolve({ is_active: true })),
+    reactivateMyAccount: jest.fn(() => Promise.resolve({ ok: true, is_active: true })),
     fetchMyGroups: jest.fn(() => Promise.resolve({ groups: [] })),
     fetchMyDevices: jest.fn(() => Promise.resolve({ devices: [] })),
   };

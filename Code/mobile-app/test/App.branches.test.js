@@ -11,6 +11,7 @@ import {
   captureNotificationHandler,
   mockGetSession,
   mockOnAuthStateChange,
+  mockSignOut,
   resetAppTestState,
   signIn,
   signedInSession,
@@ -219,6 +220,7 @@ describe("App branch coverage", () => {
     await waitFor(() =>
       expect(screen.getByText("Account deactivated")).toBeTruthy()
     );
+    expect(mockSignOut).not.toHaveBeenCalled();
   });
 
   it("ignores non-deactivation profile fetch errors", async () => {
@@ -226,12 +228,12 @@ describe("App branch coverage", () => {
     fetchMyProfile.mockRejectedValueOnce(new Error("network down"));
     render(<App />);
     await waitFor(() => expect(fetchMyProfile).toHaveBeenCalled());
-    expect(screen.queryByText("Account deactivated")).toBeNull();
+    expect(mockSignOut).not.toHaveBeenCalled();
   });
 
-  it("stays deactivated when profile realtime update sets is_active true", async () => {
+  it("stays on auth after sign-out even if profile realtime sets is_active true", async () => {
     signIn();
-    fetchMyProfile.mockResolvedValueOnce({ is_active: false });
+    fetchMyProfile.mockResolvedValue({ is_active: false });
     const { supabase } = require("../src/supabase");
     let updateHandler;
     supabase.channel.mockImplementation(() => ({
@@ -246,10 +248,16 @@ describe("App branch coverage", () => {
       expect(screen.getByText("Account deactivated")).toBeTruthy()
     );
     await act(async () => {
+      fireEvent.press(screen.getByText("Sign out"));
+    });
+    await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
+    await act(async () => {
+      mockOnAuthStateChange("SIGNED_OUT", null);
       updateHandler({ new: { is_active: true } });
     });
-    expect(screen.getByText("Account deactivated")).toBeTruthy();
-    expect(screen.getByText(/cannot be recovered/i)).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByText("Water Group Dashboard")).toBeTruthy()
+    );
     expect(screen.queryByText("Home")).toBeNull();
   });
 

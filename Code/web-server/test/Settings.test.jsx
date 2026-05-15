@@ -261,7 +261,7 @@ describe("Settings", () => {
     mockSignOut.mockResolvedValue({});
     render(<Settings />);
     await screen.findByRole("heading", { name: "My Account" });
-    await user.click(screen.getByRole("button", { name: /Delete account/i }));
+    await user.click(screen.getByRole("button", { name: /Deactivate account/i }));
     expect(confirmSpy).toHaveBeenCalled();
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -291,7 +291,7 @@ describe("Settings", () => {
     });
     render(<Settings />);
     await screen.findByRole("heading", { name: "My Account" });
-    await user.click(screen.getByRole("button", { name: /Delete account/i }));
+    await user.click(screen.getByRole("button", { name: /Deactivate account/i }));
     expect(
       globalThis.fetch.mock.calls.some(
         ([url, init]) =>
@@ -301,7 +301,7 @@ describe("Settings", () => {
     confirmSpy.mockRestore();
   });
 
-  it("shows deleted account view without reactivate option", async () => {
+  it("shows deactivated account view with reactivate option", async () => {
     mockGetSession.mockResolvedValue(signedIn());
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
@@ -311,11 +311,52 @@ describe("Settings", () => {
       return { ok: false, json: async () => ({}) };
     });
     render(<Settings />);
-    expect(await screen.findByRole("heading", { name: "Account deleted" })).toBeInTheDocument();
-    expect(screen.getByText(/cannot be recovered/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Reactivate account/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Delete account/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Account deactivated" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reactivate account" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Deactivate account/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "My Groups" })).not.toBeInTheDocument();
+  });
+
+  it("reactivates account after confirmation", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    let profileActive = false;
+    mockGetSession.mockResolvedValue(signedIn());
+    globalThis.fetch.mockImplementation(async (input, init) => {
+      const url = fetchUrl(input);
+      const body = init?.body ? JSON.parse(init.body) : {};
+      if (url.includes("/api/profile") && init?.method === "POST" && body.is_active === true) {
+        profileActive = true;
+        return { ok: true, json: async () => ({ ok: true, is_active: true }) };
+      }
+      if (url.includes("/api/profile")) {
+        return {
+          ok: true,
+          json: async () => ({ id: "u1", display_name: "Me", is_active: profileActive }),
+        };
+      }
+      if (url.includes("/api/groups")) {
+        return { ok: true, json: async () => ({ groups: [] }) };
+      }
+      if (url.includes("/api/devices")) {
+        return { ok: true, json: async () => ({ devices: [] }) };
+      }
+      return { ok: false, json: async () => ({}) };
+    });
+    const user = userEvent.setup();
+    render(<Settings />);
+    await screen.findByRole("heading", { name: "Account deactivated" });
+    await user.click(screen.getByRole("button", { name: "Reactivate account" }));
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "My Account" })).toBeInTheDocument()
+    );
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/profile"),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ is_active: true }),
+      })
+    );
+    confirmSpy.mockRestore();
   });
 
   it("clears session when auth callback omits session", async () => {

@@ -228,15 +228,32 @@ describe("api/profile/index", () => {
     );
   });
 
-  it("rejects account reactivation", async () => {
+  it("reactivates account and restores devices on POST", async () => {
     requireUserAuth.mockResolvedValue({
       user: { id: "u1", email: "a@b.com", user_metadata: {} },
     });
+
+    const profileChain = {
+      upsert: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const devicesChain = {
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    };
+    devicesChain.update.mockReturnValue(devicesChain);
+
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "profiles") return profileChain;
+      if (table === "devices") return devicesChain;
+      return profileChain;
+    });
+
     const res = mockRes();
     await handler({ method: "POST", body: { is_active: true }, headers: {} }, res);
-    expect(res._status).toBe(403);
-    expect(res._json.error).toMatch(/cannot be reactivated/i);
-    expect(supabaseAdmin.from).not.toHaveBeenCalled();
+    expect(res._status).toBe(200);
+    expect(res._json.is_active).toBe(true);
+    expect(devicesChain.update).toHaveBeenCalledWith({ status: "active" });
+    expect(supabaseAdmin.auth.admin.signOut).not.toHaveBeenCalled();
   });
 
   it("treats non-string display_name as empty when ensuring profile", async () => {
