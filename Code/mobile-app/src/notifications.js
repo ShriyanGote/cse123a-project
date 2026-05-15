@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 
 Notifications.setNotificationHandler({
@@ -22,14 +21,6 @@ export async function ensureLocalNotificationPermissionsAsync() {
     return null;
   }
 
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: "#0ea5e9",
-    });
-  }
   return true;
 }
 
@@ -74,7 +65,7 @@ export async function clearLowWaterNotificationsOnSignOut() {
       }
     }
   } catch {
-    // getPresentedNotificationsAsync is unavailable on some platforms (e.g. Android).
+    // getPresentedNotificationsAsync may be unavailable on some runtimes.
     await Notifications.dismissAllNotificationsAsync().catch(() => {});
   }
 }

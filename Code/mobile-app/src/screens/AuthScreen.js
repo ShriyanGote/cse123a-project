@@ -4,7 +4,6 @@ import {
   Animated,
   Easing,
   PanResponder,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -127,7 +126,7 @@ export default function AuthScreen({ onOpenIntro }) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          automaticallyAdjustKeyboardInsets
         >
         <Animated.View
           style={[

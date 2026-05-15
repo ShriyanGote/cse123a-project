@@ -23,7 +23,7 @@ function assertHttps(url) {
   }
 }
 
-async function apiFetch(path, init = {}) {
+export async function apiFetch(path, init = {}) {
   assertHttps(apiBaseUrl);
   const headers = await getAuthHeaders();
   const res = await fetch(`${apiBaseUrl}${path}`, {

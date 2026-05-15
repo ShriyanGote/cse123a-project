@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import * as ReactNative from "react-native";
 import {
   Animated,
   Easing,
@@ -7,7 +8,6 @@ import {
   StyleSheet,
   Text,
   View,
-  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,9 +30,15 @@ const FEATURE_ITEMS = [
   },
 ];
 
+export const COMPACT_LAYOUT_MAX_WIDTH = 380;
+
+export function isCompactLayout(width) {
+  return width < COMPACT_LAYOUT_MAX_WIDTH;
+}
+
 export default function IntroScreen({ onContinue }) {
-  const { width } = useWindowDimensions();
-  const isCompact = width < 380;
+  const { width } = ReactNative.useWindowDimensions();
+  const isCompact = isCompactLayout(width);
   const heroAnim = useRef(new Animated.Value(0)).current;
   const featureAnims = useRef(FEATURE_ITEMS.map(() => new Animated.Value(0))).current;
   const buttonAnim = useRef(new Animated.Value(0)).current;

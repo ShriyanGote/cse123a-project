@@ -36,7 +36,22 @@ import { useLowWaterMonitor } from "./src/useLowWaterMonitor";
 const Stack = createNativeStackNavigator();
 const INTRO_COMPLETED_KEY = "app:intro-completed";
 
-const navigationRef = createNavigationContainerRef();
+export const navigationRef = createNavigationContainerRef();
+
+export function groupScreenTitle(route) {
+  return route?.params?.groupName ?? "Group";
+}
+
+export function resolveGroupNavName(groupName) {
+  return groupName || "Group";
+}
+
+export function groupStackScreenOptions({ route }) {
+  return {
+    title: groupScreenTitle(route),
+    animation: "slide_from_right",
+  };
+}
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -66,14 +81,14 @@ export default function App() {
     if (!gate.hasUser || gate.showIntro || gate.isDeactivated) {
       pendingGroupNavRef.current = {
         groupId,
-        groupName: groupName || "Group",
+        groupName: resolveGroupNavName(groupName),
       };
       return;
     }
     if (!navigationRef.isReady()) {
       pendingGroupNavRef.current = {
         groupId,
-        groupName: groupName || "Group",
+        groupName: resolveGroupNavName(groupName),
       };
       return;
     }
@@ -81,10 +96,13 @@ export default function App() {
     try {
       navigationRef.navigate("Group", {
         groupId,
-        groupName: groupName || "Group",
+        groupName: resolveGroupNavName(groupName),
       });
     } catch {
-      pendingGroupNavRef.current = { groupId, groupName: groupName || "Group" };
+      pendingGroupNavRef.current = {
+        groupId,
+        groupName: resolveGroupNavName(groupName),
+      };
     }
   }
 
@@ -382,13 +400,7 @@ export default function App() {
               >
                 {(props) => <ProvisionDeviceScreen {...props} user={session.user} />}
               </Stack.Screen>
-              <Stack.Screen
-                name="Group"
-                options={({ route }) => ({
-                  title: route.params?.groupName ?? "Group",
-                  animation: "slide_from_right",
-                })}
-              >
+              <Stack.Screen name="Group" options={groupStackScreenOptions}>
                 {(props) => <GroupScreen {...props} user={session.user} />}
               </Stack.Screen>
             </Stack.Navigator>

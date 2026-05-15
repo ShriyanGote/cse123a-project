@@ -3,7 +3,7 @@ const { defineConfig, globalIgnores } = require("eslint/config");
 const globals = require("globals");
 
 module.exports = defineConfig([
-  globalIgnores(["coverage/**", "ios/**", "android/**", "node_modules/**"]),
+  globalIgnores(["coverage/**", "ios/**", "node_modules/**"]),
   expoConfig,
   {
     files: ["**/*.test.js"],

@@ -1,10 +1,15 @@
 import { Buffer } from "buffer";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import {
+  parseQrPayload,
+  randomUuidV4,
+  resolveUuid,
+  toBase64Text,
+} from "../lib/provisionQr";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Modal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -26,14 +31,12 @@ const FALLBACK_STATUS_CHAR_UUID = "a0b40004-9267-4d61-a8c8-9f2f4b2c8e01";
 /** After Wi‑Fi is sent over BLE, if the server never sees the device in this window, assume bad Wi‑Fi or no connectivity. */
 const DEVICE_VISIBLE_AFTER_WIFI_MS = 10000;
 
-function resolveUuid(envValue, fallbackValue) {
-  const value = typeof envValue === "string" ? envValue.trim() : "";
-  if (!value) return fallbackValue;
-  // Ignore placeholder values such as xxxx-xxxx-... from local env files.
-  if (/^x+(-x+)*$/i.test(value.replace(/\{|\}/g, ""))) {
-    return fallbackValue;
-  }
-  return value;
+export function resolveDeviceRegistrationName(deviceNickname, espName, deviceId) {
+  return deviceNickname.trim() || espName.trim() || deviceId.trim();
+}
+
+export function rawQrValue(rawData) {
+  return rawData ?? "";
 }
 
 const DEFAULT_SERVICE_UUID = resolveUuid(
@@ -52,81 +55,6 @@ const DEFAULT_STATUS_CHAR_UUID = resolveUuid(
   process.env.EXPO_PUBLIC_ESP_STATUS_CHAR_UUID,
   FALLBACK_STATUS_CHAR_UUID
 );
-
-function toBase64Text(text) {
-  return Buffer.from(text, "utf8").toString("base64");
-}
-
-/** Avoid expo-crypto here: it requires native ExpoCryptoAES, which breaks in some runtimes (e.g. Expo Go / skewed builds). */
-function randomUuidV4() {
-  const c = typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
-  if (c && typeof c.randomUUID === "function") return c.randomUUID();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
-    const r = (Math.random() * 16) | 0;
-    const v = ch === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-function parseQrPayload(rawValue) {
-  if (!rawValue || typeof rawValue !== "string") return null;
-
-  const text = rawValue.trim();
-
-  const tryJson = (input) => {
-    try {
-      const parsed = JSON.parse(input);
-      return parsed && typeof parsed === "object" ? parsed : null;
-    } catch {
-      return null;
-    }
-  };
-
-  const fromJson = tryJson(text);
-  if (fromJson) return fromJson;
-
-  // Some QR generators prepend labels/log text before JSON.
-  const firstBrace = text.indexOf("{");
-  const lastBrace = text.lastIndexOf("}");
-  if (firstBrace !== -1 && lastBrace > firstBrace) {
-    const jsonSlice = text.slice(firstBrace, lastBrace + 1);
-    const fromSlice = tryJson(jsonSlice);
-    if (fromSlice) return fromSlice;
-
-    // Tolerate single-quoted pseudo-JSON.
-    const singleQuoted = jsonSlice.replace(/'/g, "\"");
-    const fromSingleQuoted = tryJson(singleQuoted);
-    if (fromSingleQuoted) return fromSingleQuoted;
-  }
-
-  // Support URL payloads like espprov://...?device_name=... or https://...?... 
-  try {
-    const url = new URL(text);
-    const params = Object.fromEntries(url.searchParams.entries());
-    if (Object.keys(params).length > 0) return params;
-  } catch {
-    // Not a URL. Continue.
-  }
-
-  // Support base64-encoded JSON payloads.
-  try {
-    const decoded = Buffer.from(text, "base64").toString("utf8");
-    const fromBase64Json = tryJson(decoded);
-    if (fromBase64Json) return fromBase64Json;
-
-    const b64FirstBrace = decoded.indexOf("{");
-    const b64LastBrace = decoded.lastIndexOf("}");
-    if (b64FirstBrace !== -1 && b64LastBrace > b64FirstBrace) {
-      const b64Slice = decoded.slice(b64FirstBrace, b64LastBrace + 1);
-      const fromB64Slice = tryJson(b64Slice);
-      if (fromB64Slice) return fromB64Slice;
-    }
-  } catch {
-    // Not base64 JSON.
-  }
-
-  return null;
-}
 
 export default function ProvisionDeviceScreen({ navigation }) {
   const headerHeight = useHeaderHeight();
@@ -157,18 +85,16 @@ export default function ProvisionDeviceScreen({ navigation }) {
   const [bleUnavailableReason, setBleUnavailableReason] = useState("");
   const bleManagerRef = useRef(null);
   const connectedDeviceRef = useRef(null);
+  const bleScanTimeoutRef = useRef(null);
+  const isMountedRef = useRef(true);
   const hasHandledScanRef = useRef(false);
   const isQrScanActiveRef = useRef(false);
   const handleBarcodeScannedRef = useRef(null);
   const stableBarcodeHandler = useRef(({ data }) => {
     handleBarcodeScannedRef.current?.({ data });
   }).current;
-  const isIos = Platform.OS === "ios";
-  const canUseNativeProvisioning = isIos;
-
   const isReadyToSendBlePayload = useMemo(() => {
     return (
-      canUseNativeProvisioning &&
       !bleUnavailableReason &&
       authToken &&
       deviceId.trim() &&
@@ -179,7 +105,6 @@ export default function ProvisionDeviceScreen({ navigation }) {
       wifiSsid
     );
   }, [
-    canUseNativeProvisioning,
     bleUnavailableReason,
     authToken,
     deviceId,
@@ -195,7 +120,13 @@ export default function ProvisionDeviceScreen({ navigation }) {
   }, []);
 
   useEffect(() => {
-    if (!canUseNativeProvisioning) return undefined;
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     try {
       const { BleManager } = require("react-native-ble-plx");
       bleManagerRef.current = new BleManager();
@@ -208,6 +139,10 @@ export default function ProvisionDeviceScreen({ navigation }) {
       console.warn("BLE initialization failed:", bleInitError?.message ?? bleInitError);
     }
     return () => {
+      if (bleScanTimeoutRef.current != null) {
+        clearTimeout(bleScanTimeoutRef.current);
+        bleScanTimeoutRef.current = null;
+      }
       try {
         bleManagerRef.current?.stopDeviceScan();
       } catch {
@@ -224,7 +159,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
         // Ignore destroy failures.
       }
     };
-  }, [canUseNativeProvisioning]);
+  }, []);
 
   async function openQrScanner() {
     setError("");
@@ -275,7 +210,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
   };
 
   function applyQrData(rawData) {
-    setLastQrRawValue(rawData ?? "");
+    setLastQrRawValue(rawQrValue(rawData));
     const parsed = parseQrPayload(rawData);
     if (!parsed) {
       setError(
@@ -341,9 +276,6 @@ export default function ProvisionDeviceScreen({ navigation }) {
   }
 
   async function findAndConnectDevice() {
-    if (!canUseNativeProvisioning) {
-      throw new Error("BLE provisioning is currently enabled for iOS only.");
-    }
     if (!espName.trim()) {
       throw new Error("Scan QR or enter ESP device name first.");
     }
@@ -352,8 +284,17 @@ export default function ProvisionDeviceScreen({ navigation }) {
     const expected = espName.trim().toLowerCase();
     const seenNames = new Set();
 
+    const clearScanTimeout = () => {
+      if (bleScanTimeoutRef.current != null) {
+        clearTimeout(bleScanTimeoutRef.current);
+        bleScanTimeoutRef.current = null;
+      }
+    };
+
     const device = await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
+      clearScanTimeout();
+      bleScanTimeoutRef.current = setTimeout(() => {
+        bleScanTimeoutRef.current = null;
         manager.stopDeviceScan();
         const sample = Array.from(seenNames).slice(0, 6).join(", ");
         reject(
@@ -367,7 +308,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
 
       manager.startDeviceScan(null, null, (scanError, candidate) => {
         if (scanError) {
-          clearTimeout(timeout);
+          clearScanTimeout();
           manager.stopDeviceScan();
           reject(scanError);
           return;
@@ -388,7 +329,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
             (lowerLocalName === expected || lowerLocalName.startsWith(expected)));
 
         if (match) {
-          clearTimeout(timeout);
+          clearScanTimeout();
           manager.stopDeviceScan();
           resolve(candidate);
         }
@@ -414,17 +355,16 @@ export default function ProvisionDeviceScreen({ navigation }) {
       setError("Need QR (device name), auth token, BLE UUIDs, and Wi-Fi SSID before sending.");
       return;
     }
-    if (!deviceId.trim()) {
-      setError("device_id from QR is required so the server can authorize the ESP before Wi‑Fi connects.");
-      return;
-    }
 
     setIsBleBusy(true);
     setError("");
     setMessage("");
     try {
-      const nameForServer =
-        deviceNickname.trim() || espName.trim() || deviceId.trim();
+      const nameForServer = resolveDeviceRegistrationName(
+        deviceNickname,
+        espName,
+        deviceId
+      );
       await registerBleDevice({
         device_id: deviceId.trim(),
         auth_token: authToken.trim(),
@@ -522,12 +462,14 @@ export default function ProvisionDeviceScreen({ navigation }) {
     try {
       const deadline = Date.now() + DEVICE_VISIBLE_AFTER_WIFI_MS;
       while (Date.now() < deadline) {
+        if (!isMountedRef.current) return;
         try {
           const { devices: latest = [] } = await fetchMyDevices();
           const found = latest.find(
             (d) => String(d.device_id ?? "").toLowerCase() === targetDeviceId.toLowerCase()
           );
           if (found) {
+            if (!isMountedRef.current) return;
             setMessage("Device is registered. Returning to Home.");
             if (navigation?.popToTop) {
               navigation.popToTop();
@@ -540,6 +482,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
           console.log("device poll failed (will retry):", pollError?.message ?? pollError);
         }
         await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (!isMountedRef.current) return;
       }
       setError(
         `No response from the server within ${Math.round(DEVICE_VISIBLE_AFTER_WIFI_MS / 1000)} seconds. The sensor may not have joined Wi‑Fi — check SSID and password, then try again.`
@@ -555,7 +498,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          automaticallyAdjustKeyboardInsets
         >
         <View style={styles.card}>
           <Text style={styles.title}>Device Provisioning</Text>
@@ -565,12 +508,7 @@ export default function ProvisionDeviceScreen({ navigation }) {
             over BLE so ingest works as soon as the board gets online.
           </Text>
 
-          {!canUseNativeProvisioning ? (
-            <Text style={styles.platformNote}>
-              QR + BLE provisioning is enabled for iOS first. Use iOS dev build for native
-              Bluetooth behavior.
-            </Text>
-          ) : bleUnavailableReason ? (
+          {bleUnavailableReason ? (
             <Text style={styles.platformNote}>{bleUnavailableReason}</Text>
           ) : null}
 

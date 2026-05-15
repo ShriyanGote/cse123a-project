@@ -1,4 +1,4 @@
-import { generateInviteCode } from "./inviteCode";
+import { generateInviteCode } from "../../src/lib/inviteCode";
 
 describe("generateInviteCode", () => {
   afterEach(() => {
@@ -7,6 +7,10 @@ describe("generateInviteCode", () => {
 
   it("returns a string of the requested length", () => {
     expect(generateInviteCode(8)).toHaveLength(8);
+  });
+
+  it("defaults to length 6", () => {
+    expect(generateInviteCode()).toHaveLength(6);
   });
 
   it("uses only characters from the invite alphabet", () => {

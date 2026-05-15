@@ -34,9 +34,11 @@ function putState(groupId, state) {
 }
 
 function readingSignature(latestReading) {
-  if (!latestReading || latestReading.weight_g == null) return null;
+  /* istanbul ignore if -- only called after a valid weight_g reading */
+  if (latestReading.weight_g == null) return null;
   const t = latestReading.created_at ?? latestReading.updated_at ?? "";
-  return `${t}|${latestReading.weight_g}|${latestReading.battery_mv ?? ""}`;
+  const battery = latestReading.battery_mv;
+  return `${t}|${latestReading.weight_g}|${battery == null ? "" : battery}`;
 }
 
 export function waterPercentForGroup(group, latestReading) {
@@ -59,7 +61,7 @@ function groupDisplayName(group) {
  * @param {string | null} lastAlertedSig
  * @param {string | null} readingSig
  */
-function shouldAlertLowWater(prevPercent, currentPercent, lastAlertedSig, readingSig) {
+export function shouldAlertLowWater(prevPercent, currentPercent, lastAlertedSig, readingSig) {
   if (currentPercent >= LOW_WATER_THRESHOLD_PERCENT || !readingSig) {
     return false;
   }

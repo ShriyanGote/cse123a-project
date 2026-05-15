@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { KeyboardAvoidingView, StyleSheet } from "react-native";
 
 /**
  * Shrinks the layout when the keyboard is open so focused fields stay visible.
@@ -11,7 +11,7 @@ export default function KeyboardAvoidingWrapper({
   return (
     <KeyboardAvoidingView
       style={styles.fill}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
       {children}

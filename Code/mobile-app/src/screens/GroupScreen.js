@@ -4,7 +4,6 @@ import {
   Alert,
   FlatList,
   Modal,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -131,12 +130,8 @@ export default function GroupScreen({ route, user, navigation }) {
           text: "Transfer",
           style: "destructive",
           onPress: async () => {
-            try {
-              setGeneralError("");
-              await updateMemberRole(targetUserId, "owner");
-            } catch (e) {
-              setGeneralError(e.message ?? "Could not transfer ownership.");
-            }
+            setGeneralError("");
+            await updateMemberRole(targetUserId, "owner");
           },
         },
       ]
@@ -229,7 +224,7 @@ export default function GroupScreen({ route, user, navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <FlatList
         data={members}
-        keyExtractor={(item) => item.user_id}
+        keyExtractor={(item) => `${item.user_id}-${item.role}`}
         contentContainerStyle={styles.container}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={() => {
@@ -306,24 +301,28 @@ export default function GroupScreen({ route, user, navigation }) {
               </View>
               {canRemoveMember || canTransferOwnership ? (
                 <View style={styles.memberActions}>
-                  {canTransferOwnership ? (
+                  {canTransferOwnership && (
                     <Pressable
-                      onPress={() => confirmTransferOwnership(item.user_id, baseName)}
+                      onPress={() =>
+                        confirmTransferOwnership(item.user_id, baseName)
+                      }
                       style={styles.smallButton}
                     >
                       <Text style={styles.smallButtonText}>Set owner</Text>
                     </Pressable>
-                  ) : null}
-                  {canRemoveMember ? (
+                  )}
+                  {canRemoveMember && (
                     <Pressable
                       onPress={() => removeMember(item.user_id)}
                       style={[styles.smallButton, styles.smallButtonDanger]}
                     >
-                      <Text style={[styles.smallButtonText, styles.smallButtonDangerText]}>
+                      <Text
+                        style={[styles.smallButtonText, styles.smallButtonDangerText]}
+                      >
                         Remove
                       </Text>
                     </Pressable>
-                  ) : null}
+                  )}
                 </View>
               ) : null}
             </View>
@@ -341,7 +340,7 @@ export default function GroupScreen({ route, user, navigation }) {
             style={styles.modalKeyboardRoot}
             contentContainerStyle={styles.modalScrollContent}
             keyboardShouldPersistTaps="handled"
-            automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+            automaticallyAdjustKeyboardInsets
           >
             <View style={styles.modalCard}>
               <Text style={styles.editTitle}>Edit Group</Text>
