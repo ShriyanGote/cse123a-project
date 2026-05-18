@@ -1,6 +1,6 @@
-\subsection{Testing HX711}
+\subsection{Testing the Amplifier}
 
-To test the code written for this project, we defrost had to create a simulated version of the sensor. Regardless of what the sensor reports we want to make sure that all of our math and interpretation of incoming data is correct. To do this, the functions were adapted to either take input from GPIO pins, or from a specific test file. 
+To test the code written for this project, we first had to create a simulated version of the sensor. Regardless of what the sensor reports we want to make sure that all of our math and interpretation of incoming data is correct. To do this, the functions were adapted to either take input from GPIO pins, or from a specific test file. 
 
 \subsubsection{Test File}
 
@@ -15,7 +15,7 @@ Inside the test file are adapted versions of each function used by the main HX71
 \item get\_grams
 \end{itemize}
 
-With each of these functions, the test file simulates reading data from the sensor. 
+With each of these functions, the test file simulates reading data from the sensor. This code was created to simulate our selected load cell and amplifier combo. The design includes this amplifier. The code will need to be adapted for any other amplifier that uses a different form of communication or a different packet structure. This code can be adapted by changing the functions specifically related to the amplifier labeled with HX711. 
 
 \subsubsection{Simulated Data}
 
