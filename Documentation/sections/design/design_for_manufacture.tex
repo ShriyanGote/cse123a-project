@@ -2,7 +2,17 @@
 
 The design is intended for large scale manufacturing using a custom PCB. This custom PCB includes all required components such as the CPU, RAM, and Flash storage required to function as a microcontroller. It will also include power contacts for the battery, a power management unit for charging the included battery, and components like the WiFi antenna. The PCB design is an outline of what is required. Selected components can be changed and the circuitry altered as required if parts are unavailable.
 
-The PCB will be mounted inside the 3D printed base and all other components will be contained within the base or related plates. The product is intended to be useable, and rechargeable without having to take apart or disconnect any internal components. This is so that it can be properly sealed from humidity to protect the sensitve electronic components. 
+The PCB will be mounted inside the 3D printed base and all other components will be contained within the base or related plates. The product is intended to be useable, and rechargeable without having to take apart or disconnect any internal components. This is so that it can be properly sealed from humidity to protect the sensitive electronic components. 
+
+The following diagram is the circuit diagram for the PCB we designed with currently available components. Additional components may be required if using different hardware than what we designed. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1.0\textwidth]{../Hardware Notes/PCB Design/pcb-layout-rev4.pdf}
+\caption{Wiring Diagram for PCB Components}
+\end{figure}
+
+To reduce the 
 
 \subsubsection{3D-Printed House}
 The base assembly consists of three 3D-printed parts: a top plate, a bottom plate, and a compartment at the bottom for the electronics. All parts are printed in PLA. The top and bottom plates are both 110mm in diameter and 8mm thick, with M4 screw holes and racetrack-shaped pockets for mounting the load cell. The plates went through multiple iterations to resolve flatness issues, which affected the stability of the load cell.
