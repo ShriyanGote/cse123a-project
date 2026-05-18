@@ -12,7 +12,7 @@
 
 #include "HX711.h"
 
-#define WIFI_CONNECT_TIMEOUT_MS 30000
+#define WIFI_CONNECT_TIMEOUT_MS 15000
 #define DEBUG 1
 
 static bool tareDone = false;
@@ -34,6 +34,11 @@ static void load_state(void)
     nvs_get_i32(h, "gramBefore", &gramBefore);
     nvs_get_u8(h, "wifiValid", (uint8_t *)&wifiWasValidated);
 
+    int32_t saved_offset = 0;
+    if (nvs_get_i32(h, "offset", &saved_offset) == ESP_OK) {
+        hx711_set_offset(saved_offset);
+    }
+
     nvs_close(h);
 }
 
@@ -47,6 +52,8 @@ static void save_state(void)
     nvs_set_i32(h, "gramBefore", gramBefore);
     nvs_set_u8(h, "wifiValid", wifiWasValidated);
 
+    nvs_set_i32(h, "offset", hx711_get_offset());
+    
     ESP_ERROR_CHECK(nvs_commit(h));
     nvs_close(h);
 }
@@ -115,7 +122,7 @@ void app_main(void)
             ESP_LOGW(TAG, "Wi-Fi already validated before; router may be off. Sleeping/retrying later");
 
             hx711_power_down();
-            esp_sleep_enable_timer_wakeup(60 * 1000000ULL);
+            esp_sleep_enable_timer_wakeup(15 * 1000000ULL);
             esp_deep_sleep_start();
         }
     }

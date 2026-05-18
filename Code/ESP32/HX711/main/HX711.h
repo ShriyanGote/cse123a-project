@@ -28,3 +28,6 @@ int32_t hx711_raw_change(int32_t raw, int32_t offset);
 
 int32_t hx711_get_offset(void);
 float hx711_get_scale(void);
+
+void hx711_set_offset(int32_t offset);
+void hx711_set_scale(float scale);

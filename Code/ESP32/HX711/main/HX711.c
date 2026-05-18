@@ -195,6 +195,16 @@ float hx711_get_scale(void)
     return g_scale;
 }
 
+void hx711_set_offset(int32_t offset)
+{
+    g_offset = offset;
+}
+
+void hx711_set_scale(float scale)
+{
+    g_scale = scale;
+}
+
 //CHECKS DOUT, if BEFORE is HIGH there is problem, most likely wiring
 void dout_checker(void)
 {
