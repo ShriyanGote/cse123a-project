@@ -6,8 +6,7 @@ import { supabaseAdmin } from "../_lib/supabaseAdmin.js";
 // 12-function limit on Hobby plans.
 //   GET  /api/profile                        -> current profile
 //   POST /api/profile { display_name }       -> upsert display name (formerly /ensure)
-//   POST /api/profile { is_active: false }   -> deactivate account
-//   POST /api/profile { is_active: true }    -> reactivate account
+//   POST /api/profile { delete_account: true } -> permanently delete account
 //   POST /api/profile { sign_out_all: true } -> revoke refresh tokens on all devices
 export default async function handler(req, res) {
   setCors(res, "GET, POST, OPTIONS");
@@ -16,8 +15,7 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
 
-  // Allow deactivated users to read their own status only.
-  const auth = await requireUserAuth(req, res, { allowDeactivated: true });
+  const auth = await requireUserAuth(req, res);
   if (!auth) return;
 
   if (req.method === "GET") {
@@ -27,8 +25,8 @@ export default async function handler(req, res) {
     if (req.body?.sign_out_all === true) {
       return handleSignOutAll(req, res, auth);
     }
-    if (typeof req.body?.is_active === "boolean") {
-      return handleSetActive(req, res, auth);
+    if (req.body?.delete_account === true) {
+      return handleDeleteAccount(req, res, auth);
     }
     return handleEnsure(req, res, auth);
   }
@@ -38,7 +36,7 @@ export default async function handler(req, res) {
 async function handleGet(_req, res, auth) {
   const { data, error } = await supabaseAdmin
     .from("profiles")
-    .select("id, display_name, is_active")
+    .select("id, display_name")
     .eq("id", auth.user.id)
     .maybeSingle();
 
@@ -49,7 +47,6 @@ async function handleGet(_req, res, auth) {
   return res.status(200).json({
     id: auth.user.id,
     display_name: data?.display_name ?? null,
-    is_active: data?.is_active ?? true,
   });
 }
 
@@ -71,43 +68,91 @@ async function handleEnsure(req, res, auth) {
   return res.status(200).json({ ok: true });
 }
 
-async function handleSetActive(req, res, auth) {
-  const isActive = req.body.is_active;
-  const userId = auth.user.id;
-
-  const { error: profileError } = await supabaseAdmin
-    .from("profiles")
-    .upsert({ id: userId, is_active: isActive });
-  if (profileError) {
-    return res.status(500).json({ error: profileError.message });
-  }
-
-  const nextDeviceStatus = isActive ? "active" : "revoked";
-  const { error: devicesError } = await supabaseAdmin
-    .from("devices")
-    .update({ status: nextDeviceStatus })
-    .eq("created_by", userId);
-  if (devicesError) {
-    return res.status(500).json({
-      error: `Profile updated but failed to update devices: ${devicesError.message}`,
-    });
-  }
-
-  if (!isActive) {
-    try {
-      await supabaseAdmin.auth.admin.signOut(userId, "global");
-    } catch {
-      // Best-effort.
-    }
-  }
-
-  return res.status(200).json({ ok: true, is_active: isActive });
-}
-
 async function handleSignOutAll(_req, res, auth) {
   const { error } = await supabaseAdmin.auth.admin.signOut(auth.token, "global");
   if (error) {
     return res.status(500).json({ error: error.message });
   }
   return res.status(200).json({ ok: true });
+}
+
+async function handleDeleteAccount(_req, res, auth) {
+  const userId = auth.user.id;
+
+  const { data: ownedMemberships, error: ownedError } = await supabaseAdmin
+    .from("group_members")
+    .select("group_id")
+    .eq("user_id", userId)
+    .eq("role", "owner");
+  if (ownedError) {
+    return res.status(500).json({ error: ownedError.message });
+  }
+
+  for (const { group_id: groupId } of ownedMemberships ?? []) {
+    const { data: members, error: membersError } = await supabaseAdmin
+      .from("group_members")
+      .select("user_id")
+      .eq("group_id", groupId);
+    if (membersError) {
+      return res.status(500).json({ error: membersError.message });
+    }
+
+    const others = (members ?? []).filter((member) => member.user_id !== userId);
+    if (others.length === 0) {
+      const { error: deleteGroupError } = await supabaseAdmin
+        .from("groups")
+        .delete()
+        .eq("id", groupId);
+      if (deleteGroupError) {
+        return res.status(500).json({ error: deleteGroupError.message });
+      }
+      continue;
+    }
+
+    const { error: promoteError } = await supabaseAdmin
+      .from("group_members")
+      .update({ role: "owner" })
+      .eq("group_id", groupId)
+      .eq("user_id", others[0].user_id);
+    if (promoteError) {
+      return res.status(500).json({ error: promoteError.message });
+    }
+  }
+
+  const { error: leaveGroupsError } = await supabaseAdmin
+    .from("group_members")
+    .delete()
+    .eq("user_id", userId);
+  if (leaveGroupsError) {
+    return res.status(500).json({ error: leaveGroupsError.message });
+  }
+
+  const { error: orphanGroupsError } = await supabaseAdmin
+    .from("groups")
+    .delete()
+    .eq("created_by", userId);
+  if (orphanGroupsError) {
+    return res.status(500).json({ error: orphanGroupsError.message });
+  }
+
+  const { error: devicesError } = await supabaseAdmin
+    .from("devices")
+    .update({ status: "revoked" })
+    .eq("created_by", userId);
+  if (devicesError) {
+    return res.status(500).json({ error: devicesError.message });
+  }
+
+  try {
+    await supabaseAdmin.auth.admin.signOut(userId, "global");
+  } catch {
+    // Best-effort.
+  }
+
+  const { error: deleteUserError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  if (deleteUserError) {
+    return res.status(500).json({ error: deleteUserError.message });
+  }
+
+  return res.status(200).json({ ok: true, deleted: true });
 }

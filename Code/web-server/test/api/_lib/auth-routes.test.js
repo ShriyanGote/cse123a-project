@@ -53,37 +53,11 @@ describe("requireUserAuth", () => {
     expect(res._status).toBe(403);
   });
 
-  it("returns null and 403 when account is deactivated", async () => {
-    supabaseAdmin.auth.getUser.mockResolvedValue({
-      data: { user: { id: "u1", aud: "authenticated" } },
-      error: null,
-    });
-    const profileChain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { is_active: false }, error: null }),
-    };
-    supabaseAdmin.from.mockReturnValue(profileChain);
-
-    const req = { headers: { authorization: "Bearer tok" } };
-    const res = mockRes();
-    const auth = await requireUserAuth(req, res);
-    expect(auth).toBeNull();
-    expect(res._status).toBe(403);
-    expect(res._json.code).toBe("account_deactivated");
-  });
-
   it("attaches auth and returns user context on success", async () => {
     supabaseAdmin.auth.getUser.mockResolvedValue({
       data: { user: { id: "u1", aud: "authenticated" } },
       error: null,
     });
-    const profileChain = {
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { is_active: true }, error: null }),
-    };
-    supabaseAdmin.from.mockReturnValue(profileChain);
 
     const req = { headers: { authorization: "Bearer good" } };
     const res = mockRes();
@@ -94,59 +68,11 @@ describe("requireUserAuth", () => {
     expect(req.auth).toBe(auth);
   });
 
-  it("allows deactivated accounts when allowDeactivated is true", async () => {
-    supabaseAdmin.auth.getUser.mockResolvedValue({
-      data: { user: { id: "u1", aud: "authenticated" } },
-      error: null,
-    });
-    const req = { headers: { authorization: "Bearer tok" } };
-    const res = mockRes();
-    const auth = await requireUserAuth(req, res, { allowDeactivated: true });
-    expect(auth).toMatchObject({ type: "user", user: expect.objectContaining({ id: "u1" }) });
-    expect(supabaseAdmin.from).not.toHaveBeenCalled();
-  });
-
-  it("fails open on profiles read error when checking activation", async () => {
-    supabaseAdmin.auth.getUser.mockResolvedValue({
-      data: { user: { id: "u1", aud: "authenticated" } },
-      error: null,
-    });
-    supabaseAdmin.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: { message: "db" } }),
-    });
-    const req = { headers: { authorization: "Bearer tok" } };
-    const res = mockRes();
-    const auth = await requireUserAuth(req, res);
-    expect(auth).toMatchObject({ type: "user" });
-  });
-
   it("accepts audience from comma-separated USER_JWT_AUDIENCE", async () => {
     process.env.USER_JWT_AUDIENCE = "authenticated, custom-aud ";
     supabaseAdmin.auth.getUser.mockResolvedValue({
       data: { user: { id: "u1", aud: "custom-aud" } },
       error: null,
-    });
-    supabaseAdmin.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { is_active: true }, error: null }),
-    });
-    const req = { headers: { authorization: "Bearer t" } };
-    const res = mockRes();
-    await expect(requireUserAuth(req, res)).resolves.toMatchObject({ type: "user" });
-  });
-
-  it("treats missing profile row as active", async () => {
-    supabaseAdmin.auth.getUser.mockResolvedValue({
-      data: { user: { id: "u1", aud: "authenticated" } },
-      error: null,
-    });
-    supabaseAdmin.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
     });
     const req = { headers: { authorization: "Bearer t" } };
     const res = mockRes();
@@ -166,11 +92,6 @@ describe("requireUserAuth", () => {
       data: { user: { id: "u1" } },
       error: null,
     });
-    supabaseAdmin.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { is_active: true }, error: null }),
-    });
     delete process.env.USER_JWT_AUDIENCE;
     const req = { headers: { authorization: "Bearer t" } };
     const res = mockRes();
@@ -182,26 +103,6 @@ describe("requireUserAuth", () => {
     supabaseAdmin.auth.getUser.mockResolvedValue({
       data: { user: { id: "u1", aud: "authenticated" } },
       error: null,
-    });
-    supabaseAdmin.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { is_active: true }, error: null }),
-    });
-    const req = { headers: { authorization: "Bearer t" } };
-    const res = mockRes();
-    await expect(requireUserAuth(req, res)).resolves.toMatchObject({ type: "user" });
-  });
-
-  it("treats profile row without is_active field as active", async () => {
-    supabaseAdmin.auth.getUser.mockResolvedValue({
-      data: { user: { id: "u1", aud: "authenticated" } },
-      error: null,
-    });
-    supabaseAdmin.from.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: { id: "u1" }, error: null }),
     });
     const req = { headers: { authorization: "Bearer t" } };
     const res = mockRes();

@@ -8,7 +8,6 @@ import {
   fetchMyDevices,
   fetchMyGroups,
   fetchMyProfile,
-  reactivateMyAccount,
   joinGroupByInvite,
   registerBleDevice,
   removeGroupMember,
@@ -169,7 +168,6 @@ describe("api", () => {
     await api.updateGroupMemberRole("gid", "uid", "owner");
     await api.removeGroupMember("gid", "uid");
     await api.calibrateGroup("gid", "empty");
-    await api.reactivateMyAccount();
 
     const calls = global.fetch.mock.calls;
     expect(calls[2][1].body).toContain('"display_name":null');
@@ -188,9 +186,6 @@ describe("api", () => {
       "PATCH",
       "DELETE",
       "POST",
-      "POST",
     ]);
-    expect(calls[calls.length - 1][0]).toContain("/api/profile");
-    expect(calls[calls.length - 1][1].body).toContain('"is_active":true');
   });
 });

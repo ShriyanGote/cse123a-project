@@ -37,8 +37,7 @@ function createSupabaseMock() {
 function createApiMock() {
   return {
     ensureMyProfile: jest.fn(() => Promise.resolve()),
-    fetchMyProfile: jest.fn(() => Promise.resolve({ is_active: true })),
-    reactivateMyAccount: jest.fn(() => Promise.resolve({ ok: true, is_active: true })),
+    fetchMyProfile: jest.fn(() => Promise.resolve({ id: "u1", display_name: "User" })),
     fetchMyGroups: jest.fn(() => Promise.resolve({ groups: [] })),
     fetchMyDevices: jest.fn(() => Promise.resolve({ devices: [] })),
   };
@@ -61,7 +60,7 @@ function configureNavigationRef(navigationRef, { ready = true, dispatch } = {}) 
 
 function resetAppTestState(navigationRef, { introCompleted = true } = {}) {
   const AsyncStorage = require("@react-native-async-storage/async-storage");
-  const { ensureMyProfile, fetchMyProfile } = require("../../src/api");
+  const { ensureMyProfile } = require("../../src/api");
 
   configureNavigationRef(navigationRef);
   mockGetSession.mockResolvedValue({ data: { session: null } });
@@ -69,7 +68,6 @@ function resetAppTestState(navigationRef, { introCompleted = true } = {}) {
   mockGetUser.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
   AsyncStorage.getItem.mockResolvedValue(introCompleted ? "true" : null);
   AsyncStorage.setItem.mockResolvedValue();
-  fetchMyProfile.mockResolvedValue({ is_active: true });
   ensureMyProfile.mockResolvedValue(undefined);
 }
 

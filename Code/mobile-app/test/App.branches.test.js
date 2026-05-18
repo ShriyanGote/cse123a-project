@@ -2,7 +2,7 @@ import React from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import App, { navigationRef } from "../App";
-import { ensureMyProfile, fetchMyProfile } from "../src/api";
+import { ensureMyProfile } from "../src/api";
 import {
   addNotificationResponseListener,
   ensureLocalNotificationPermissionsAsync,
@@ -194,71 +194,6 @@ describe("App branch coverage", () => {
     const { unmount } = render(<App />);
     await waitFor(() => expect(ensureMyProfile).toHaveBeenCalled());
     unmount();
-  });
-
-  it("ignores profile deactivation updates after unmount", async () => {
-    let resolveProfile;
-    fetchMyProfile.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolveProfile = resolve;
-        })
-    );
-    signIn();
-    const { unmount } = render(<App />);
-    await waitFor(() => expect(fetchMyProfile).toHaveBeenCalled());
-    unmount();
-    await act(async () => {
-      resolveProfile({ is_active: false });
-    });
-  });
-
-  it("marks account deactivated when profile fetch message matches 403", async () => {
-    signIn();
-    fetchMyProfile.mockRejectedValueOnce(new Error("Forbidden 403"));
-    render(<App />);
-    await waitFor(() =>
-      expect(screen.getByText("Account deactivated")).toBeTruthy()
-    );
-    expect(mockSignOut).not.toHaveBeenCalled();
-  });
-
-  it("ignores non-deactivation profile fetch errors", async () => {
-    signIn();
-    fetchMyProfile.mockRejectedValueOnce(new Error("network down"));
-    render(<App />);
-    await waitFor(() => expect(fetchMyProfile).toHaveBeenCalled());
-    expect(mockSignOut).not.toHaveBeenCalled();
-  });
-
-  it("stays on auth after sign-out even if profile realtime sets is_active true", async () => {
-    signIn();
-    fetchMyProfile.mockResolvedValue({ is_active: false });
-    const { supabase } = require("../src/supabase");
-    let updateHandler;
-    supabase.channel.mockImplementation(() => ({
-      on: jest.fn((_event, _filter, handler) => {
-        updateHandler = handler;
-        return { subscribe: jest.fn() };
-      }),
-      subscribe: jest.fn(),
-    }));
-    render(<App />);
-    await waitFor(() =>
-      expect(screen.getByText("Account deactivated")).toBeTruthy()
-    );
-    await act(async () => {
-      fireEvent.press(screen.getByText("Sign out"));
-    });
-    await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
-    await act(async () => {
-      mockOnAuthStateChange("SIGNED_OUT", null);
-      updateHandler({ new: { is_active: true } });
-    });
-    await waitFor(() =>
-      expect(screen.getByText("Water Group Dashboard")).toBeTruthy()
-    );
-    expect(screen.queryByText("Home")).toBeNull();
   });
 
   it("warns with fallback text when intro save fails without a message", async () => {

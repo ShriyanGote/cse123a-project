@@ -8,7 +8,6 @@ import {
   Easing,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,7 +23,7 @@ import DashboardScreen from "./src/screens/DashboardScreen";
 import GroupScreen from "./src/screens/GroupScreen";
 import IntroScreen from "./src/screens/IntroScreen";
 import ProvisionDeviceScreen from "./src/screens/ProvisionDeviceScreen";
-import { ensureMyProfile, fetchMyProfile, reactivateMyAccount } from "./src/api";
+import { ensureMyProfile } from "./src/api";
 import {
   addNotificationResponseListener,
   clearLowWaterNotificationsOnSignOut,
@@ -61,14 +60,10 @@ export default function App() {
   const [isBooting, setIsBooting] = useState(true);
   const [showIntro, setShowIntro] = useState(null);
   const [screenTransition] = useState(() => new Animated.Value(1));
-  const [isDeactivated, setIsDeactivated] = useState(false);
-  const [isReactivating, setIsReactivating] = useState(false);
-  const [reactivateError, setReactivateError] = useState("");
   /** Latest auth / intro flags for notification handlers (avoid stale closures). */
   const navGateRef = useRef({
     hasUser: false,
     showIntro: true,
-    isDeactivated: false,
   });
   const pendingGroupNavRef = useRef(null);
 
@@ -76,14 +71,13 @@ export default function App() {
     navGateRef.current = {
       hasUser: Boolean(session?.user),
       showIntro: showIntro !== false,
-      isDeactivated,
     };
-  }, [session?.user, showIntro, isDeactivated]);
+  }, [session?.user, showIntro]);
 
   function tryOpenGroupFromNotification(groupId, groupName) {
     if (!groupId) return;
     const gate = navGateRef.current;
-    if (!gate.hasUser || gate.showIntro || gate.isDeactivated) {
+    if (!gate.hasUser || gate.showIntro) {
       pendingGroupNavRef.current = {
         groupId,
         groupName: resolveGroupNavName(groupName),
@@ -116,7 +110,7 @@ export default function App() {
     const pending = pendingGroupNavRef.current;
     if (!pending || !navigationRef.isReady()) return;
     const gate = navGateRef.current;
-    if (!gate.hasUser || gate.showIntro || gate.isDeactivated) return;
+    if (!gate.hasUser || gate.showIntro) return;
     pendingGroupNavRef.current = null;
     try {
       navigationRef.navigate("Group", pending);
@@ -224,17 +218,13 @@ export default function App() {
 
   useEffect(() => {
     flushPendingGroupNavigation();
-  }, [showIntro, isDeactivated]);
+  }, [showIntro]);
 
-  const lowWaterMonitorEnabled =
-    Boolean(session?.user) &&
-    isSupabaseConfigured &&
-    !isDeactivated;
+  const lowWaterMonitorEnabled = Boolean(session?.user) && isSupabaseConfigured;
 
   useLowWaterMonitor(lowWaterMonitorEnabled);
 
-  const remoteAuthMonitorEnabled =
-    Boolean(session?.user) && isSupabaseConfigured && !isDeactivated;
+  const remoteAuthMonitorEnabled = Boolean(session?.user) && isSupabaseConfigured;
 
   useRemoteAuthMonitor(remoteAuthMonitorEnabled);
 
@@ -244,79 +234,10 @@ export default function App() {
     clearLowWaterNotificationsOnSignOut().catch(() => {});
   }, [session?.user]);
 
-  // Check account status and subscribe to live updates so a deactivation
-  // performed from the web Settings page kicks the user out immediately.
-  useEffect(() => {
-    if (!session?.user || !isSupabaseConfigured) {
-      setIsDeactivated(false);
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    async function checkStatus() {
-      try {
-        const profile = await fetchMyProfile();
-        if (!cancelled) {
-          setIsDeactivated(profile?.is_active === false);
-        }
-      } catch (error) {
-        const message = error?.message ?? String(error);
-        if (/account.*deactivat/i.test(message) || /403/.test(message)) {
-          if (!cancelled) setIsDeactivated(true);
-        }
-      }
-    }
-
-    checkStatus();
-
-    const channel = supabase
-      .channel(`profile-${session.user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${session.user.id}`,
-        },
-        (payload) => {
-          if (typeof payload.new?.is_active === "boolean") {
-            setIsDeactivated(payload.new.is_active === false);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-    };
-  }, [session?.user?.id]);
-
   async function runSignOut() {
     clearAllLowWaterAlertState();
     await clearLowWaterNotificationsOnSignOut().catch(() => {});
     await supabase.auth.signOut({ scope: "local" });
-  }
-
-  async function handleDeactivatedSignOut() {
-    await runSignOut();
-    setIsDeactivated(false);
-    setReactivateError("");
-  }
-
-  async function handleReactivateAccount() {
-    setReactivateError("");
-    setIsReactivating(true);
-    try {
-      await reactivateMyAccount();
-      setIsDeactivated(false);
-    } catch (error) {
-      setReactivateError(error?.message ?? "Could not reactivate account.");
-    } finally {
-      setIsReactivating(false);
-    }
   }
 
   useEffect(() => {
@@ -390,35 +311,6 @@ export default function App() {
             <IntroScreen onContinue={handleCompleteIntro} />
           ) : !session?.user ? (
             <AuthScreen onOpenIntro={() => setShowIntro(true)} />
-          ) : isDeactivated ? (
-            <View style={styles.deactivatedWrap}>
-              <Text style={styles.deactivatedTitle}>Account deactivated</Text>
-              <Text style={styles.deactivatedText}>
-                Your account is deactivated. Reactivate to restore access, or sign
-                out to use a different account.
-              </Text>
-              <TouchableOpacity
-                style={[styles.deactivatedButton, isReactivating && styles.deactivatedButtonDisabled]}
-                onPress={handleReactivateAccount}
-                disabled={isReactivating}
-              >
-                {isReactivating ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text style={styles.deactivatedButtonText}>Reactivate account</Text>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deactivatedButtonSecondary}
-                onPress={handleDeactivatedSignOut}
-                disabled={isReactivating}
-              >
-                <Text style={styles.deactivatedButtonSecondaryText}>Sign out</Text>
-              </TouchableOpacity>
-              {reactivateError ? (
-                <Text style={styles.deactivatedError}>{reactivateError}</Text>
-              ) : null}
-            </View>
           ) : (
             <Stack.Navigator
               key={session.user.id}
@@ -483,58 +375,5 @@ const styles = StyleSheet.create({
     color: "#475569",
     textAlign: "center",
     lineHeight: 20,
-  },
-  deactivatedWrap: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-    gap: 12,
-  },
-  deactivatedTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#dc2626",
-    textAlign: "center",
-  },
-  deactivatedText: {
-    fontSize: 14,
-    color: "#475569",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  deactivatedButton: {
-    marginTop: 12,
-    backgroundColor: "#0ea5e9",
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 8,
-    minWidth: 200,
-    alignItems: "center",
-  },
-  deactivatedButtonDisabled: {
-    opacity: 0.7,
-  },
-  deactivatedButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  deactivatedButtonSecondary: {
-    marginTop: 10,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-  },
-  deactivatedButtonSecondaryText: {
-    color: "#0ea5e9",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  deactivatedError: {
-    marginTop: 8,
-    fontSize: 14,
-    color: "#dc2626",
-    textAlign: "center",
   },
 });

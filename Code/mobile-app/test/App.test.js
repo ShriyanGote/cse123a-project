@@ -7,7 +7,7 @@ import App, {
   navigationRef,
   resolveGroupNavName,
 } from "../App";
-import { ensureMyProfile, fetchMyProfile, reactivateMyAccount } from "../src/api";
+import { ensureMyProfile } from "../src/api";
 import {
   addNotificationResponseListener,
   clearLowWaterNotificationsOnSignOut,
@@ -101,21 +101,6 @@ describe("App", () => {
     expect(AsyncStorage.setItem).toHaveBeenCalledWith("app:intro-completed", "true");
   });
 
-  it("shows deactivated account UI and signs out", async () => {
-    signIn();
-    fetchMyProfile.mockResolvedValue({ is_active: false });
-    render(<App />);
-    await waitFor(() =>
-      expect(screen.getByText("Account deactivated")).toBeTruthy()
-    );
-    await act(async () => {
-      fireEvent.press(screen.getByText("Sign out"));
-    });
-    await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
-    expect(clearAllLowWaterAlertState).toHaveBeenCalled();
-    expect(clearLowWaterNotificationsOnSignOut).toHaveBeenCalled();
-  });
-
   it("ensures profile and local notifications for signed-in users", async () => {
     signIn();
     render(<App />);
@@ -124,40 +109,6 @@ describe("App", () => {
       expect(ensureLocalNotificationPermissionsAsync).toHaveBeenCalled()
     );
     expect(addNotificationResponseListener).toHaveBeenCalled();
-  });
-
-  it("handles auth sign-in reset and profile realtime updates", async () => {
-    signIn();
-    render(<App />);
-    await waitFor(() => expect(ensureMyProfile).toHaveBeenCalled());
-    await act(async () => {
-      mockOnAuthStateChange("SIGNED_IN", signedInSession);
-    });
-    const updateHandler = mockChannelOn.mock.calls[0][2];
-    await act(async () => {
-      updateHandler({ new: { is_active: false } });
-    });
-    await waitFor(() =>
-      expect(screen.getByText("Account deactivated")).toBeTruthy()
-    );
-    await act(async () => {
-      updateHandler({ new: { is_active: true } });
-    });
-    await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
-  });
-
-  it("reactivates account from the deactivated screen", async () => {
-    signIn();
-    fetchMyProfile.mockResolvedValue({ is_active: false });
-    render(<App />);
-    await waitFor(() =>
-      expect(screen.getByText("Account deactivated")).toBeTruthy()
-    );
-    await act(async () => {
-      fireEvent.press(screen.getByText("Reactivate account"));
-    });
-    await waitFor(() => expect(reactivateMyAccount).toHaveBeenCalled());
-    await waitFor(() => expect(screen.getByText("Home")).toBeTruthy());
   });
 
   it("falls back when intro storage fails and profile upsert warns", async () => {
@@ -180,15 +131,6 @@ describe("App", () => {
     ensureMyProfile.mockRejectedValueOnce(new Error("API route not found at /api/profile"));
     render(<App />);
     await waitFor(() => expect(ensureMyProfile).toHaveBeenCalled());
-  });
-
-  it("marks account deactivated from profile fetch errors", async () => {
-    signIn();
-    fetchMyProfile.mockRejectedValueOnce(new Error("Account deactivated (403)"));
-    render(<App />);
-    await waitFor(() =>
-      expect(screen.getByText("Account deactivated")).toBeTruthy()
-    );
   });
 
   it("saves intro completion errors gracefully", async () => {
@@ -217,19 +159,6 @@ describe("App", () => {
       "Failed to initialize local notifications:",
       "notifications down"
     );
-  });
-
-  it("resets deactivated state after signing out from deactivated screen", async () => {
-    signIn();
-    fetchMyProfile.mockResolvedValue({ is_active: false });
-    render(<App />);
-    await waitFor(() =>
-      expect(screen.getByText("Account deactivated")).toBeTruthy()
-    );
-    await act(async () => {
-      fireEvent.press(screen.getByText("Sign out"));
-    });
-    await waitFor(() => expect(mockSignOut).toHaveBeenCalled());
   });
 
   it("renders stack screens for signed-in users", async () => {

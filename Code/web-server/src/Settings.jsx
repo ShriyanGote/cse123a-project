@@ -47,12 +47,6 @@ export default function Settings() {
     try {
       const profileData = await authedFetch("/api/profile");
       setProfile(profileData);
-      if (profileData.is_active === false) {
-        setGroups([]);
-        setDevices([]);
-        setError("");
-        return;
-      }
       const [groupsData, devicesData] = await Promise.all([
         authedFetch("/api/groups"),
         authedFetch("/api/devices"),
@@ -117,29 +111,9 @@ export default function Settings() {
     }
   }
 
-  async function handleReactivateAccount() {
-    const confirmed = window.confirm(
-      "Reactivate your account? Your devices will be restored and you can use the app again."
-    );
-    if (!confirmed) return;
-    setError("");
-    setWorking(true);
-    try {
-      await authedFetch("/api/profile", {
-        method: "POST",
-        body: JSON.stringify({ is_active: true }),
-      });
-      await loadAccountData();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setWorking(false);
-    }
-  }
-
   async function handleDeleteAccount() {
     const confirmed = window.confirm(
-      "Deactivate your account? This revokes your devices and signs you out on every device. You can reactivate later from this page while signed in."
+      "Permanently delete your account? This removes your profile, revokes your devices, transfers or deletes your groups, and signs you out everywhere. This cannot be undone."
     );
     if (!confirmed) return;
     setError("");
@@ -147,7 +121,7 @@ export default function Settings() {
     try {
       await authedFetch("/api/profile", {
         method: "POST",
-        body: JSON.stringify({ is_active: false }),
+        body: JSON.stringify({ delete_account: true }),
       });
       await supabase.auth.signOut({ scope: "local" });
       setProfile(null);
@@ -196,31 +170,6 @@ export default function Settings() {
             {working ? "Signing in…" : "Sign in"}
           </button>
         </form>
-        {error && <p className="settings-error">{error}</p>}
-      </div>
-    );
-  }
-
-  if (profile?.is_active === false) {
-    return (
-      <div className="settings-page">
-        <h2>Account deactivated</h2>
-        <p className="settings-hint">
-          This account is deactivated. Signed in as{" "}
-          <strong>{session.user.email}</strong>. Reactivate to restore access on
-          all devices.
-        </p>
-        <button
-          type="button"
-          className="settings-button"
-          onClick={handleReactivateAccount}
-          disabled={working}
-        >
-          {working ? "Working…" : "Reactivate account"}
-        </button>
-        <button type="button" className="settings-button" onClick={handleSignOut}>
-          Sign out
-        </button>
         {error && <p className="settings-error">{error}</p>}
       </div>
     );
@@ -282,10 +231,10 @@ export default function Settings() {
       </section>
 
       <section className="settings-section">
-        <h3>Deactivate account</h3>
+        <h3>Delete account</h3>
         <p className="settings-hint">
-          Revoke your devices and sign out everywhere. You can reactivate later
-          from this page while signed in.
+          Permanently delete your account, revoke your devices, and remove your
+          data. This action cannot be undone.
         </p>
         <button
           type="button"
@@ -293,7 +242,7 @@ export default function Settings() {
           onClick={handleDeleteAccount}
           disabled={working}
         >
-          {working ? "Working…" : "Deactivate account"}
+          {working ? "Working…" : "Delete account"}
         </button>
       </section>
 

@@ -5,7 +5,10 @@ vi.mock("../../../api/_lib/auth.js", () => ({
 }));
 
 vi.mock("../../../api/_lib/supabaseAdmin.js", () => ({
-  supabaseAdmin: { from: vi.fn(), auth: { admin: { signOut: vi.fn() } } },
+  supabaseAdmin: {
+    from: vi.fn(),
+    auth: { admin: { signOut: vi.fn(), deleteUser: vi.fn() } },
+  },
 }));
 
 import handler from "../../../api/profile/index.js";
@@ -19,6 +22,7 @@ describe("api/profile/index", () => {
     requireUserAuth.mockReset();
     supabaseAdmin.from.mockReset();
     supabaseAdmin.auth.admin.signOut.mockReset();
+    supabaseAdmin.auth.admin.deleteUser.mockReset();
   });
 
   it("returns profile on GET", async () => {
@@ -29,7 +33,7 @@ describe("api/profile/index", () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({
-        data: { display_name: "Ada", is_active: true },
+        data: { display_name: "Ada" },
         error: null,
       }),
     });
@@ -53,32 +57,6 @@ describe("api/profile/index", () => {
     );
     expect(res._status).toBe(200);
     expect(res._json.ok).toBe(true);
-  });
-
-  it("updates active flag and devices on POST", async () => {
-    requireUserAuth.mockResolvedValue({
-      user: { id: "u1", email: "a@b.com", user_metadata: {} },
-    });
-
-    const profileChain = {
-      upsert: vi.fn().mockResolvedValue({ error: null }),
-    };
-    const devicesChain = {
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    devicesChain.update.mockReturnValue(devicesChain);
-
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === "profiles") return profileChain;
-      if (table === "devices") return devicesChain;
-      return profileChain;
-    });
-
-    const res = mockRes();
-    await handler({ method: "POST", body: { is_active: false }, headers: {} }, res);
-    expect(res._status).toBe(200);
-    expect(supabaseAdmin.auth.admin.signOut).toHaveBeenCalled();
   });
 
   it("handles OPTIONS", async () => {
@@ -119,47 +97,6 @@ describe("api/profile/index", () => {
     expect(supabaseAdmin.from).toHaveBeenCalled();
   });
 
-  it("returns 500 when device cascade fails during deactivate", async () => {
-    requireUserAuth.mockResolvedValue({
-      user: { id: "u1", email: "a@b.com", user_metadata: {} },
-    });
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === "profiles") {
-        return { upsert: vi.fn().mockResolvedValue({ error: null }) };
-      }
-      if (table === "devices") {
-        const c = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: { message: "dev" } }) };
-        c.update.mockReturnValue(c);
-        return c;
-      }
-      return {};
-    });
-    const res = mockRes();
-    await handler({ method: "POST", body: { is_active: false }, headers: {} }, res);
-    expect(res._status).toBe(500);
-    expect(res._json.error).toMatch(/failed to update devices/);
-  });
-
-  it("ignores signOut errors when deactivating", async () => {
-    requireUserAuth.mockResolvedValue({
-      user: { id: "u1", email: "a@b.com", user_metadata: {} },
-    });
-    supabaseAdmin.auth.admin.signOut.mockRejectedValue(new Error("signOut boom"));
-    const devicesChain = {
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    devicesChain.update.mockReturnValue(devicesChain);
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === "profiles") return { upsert: vi.fn().mockResolvedValue({ error: null }) };
-      if (table === "devices") return devicesChain;
-      return {};
-    });
-    const res = mockRes();
-    await handler({ method: "POST", body: { is_active: false }, headers: {} }, res);
-    expect(res._status).toBe(200);
-  });
-
   it("returns 500 when ensure upsert fails", async () => {
     requireUserAuth.mockResolvedValue({
       user: { id: "u1", email: "a@b.com", user_metadata: {} },
@@ -169,21 +106,6 @@ describe("api/profile/index", () => {
     });
     const res = mockRes();
     await handler({ method: "POST", body: { display_name: "x" }, headers: {} }, res);
-    expect(res._status).toBe(500);
-  });
-
-  it("returns 500 when profile upsert fails during deactivate", async () => {
-    requireUserAuth.mockResolvedValue({
-      user: { id: "u1", email: "a@b.com", user_metadata: {} },
-    });
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === "profiles") {
-        return { upsert: vi.fn().mockResolvedValue({ error: { message: "prof" } }) };
-      }
-      return {};
-    });
-    const res = mockRes();
-    await handler({ method: "POST", body: { is_active: false }, headers: {} }, res);
     expect(res._status).toBe(500);
   });
 
@@ -207,7 +129,6 @@ describe("api/profile/index", () => {
     await handler({ method: "GET", headers: {} }, res);
     expect(res._status).toBe(200);
     expect(res._json.display_name).toBeNull();
-    expect(res._json.is_active).toBe(true);
   });
 
   it("uses user_metadata display_name when ensuring with empty body name", async () => {
@@ -228,34 +149,6 @@ describe("api/profile/index", () => {
     );
   });
 
-  it("reactivates account and restores devices on POST", async () => {
-    requireUserAuth.mockResolvedValue({
-      user: { id: "u1", email: "a@b.com", user_metadata: {} },
-    });
-
-    const profileChain = {
-      upsert: vi.fn().mockResolvedValue({ error: null }),
-    };
-    const devicesChain = {
-      update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    };
-    devicesChain.update.mockReturnValue(devicesChain);
-
-    supabaseAdmin.from.mockImplementation((table) => {
-      if (table === "profiles") return profileChain;
-      if (table === "devices") return devicesChain;
-      return profileChain;
-    });
-
-    const res = mockRes();
-    await handler({ method: "POST", body: { is_active: true }, headers: {} }, res);
-    expect(res._status).toBe(200);
-    expect(res._json.is_active).toBe(true);
-    expect(devicesChain.update).toHaveBeenCalledWith({ status: "active" });
-    expect(supabaseAdmin.auth.admin.signOut).not.toHaveBeenCalled();
-  });
-
   it("treats non-string display_name as empty when ensuring profile", async () => {
     requireUserAuth.mockResolvedValue({
       user: { id: "u1", email: "ada@example.com", user_metadata: {} },
@@ -266,6 +159,141 @@ describe("api/profile/index", () => {
     await handler({ method: "POST", body: { display_name: 12345 }, headers: {} }, res);
     expect(res._status).toBe(200);
     expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ display_name: "ada" }));
+  });
+
+  function mockDeleteAccountTables({ ownedGroups = [], groupMembersByGroup = {} } = {}) {
+    const deleteGroup = vi.fn().mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
+    const promoteOwner = vi.fn();
+    let memberSelectPass = 0;
+
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockImplementation((field) => {
+              if (field === "group_id") {
+                const groupId = ownedGroups[0];
+                return Promise.resolve({
+                  data: groupMembersByGroup[groupId] ?? [],
+                  error: null,
+                });
+              }
+              return {
+                eq: vi.fn().mockImplementation(() => {
+                  memberSelectPass += 1;
+                  return Promise.resolve({
+                    data: ownedGroups.map((groupId) => ({ group_id: groupId })),
+                    error: null,
+                  });
+                }),
+              };
+            }),
+          }),
+          update: promoteOwner.mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ error: null }),
+            }),
+          }),
+          delete: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        };
+      }
+      if (table === "groups") return { delete: deleteGroup };
+      if (table === "devices") {
+        const c = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: null }) };
+        c.update.mockReturnValue(c);
+        return c;
+      }
+      return {};
+    });
+
+    return { deleteGroup, promoteOwner };
+  }
+
+  it("permanently deletes account on POST delete_account", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: { id: "u1", email: "a@b.com", user_metadata: {} },
+    });
+    const { deleteGroup, promoteOwner } = mockDeleteAccountTables({
+      ownedGroups: ["g1"],
+      groupMembersByGroup: {
+        g1: [{ user_id: "u2" }, { user_id: "u1" }],
+      },
+    });
+    supabaseAdmin.auth.admin.deleteUser.mockResolvedValue({ error: null });
+
+    const res = mockRes();
+    await handler({ method: "POST", body: { delete_account: true }, headers: {} }, res);
+    expect(res._status).toBe(200);
+    expect(res._json.deleted).toBe(true);
+    expect(promoteOwner).toHaveBeenCalled();
+    expect(deleteGroup).toHaveBeenCalled();
+    expect(supabaseAdmin.auth.admin.deleteUser).toHaveBeenCalledWith("u1");
+    expect(supabaseAdmin.auth.admin.signOut).toHaveBeenCalled();
+  });
+
+  it("deletes sole-owner groups when deleting account", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: { id: "u1", email: "a@b.com", user_metadata: {} },
+    });
+    const { deleteGroup } = mockDeleteAccountTables({
+      ownedGroups: ["g-solo"],
+      groupMembersByGroup: {
+        "g-solo": [{ user_id: "u1" }],
+      },
+    });
+    supabaseAdmin.auth.admin.deleteUser.mockResolvedValue({ error: null });
+
+    const res = mockRes();
+    await handler({ method: "POST", body: { delete_account: true }, headers: {} }, res);
+    expect(res._status).toBe(200);
+    expect(deleteGroup).toHaveBeenCalled();
+  });
+
+  it("returns 500 when deleteUser fails", async () => {
+    requireUserAuth.mockResolvedValue({
+      user: { id: "u1", email: "a@b.com", user_metadata: {} },
+    });
+
+    supabaseAdmin.from.mockImplementation((table) => {
+      if (table === "group_members") {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ data: [], error: null }),
+            }),
+          }),
+          delete: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        };
+      }
+      if (table === "groups") {
+        return {
+          delete: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ error: null }),
+          }),
+        };
+      }
+      if (table === "devices") {
+        const c = { update: vi.fn().mockReturnThis(), eq: vi.fn().mockResolvedValue({ error: null }) };
+        c.update.mockReturnValue(c);
+        return c;
+      }
+      return {};
+    });
+
+    supabaseAdmin.auth.admin.deleteUser.mockResolvedValue({
+      error: { message: "delete failed" },
+    });
+
+    const res = mockRes();
+    await handler({ method: "POST", body: { delete_account: true }, headers: {} }, res);
+    expect(res._status).toBe(500);
+    expect(res._json.error).toBe("delete failed");
   });
 
   it("falls back to User when ensuring without email or metadata name", async () => {

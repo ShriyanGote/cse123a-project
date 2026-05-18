@@ -64,7 +64,7 @@ describe("Settings", () => {
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       if (url.includes("/api/groups")) {
         return {
@@ -110,7 +110,7 @@ describe("Settings", () => {
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ id: "u1", is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       if (url.includes("/api/groups")) {
         return {
@@ -152,7 +152,7 @@ describe("Settings", () => {
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       return { ok: true, json: async () => ({ groups: [], devices: [] }) };
     });
@@ -189,7 +189,7 @@ describe("Settings", () => {
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       if (url.includes("/api/groups") || url.includes("/api/devices")) {
         return { ok: true, json: async () => ({}) };
@@ -209,7 +209,7 @@ describe("Settings", () => {
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       if (url.includes("/api/groups")) return { ok: true, json: async () => ({ groups: [] }) };
       if (url.includes("/api/devices")) {
@@ -231,7 +231,7 @@ describe("Settings", () => {
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       return { ok: false, status: 502, json: async () => ({}) };
     });
@@ -239,7 +239,7 @@ describe("Settings", () => {
     expect(await screen.findByText("Request failed (502)")).toBeInTheDocument();
   });
 
-  it("deactivates account after confirmation", async () => {
+  it("deletes account after confirmation", async () => {
     const user = userEvent.setup();
     mockGetSession.mockResolvedValue(signedIn());
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
@@ -247,12 +247,12 @@ describe("Settings", () => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile") && init?.method === "POST") {
         const body = JSON.parse(init.body);
-        if (body.is_active === false) {
-          return { ok: true, json: async () => ({ ok: true, is_active: false }) };
+        if (body.delete_account === true) {
+          return { ok: true, json: async () => ({ ok: true, deleted: true }) };
         }
       }
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       if (url.includes("/api/groups")) return { ok: true, json: async () => ({ groups: [] }) };
       if (url.includes("/api/devices")) return { ok: true, json: async () => ({ devices: [] }) };
@@ -261,14 +261,14 @@ describe("Settings", () => {
     mockSignOut.mockResolvedValue({});
     render(<Settings />);
     await screen.findByRole("heading", { name: "My Account" });
-    await user.click(screen.getByRole("button", { name: /Deactivate account/i }));
+    await user.click(screen.getByRole("button", { name: /Delete account/i }));
     expect(confirmSpy).toHaveBeenCalled();
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
         "/api/profile",
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ is_active: false }),
+          body: JSON.stringify({ delete_account: true }),
         })
       );
       expect(mockSignOut).toHaveBeenCalledWith({ scope: "local" });
@@ -276,14 +276,14 @@ describe("Settings", () => {
     confirmSpy.mockRestore();
   });
 
-  it("does not deactivate account when delete is cancelled", async () => {
+  it("does not delete account when delete is cancelled", async () => {
     const user = userEvent.setup();
     mockGetSession.mockResolvedValue(signedIn());
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       if (url.includes("/api/groups")) return { ok: true, json: async () => ({ groups: [] }) };
       if (url.includes("/api/devices")) return { ok: true, json: async () => ({ devices: [] }) };
@@ -291,71 +291,15 @@ describe("Settings", () => {
     });
     render(<Settings />);
     await screen.findByRole("heading", { name: "My Account" });
-    await user.click(screen.getByRole("button", { name: /Deactivate account/i }));
+    await user.click(screen.getByRole("button", { name: /Delete account/i }));
     expect(
       globalThis.fetch.mock.calls.some(
         ([url, init]) =>
-          fetchUrl(url).includes("/api/profile") && init?.method === "POST" && init.body?.includes("is_active")
+          fetchUrl(url).includes("/api/profile") &&
+          init?.method === "POST" &&
+          init.body?.includes("delete_account")
       )
     ).toBe(false);
-    confirmSpy.mockRestore();
-  });
-
-  it("shows deactivated account view with reactivate option", async () => {
-    mockGetSession.mockResolvedValue(signedIn());
-    globalThis.fetch.mockImplementation(async (input) => {
-      const url = fetchUrl(input);
-      if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ id: "u1", display_name: "Me", is_active: false }) };
-      }
-      return { ok: false, json: async () => ({}) };
-    });
-    render(<Settings />);
-    expect(await screen.findByRole("heading", { name: "Account deactivated" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reactivate account" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Deactivate account/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "My Groups" })).not.toBeInTheDocument();
-  });
-
-  it("reactivates account after confirmation", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-    let profileActive = false;
-    mockGetSession.mockResolvedValue(signedIn());
-    globalThis.fetch.mockImplementation(async (input, init) => {
-      const url = fetchUrl(input);
-      const body = init?.body ? JSON.parse(init.body) : {};
-      if (url.includes("/api/profile") && init?.method === "POST" && body.is_active === true) {
-        profileActive = true;
-        return { ok: true, json: async () => ({ ok: true, is_active: true }) };
-      }
-      if (url.includes("/api/profile")) {
-        return {
-          ok: true,
-          json: async () => ({ id: "u1", display_name: "Me", is_active: profileActive }),
-        };
-      }
-      if (url.includes("/api/groups")) {
-        return { ok: true, json: async () => ({ groups: [] }) };
-      }
-      if (url.includes("/api/devices")) {
-        return { ok: true, json: async () => ({ devices: [] }) };
-      }
-      return { ok: false, json: async () => ({}) };
-    });
-    const user = userEvent.setup();
-    render(<Settings />);
-    await screen.findByRole("heading", { name: "Account deactivated" });
-    await user.click(screen.getByRole("button", { name: "Reactivate account" }));
-    await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "My Account" })).toBeInTheDocument()
-    );
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/api/profile"),
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({ is_active: true }),
-      })
-    );
     confirmSpy.mockRestore();
   });
 
@@ -369,7 +313,7 @@ describe("Settings", () => {
     globalThis.fetch.mockImplementation(async (input) => {
       const url = fetchUrl(input);
       if (url.includes("/api/profile")) {
-        return { ok: true, json: async () => ({ is_active: true }) };
+        return { ok: true, json: async () => ({ id: "u1", display_name: "Me" }) };
       }
       return { ok: true, json: async () => ({ groups: [], devices: [] }) };
     });

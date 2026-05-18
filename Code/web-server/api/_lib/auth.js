@@ -154,18 +154,7 @@ export async function verifyNestedDeviceToken(token) {
   };
 }
 
-async function isAccountActive(userId) {
-  const { data, error } = await supabaseAdmin
-    .from("profiles")
-    .select("is_active")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) return true; // Fail open if profiles row is missing.
-  if (!data) return true;
-  return data.is_active !== false;
-}
-
-export async function requireUserAuth(req, res, options = {}) {
+export async function requireUserAuth(req, res) {
   const token = parseBearerToken(req);
   if (!token) {
     toJson(res, 401, { error: "Missing Bearer token." });
@@ -177,11 +166,6 @@ export async function requireUserAuth(req, res, options = {}) {
     const audClaim = user?.aud ?? "authenticated";
     if (!getAllowedWebAudiences().includes(audClaim)) {
       toJson(res, 403, { error: "Invalid user audience claim." });
-      return null;
-    }
-
-    if (!options.allowDeactivated && !(await isAccountActive(user.id))) {
-      toJson(res, 403, { error: "Account is deactivated.", code: "account_deactivated" });
       return null;
     }
 
