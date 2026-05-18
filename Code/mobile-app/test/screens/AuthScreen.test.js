@@ -61,7 +61,35 @@ describe("AuthScreen", () => {
         })
       )
     );
-    expect(screen.getByText("Account created. Please sign in.")).toBeTruthy();
+    expect(
+      screen.getByText(/We sent a confirmation link to alice@test\.com/)
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/Open it to verify your email, then return here and sign in/)
+    ).toBeTruthy();
+  });
+
+  it("shows signup hint in sign-up mode", () => {
+    render(<AuthScreen onOpenIntro={jest.fn()} />);
+    fireEvent.press(screen.getByText("Need an account? Sign up"));
+    expect(
+      screen.getByText(/You need to verify your email before you can sign in/)
+    ).toBeTruthy();
+  });
+
+  it("shows friendly message when email is not confirmed", async () => {
+    supabase.auth.signInWithPassword.mockResolvedValueOnce({
+      error: { message: "Email not confirmed" },
+    });
+    render(<AuthScreen onOpenIntro={jest.fn()} />);
+    fireEvent.changeText(screen.getByPlaceholderText("Email"), "user@test.com");
+    fireEvent.changeText(screen.getByPlaceholderText("Password"), "secret");
+    fireEvent.press(screen.getByText("Sign In"));
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Please confirm your email first/)
+      ).toBeTruthy()
+    );
   });
 
   it("shows generic auth errors", async () => {

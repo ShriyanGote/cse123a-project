@@ -19,6 +19,10 @@ const DEFAULT_AUTH_REDIRECT_URL = "https://cse123a-project-6a3s.vercel.app";
 const authRedirectUrl =
   process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL || DEFAULT_AUTH_REDIRECT_URL;
 
+function isUnconfirmedEmailError(message = "") {
+  return /email not confirmed|not confirmed|confirm your email/i.test(message);
+}
+
 export default function AuthScreen({ onOpenIntro }) {
   const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
@@ -26,6 +30,7 @@ export default function AuthScreen({ onOpenIntro }) {
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [authError, setAuthError] = useState("");
   const cardAnim = useRef(new Animated.Value(0)).current;
   const formAnim = useRef(new Animated.Value(0)).current;
@@ -61,6 +66,7 @@ export default function AuthScreen({ onOpenIntro }) {
   async function handleAuth() {
     setIsLoading(true);
     setMessage("");
+    setSuccessMessage("");
     setAuthError("");
     try {
       if (mode === "signin") {
@@ -82,7 +88,12 @@ export default function AuthScreen({ onOpenIntro }) {
         });
         if (error) throw error;
 
-        setMessage("Account created. Please sign in.");
+        const trimmedEmail = email.trim();
+        setSuccessMessage(
+          trimmedEmail
+            ? `We sent a confirmation link to ${trimmedEmail}. Open it to verify your email, then return here and sign in.`
+            : "Check your inbox for a confirmation link. Open it to verify your email, then return here and sign in."
+        );
         setMode("signin");
       }
     } catch (e) {
@@ -95,6 +106,10 @@ export default function AuthScreen({ onOpenIntro }) {
 
       if (isInvalidCredentials) {
         setAuthError("Incorrect email or password.");
+      } else if (mode === "signin" && isUnconfirmedEmailError(errorMessage)) {
+        setAuthError(
+          "Please confirm your email first. Check your inbox for the confirmation link, then try signing in again."
+        );
       } else {
         setMessage(errorMessage);
       }
@@ -148,6 +163,12 @@ export default function AuthScreen({ onOpenIntro }) {
           <Text style={styles.subtitle}>
             {mode === "signin" ? "Sign in to continue" : "Create your account"}
           </Text>
+          {mode === "signup" ? (
+            <Text style={styles.signupHint}>
+              After you create an account, we will email you a confirmation link.
+              You need to verify your email before you can sign in.
+            </Text>
+          ) : null}
           <Text style={styles.swipeHint}>Swipe right to view introduction</Text>
           <View style={styles.instructionsBox}>
             <Text style={styles.instructionsTitle}>Setup flow</Text>
@@ -246,9 +267,17 @@ export default function AuthScreen({ onOpenIntro }) {
                 )}
               </Pressable>
 
+              {!!successMessage && (
+                <View style={styles.successBox}>
+                  <Text style={styles.successTitle}>Confirm your email</Text>
+                  <Text style={styles.successText}>{successMessage}</Text>
+                </View>
+              )}
+
               <Pressable
                 onPress={() => {
                   setAuthError("");
+                  setSuccessMessage("");
                   setMode(mode === "signin" ? "signup" : "signin");
                 }}
               >
@@ -296,6 +325,13 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: "center",
     color: "#64748b",
+  },
+  signupHint: {
+    textAlign: "center",
+    color: "#475569",
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: -4,
   },
   swipeHint: {
     textAlign: "center",
@@ -347,6 +383,25 @@ const styles = StyleSheet.create({
     color: "#b91c1c",
     fontSize: 12,
     fontWeight: "600",
+  },
+  successBox: {
+    borderWidth: 1,
+    borderColor: "#86efac",
+    backgroundColor: "#f0fdf4",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 4,
+  },
+  successTitle: {
+    color: "#166534",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  successText: {
+    color: "#15803d",
+    fontSize: 12,
+    lineHeight: 17,
   },
   ctaButton: {
     marginTop: 4,
