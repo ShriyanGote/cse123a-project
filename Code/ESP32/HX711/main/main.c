@@ -18,6 +18,7 @@
 static bool tareDone = false;
 static bool notFirstBoot = false;
 static int32_t gramBefore = 0;
+static bool wifiWasValidated = false;
 
 static const char *TAG = "MAIN";
 
@@ -31,6 +32,7 @@ static void load_state(void)
     nvs_get_u8(h, "tareDone", (uint8_t *)&tareDone);
     nvs_get_u8(h, "notFirst", (uint8_t *)&notFirstBoot);
     nvs_get_i32(h, "gramBefore", &gramBefore);
+    nvs_get_u8(h, "wifiValid", (uint8_t *)&wifiWasValidated);
 
     nvs_close(h);
 }
@@ -43,6 +45,7 @@ static void save_state(void)
     nvs_set_u8(h, "tareDone", tareDone);
     nvs_set_u8(h, "notFirst", notFirstBoot);
     nvs_set_i32(h, "gramBefore", gramBefore);
+    nvs_set_u8(h, "wifiValid", wifiWasValidated);
 
     ESP_ERROR_CHECK(nvs_commit(h));
     nvs_close(h);
@@ -105,7 +108,23 @@ void app_main(void)
     
     
     if (!wifi_wait_connected_timeout(pdMS_TO_TICKS(WIFI_CONNECT_TIMEOUT_MS))) {
-        reboot_to_provisioning();
+        if (!wifiWasValidated) {
+            ESP_LOGW(TAG, "First Wi-Fi validation failed; clearing provisioning");
+            reboot_to_provisioning();
+        } else {
+            ESP_LOGW(TAG, "Wi-Fi already validated before; router may be off. Sleeping/retrying later");
+
+            hx711_power_down();
+            esp_sleep_enable_timer_wakeup(60 * 1000000ULL);
+            esp_deep_sleep_start();
+        }
+    }
+
+    if (!wifiWasValidated) {
+        ESP_LOGI(TAG, "Wi-Fi validated successfully");
+
+        wifiWasValidated = true;
+        save_state();
     }
 
     sensor_init();
