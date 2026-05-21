@@ -166,7 +166,6 @@ describe("api/profile/index", () => {
       eq: vi.fn().mockResolvedValue({ error: null }),
     });
     const promoteOwner = vi.fn();
-    let memberSelectPass = 0;
 
     supabaseAdmin.from.mockImplementation((table) => {
       if (table === "group_members") {
@@ -182,7 +181,6 @@ describe("api/profile/index", () => {
               }
               return {
                 eq: vi.fn().mockImplementation(() => {
-                  memberSelectPass += 1;
                   return Promise.resolve({
                     data: ownedGroups.map((groupId) => ({ group_id: groupId })),
                     error: null,

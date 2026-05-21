@@ -20,7 +20,7 @@ async function authedFetch(path, init = {}) {
 
 export default function Settings() {
   const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [, setProfile] = useState(null);
   const [groups, setGroups] = useState([]);
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
