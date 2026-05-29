@@ -1,23 +1,28 @@
 \subsection{Web Application}
 
-The web application is the account-management and onboarding companion to the mobile app. It is a React application deployed on Vercel and backed by a Supabase Postgres database. Sensor readings, group membership, device records, and authentication all live in Supabase; the web app and the mobile app share the same backend.
+The web application serves as the account-management and onboarding companion to the mobile app. 
+It is built using React and deployed on a cloud platform, while being backed by a managed relational database. 
+Sensor readings, group membership, device records, and authentication data are all managed within the backend infrastructure, 
+which is shared between the web and mobile applications.
 
-The deployed site is hosted at \url{https://cse123a-project-6a3s.vercel.app/}. The interface is organized into two side-by-side panels: an \textbf{Account} panel (the Settings page) and a \textbf{Setup guide} panel (the Guide page). The web app intentionally does not display live water-level data --- that is the role of the mobile app. Instead, the web app exists to let users manage the account that the mobile app signs in with, review the devices and groups associated with that account, and consult the first-time setup instructions.
+The deployed website is hosted at \url{https://cse123a-project-6a3s.vercel.app/}. The interface is organized into two side-by-side panels: 
+an \textbf{Account} panel (the Settings page) and a \textbf{Setup guide} panel (the Guide page). The web app exists to let users manage the 
+account that the mobile app signs in with, review the devices and groups associated with that account, and consult the first-time setup instructions.
 
 \subsubsection{System Architecture}
 The deployed architecture has three coordinated layers:
 
 \begin{itemize}
-    \item \textbf{Frontend (React + Vite):} Renders the Settings panel and the Guide panel.
-    \item \textbf{Vercel backend (serverless functions):} Hosts the ingestion endpoint used by the microcontroller and the authenticated REST endpoints used by both the web app and the mobile app (e.g. \texttt{/api/groups}, \texttt{/api/devices}, \texttt{/api/app-state}).
-    \item \textbf{Supabase:} Provides authentication, a Postgres database for groups/devices/readings, and row-level-security enforcement.
+    \item \textbf{Frontend:} Renders the Settings panel and the Guide panel.
+    \item \textbf{Backend Server:} Hosts the ingestion endpoint used by the microcontroller and the authenticated REST endpoints used by both the web app and the mobile app (e.g. \texttt{/api/groups}, \texttt{/api/devices}, \texttt{/api/app-state}).
+    \item \textbf{Database:} Provides authentication, a Postgres database for groups/devices/readings, and row-level-security enforcement.
 \end{itemize}
 
 \subsubsection{Settings Page}
 The Settings page is the Account panel of the web app. It serves two states depending on whether the user is signed in.
 
 \paragraph{Signed out.}
-The panel renders a Sign-In form with email and password fields. A hint reminds the user to sign in with the same account they use in the mobile app, since the two clients share Supabase Auth.
+The panel renders a Sign-In form with email and password fields. A hint reminds the user to sign in with the same account they use in the mobile app, since the two clients share the same database authentication system.
 
 \paragraph{Signed in.}
 After authentication, the panel displays:
@@ -25,9 +30,10 @@ After authentication, the panel displays:
     \item The signed-in user's email and a sign-out control.
     \item \textbf{My Groups} --- a list of the groups the user belongs to, including the user's role in each group and the associated device ID where applicable. Group and device data are fetched from the authenticated endpoints \texttt{/api/groups} and \texttt{/api/devices}.
     \item \textbf{My Devices} --- a list of devices owned by the user, showing each device's name and status.
+    \item \textbf{Security} --- a button to sign out of all devices currently signed in to the account and a button to delete the account. Deleting the account will revoke all devices and groups associated with the account.
 \end{itemize}
 
-\noindent All requests from the Settings page attach the Supabase access token as a Bearer token; the serverless API routes validate the token before returning data scoped to the user.
+\noindent All requests from the Settings page attach the database access token as a Bearer token; the API endpoints validate the token before returning data scoped to the user.
 
 \subsubsection{Setup Guide Page}
 The Guide page is a static, step-by-step walkthrough for first-time setup of a Smart Base. It is intended to be readable on a desktop screen while the user follows along with the mobile app. The guide covers:
@@ -43,25 +49,24 @@ The Guide page is a static, step-by-step walkthrough for first-time setup of a S
     \item Waiting for the base to confirm Wi-Fi connectivity and begin reporting readings.
 \end{enumerate}
 
-\noindent The Guide page deliberately mirrors the mobile-app provisioning flow so users have a printable / linkable reference while completing setup on their phone.
+\noindent The Guide page deliberately mirrors the mobile-app provisioning flow so users have a reference while completing setup on their phone.
 
 \subsubsection{API Endpoints}
-The serverless API on Vercel exposes routes used by both clients and the microcontroller:
+The authenticated API endpoints on our web server are used by the web application, the mobile app, and the microcontroller:
 
 \begin{itemize}
-    \item \textbf{\texttt{POST /api/ingest}} --- Receives sensor readings (device ID, weight, battery voltage) from the microcontroller using an API key and inserts them into Supabase.
-    \item \textbf{\texttt{GET /api/app-state}} --- Returns the latest reading and calibration record. Consumed by the mobile app to render the live water level.
-    \item \textbf{\texttt{GET /api/groups}} --- Authenticated. Returns the groups the signed-in user belongs to. Used by both the Settings page and the mobile app.
-    \item \textbf{\texttt{GET /api/devices}} --- Authenticated. Returns the devices owned by the signed-in user. Used by both the Settings page and the mobile app.
+    \item \textbf{\texttt{GET /api/app-state}} --- Returns the state of the app, including the settings page and the guide page.
+    \item \textbf{\texttt{GET /api/devices}} --- Returns the devices registered by the signed-in user. Used by both the Settings page and the mobile app.
+    \item \textbf{\texttt{GET /api/groups}} --- Returns the groups the signed-in user is a member of. Used by both the Settings page and the mobile app.
+    \item \textbf{\texttt{POST /api/ingest}} --- Receives sensor readings (device ID, weight) from the microcontroller over BLE and inserts them into the database.
 \end{itemize}
 
-\subsubsection{Supabase Tables}
-Supabase backs both the web app and the mobile app. Relevant tables include:
+\subsubsection{Tables}
+Our database supports both the web app and the mobile app. Relevant tables include:
 
 \begin{itemize}
-    \item \textbf{\texttt{profiles}} --- One row per user. Tracks display name and an \texttt{is\_active} flag that the Settings page can toggle to deactivate an account; the mobile app subscribes to changes on this row and signs the user out when their account is deactivated.
-    \item \textbf{\texttt{groups}} / \textbf{\texttt{group\_members}} --- Group definitions and role-based membership, surfaced on the Settings page under My Groups.
-    \item \textbf{\texttt{devices}} --- Devices owned by a user, surfaced on the Settings page under My Devices and used during the mobile app's provisioning flow.
-    \item \textbf{\texttt{water\_readings}} --- Time-series sensor uploads written by \texttt{/api/ingest}; consumed by the mobile app.
-    \item \textbf{\texttt{calibration}} --- Empty/full reference points used to compute displayed percentage. Updated from the Group screen in the mobile app via \texttt{POST /api/groups/\{id\}/calibration} against the group's associated device.
+    \item \textbf{\texttt{devices}} --- Devices registered by a user; includes \texttt{device\_id}, device name, and \texttt{auth\_token} (when registered via the mobile app's provisioning flow). Surfaced on the Settings page under My Devices and on the mobile app dashboard.
+    \item \textbf{\texttt{groups}} / \textbf{\texttt{group\_members}} --- Group definitions (group\_id, user\_id, device\_id, invite\_code), role-based membership, and calibration values (empty\_g, full\_g). Surfaced on the Settings page under My Groups and on the mobile app dashboard.
+    \item \textbf{\texttt{profiles}} --- One row per user and tracks created user's display name and id. Used to authenticate the user in the web app and mobile app.
+    \item \textbf{\texttt{water\_readings}} --- Water weight readings uploaded by the microcontroller over BLE. Consumed by the mobile app to render the live water level for each device.
 \end{itemize}
