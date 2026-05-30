@@ -1,0 +1,29 @@
+Presentation outline/notes:
+- ~10-12 slides, 2 min each
+- Google slides or Canva?
+- Decide who presents what
+
+Slides topics/sections:
+Intro
+- problem, need and goal
+- Design objectives
+Design Overview
+- system arch - base, mobile app, server, database diagram
+- Principle features (capabilities)
+    - smart base
+        - Capabilities: Sense weight, send data, reset button, etc
+    - Mobile app
+        - Setup - provisioning, linking
+        - Groups
+        - Notifs
+            - justification for why notifying all is good - keep ppl aware
+    - Website
+    - Security
+- other diagrams
+Functional prototype (SHORT SECTION)
+- what parts of design were prototyped
+- Still images of hardware
+- Test results
+Aesthetic prototype
+- renders of it, CAD screen shots
+- Maybe skip this section
