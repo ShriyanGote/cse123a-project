@@ -1,6 +1,15 @@
 \subsection{Physical Base Design}
-The physical base consists of two 3D-printed circular plates sandwiching a
-75mm bar-type strain gauge load cell. Each plate is 110mm in diameter and 8mm thick, 
+The physical base must consist of:
+\begin{itemize}
+    \item A compartment containing all components (MCU, battery, load cell, amplifier)
+    \item A place to rest a pitcher that can then be weighed
+    \item A reset button to restart the device
+    \item Humidity-proof seals that allow the device to operate inside the fridge environment
+\end{itemize}
+
+\noindent{}Our prototype implementation meets these requirements through the following specifications:\\
+
+The physical base consists of two 3D-printed circular plates sandwiching a 75mm bar-type strain gauge load cell. Each plate is 110mm in diameter and 8mm thick, 
 printed in PLA/PETG. The top plate has countersink pockets on the bottom face for M4 bolts 
 that secure it to one end of the load cell, and the bottom plate attaches to the other end, sitting flat on the surface. The load cell wires route out to the amplifier and microcontroller on a nearby breadboard.
 
