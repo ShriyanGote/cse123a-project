@@ -403,8 +403,8 @@
 			(on_board yes)
 			(in_pos_files yes)
 			(duplicate_pin_numbers_are_jumpers no)
-			(property "Reference" "U"
-				(at -7.62 24.13 0)
+			(property "Reference" "U2"
+				(at 2.1433 25.4 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -415,7 +415,7 @@
 				)
 			)
 			(property "Value" "MCP73871"
-				(at -15.24 21.59 0)
+				(at 2.1433 22.86 0)
 				(show_name no)
 				(do_not_autoplace no)
 				(effects
@@ -425,7 +425,7 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm"
+			(property "Footprint" "Package_DFN_QFN:VQFN-28-1EP_5x5mm_P0.5mm_EP3.25x3.25mm"
 				(at 5.08 -22.86 0)
 				(show_name no)
 				(do_not_autoplace no)
@@ -3076,7 +3076,7 @@
 	)
 	(text "Battery Measurement"
 		(exclude_from_sim no)
-		(at 116.586 44.196 0)
+		(at 116.586 43.18 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -3108,7 +3108,7 @@
 		(at 172.72 30.48)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "07f4088f-b0a1-49d5-a015-81763100c29f")
+		(uuid "0abcefb5-2987-4d2d-a0e6-e0243a621489")
 	)
 	(junction
 		(at 109.22 119.38)
@@ -3147,16 +3147,16 @@
 		(uuid "39374c12-2a9c-4df3-9e47-a84c07e5cbc0")
 	)
 	(junction
-		(at 193.04 62.23)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "454d3b6f-5bba-4a40-8e0a-ae4a9aa4a094")
-	)
-	(junction
 		(at 215.9 55.88)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "46c1343b-76d2-4e3a-af99-36cda08dab21")
+	)
+	(junction
+		(at 182.88 30.48)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "47db1085-183c-4ac1-aea3-bc126d8b0b59")
 	)
 	(junction
 		(at 200.66 39.37)
@@ -3171,22 +3171,22 @@
 		(uuid "80e1579e-af0d-4f98-9b5d-afbf3d675968")
 	)
 	(junction
-		(at 182.88 30.48)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "9bb977ed-63f9-4141-b907-e4ce9964504e")
-	)
-	(junction
-		(at 49.53 114.3)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "a52a1083-8145-438e-b8f1-cdbb2fa31aa6")
-	)
-	(junction
 		(at 120.65 151.13)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d6b67558-d33d-400b-a646-aa6218029ea2")
+	)
+	(junction
+		(at 46.99 114.3)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e773eaff-ef0b-4e7a-8c52-0a98fd269174")
+	)
+	(junction
+		(at 193.04 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e88e916d-76c5-4cf7-bd2e-9f462b8c0c78")
 	)
 	(junction
 		(at 120.65 138.43)
@@ -3312,16 +3312,6 @@
 	)
 	(wire
 		(pts
-			(xy 49.53 114.3) (xy 55.88 114.3)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2541576d-e06f-471b-afcc-f78f8cb213fe")
-	)
-	(wire
-		(pts
 			(xy 217.17 62.23) (xy 217.17 67.31)
 		)
 		(stroke
@@ -3349,6 +3339,16 @@
 			(type default)
 		)
 		(uuid "2ab37b36-26e4-4e03-9716-17ebff106ad0")
+	)
+	(wire
+		(pts
+			(xy 46.99 114.3) (xy 55.88 114.3)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2cc52f59-91e3-431b-aabd-cab87979eb9d")
 	)
 	(wire
 		(pts
@@ -3482,7 +3482,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 114.3) (xy 49.53 114.3)
+			(xy 38.1 114.3) (xy 46.99 114.3)
 		)
 		(stroke
 			(width 0)
@@ -4269,9 +4269,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "0464539f-f914-422d-95f8-5d404b0b956a")
-		(property "Reference" "4.11"
+		(property "Reference" "C9"
 			(at 62.23 113.0362 0)
-			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4282,7 +4281,7 @@
 			)
 		)
 		(property "Value" "10μF"
-			(at 62.23 114.3 0)
+			(at 62.23 115.062 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4334,7 +4333,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.11")
+					(reference "C9")
 					(unit 1)
 				)
 			)
@@ -4350,11 +4349,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "241268e4-04b7-4508-b3f6-2effc1758302")
 		(property "Reference" "R1"
-			(at 203.2 33.0199 0)
-			(hide yes)
+			(at 202.438 33.528 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4365,7 +4362,7 @@
 			)
 		)
 		(property "Value" "20k"
-			(at 203.2 34.2899 0)
+			(at 202.438 35.306 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4592,7 +4589,6 @@
 		(uuid "32190ddb-a4d6-4a4d-8118-e8fbe1ec4ef1")
 		(property "Reference" "L1"
 			(at 191.77 25.4 90)
-			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4670,9 +4666,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "329e687c-f07d-47bf-a1a5-d4e894d1467e")
-		(property "Reference" "4.8"
-			(at 123.19 152.4062 0)
-			(hide yes)
+		(property "Reference" "C7"
+			(at 123.19 152.654 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4683,7 +4678,7 @@
 			)
 		)
 		(property "Value" "4.7μF"
-			(at 123.19 153.67 0)
+			(at 123.19 154.686 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -4735,7 +4730,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.8")
+					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -4994,9 +4989,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "5050442a-55e6-4f12-b532-631b1c1f1fa2")
-		(property "Reference" "4.6"
-			(at 207.01 63.5062 0)
-			(hide yes)
+		(property "Reference" "C4"
+			(at 207.01 63.754 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5007,7 +5001,7 @@
 			)
 		)
 		(property "Value" "0.1μF"
-			(at 207.01 64.77 0)
+			(at 207.01 65.786 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5059,7 +5053,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.6")
+					(reference "C4")
 					(unit 1)
 				)
 			)
@@ -5288,9 +5282,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "6b1f5e1d-a8cd-464c-a7e5-cb24ac72a2ba")
-		(property "Reference" "4.3"
-			(at 123.19 139.7062 0)
-			(hide yes)
+		(property "Reference" "C6"
+			(at 123.19 139.954 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5301,7 +5294,7 @@
 			)
 		)
 		(property "Value" "4.7μF"
-			(at 123.19 140.97 0)
+			(at 123.19 142.24 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5353,7 +5346,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.3")
+					(reference "C6")
 					(unit 1)
 				)
 			)
@@ -5371,8 +5364,7 @@
 		(dnp no)
 		(uuid "6bff6019-b84c-4b9a-9581-c0ab92e2e938")
 		(property "Reference" "R5"
-			(at 114.2999 44.45 0)
-			(hide yes)
+			(at 116.84 44.958 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5442,7 +5434,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 49.53 119.38 0)
+		(at 46.99 119.38 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -5453,7 +5445,7 @@
 		(fields_autoplaced yes)
 		(uuid "7ac68ea5-4f47-4fe6-93f1-e1e4de10d952")
 		(property "Reference" "#PWR012"
-			(at 49.53 125.73 0)
+			(at 46.99 125.73 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5464,7 +5456,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 49.53 124.46 0)
+			(at 46.99 124.46 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5474,7 +5466,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 49.53 119.38 0)
+			(at 46.99 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5485,7 +5477,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 49.53 119.38 0)
+			(at 46.99 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5496,7 +5488,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 49.53 119.38 0)
+			(at 46.99 119.38 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -5530,8 +5522,7 @@
 		(dnp no)
 		(uuid "7d0dada8-7392-46e3-ad4d-593f379ff7f2")
 		(property "Reference" "R6"
-			(at 110.49 52.0699 0)
-			(hide yes)
+			(at 109.22 52.07 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5542,7 +5533,7 @@
 			)
 		)
 		(property "Value" "100k"
-			(at 111.506 52.832 0)
+			(at 111.506 54.102 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5844,9 +5835,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "9bb0ee04-1e57-445e-8e35-5443df903cb9")
-		(property "Reference" "4.2"
-			(at 111.76 120.6562 0)
-			(hide yes)
+		(property "Reference" "C5"
+			(at 111.76 121.158 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5857,7 +5847,7 @@
 			)
 		)
 		(property "Value" "4.7μF"
-			(at 111.76 121.92 0)
+			(at 111.76 123.4378 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5909,7 +5899,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.2")
+					(reference "C5")
 					(unit 1)
 				)
 			)
@@ -5926,9 +5916,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a3b8eeff-9448-4c61-8ed5-1bafc289ea39")
-		(property "Reference" "4.4"
-			(at 175.26 31.7562 0)
-			(hide yes)
+		(property "Reference" "C1"
+			(at 175.26 32.512 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5939,7 +5928,7 @@
 			)
 		)
 		(property "Value" "0.1μF"
-			(at 175.26 33.02 0)
+			(at 175.006 34.544 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -5991,7 +5980,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.4")
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -5999,7 +5988,7 @@
 	)
 	(symbol
 		(lib_id "Device:C_Small")
-		(at 49.53 116.84 0)
+		(at 46.99 116.84 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -6008,9 +5997,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "a6858075-ec40-44ff-9b97-258dbb85b5c6")
-		(property "Reference" "4.10"
-			(at 52.07 115.5762 0)
-			(hide yes)
+		(property "Reference" "C8"
+			(at 49.53 115.5762 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6021,7 +6009,7 @@
 			)
 		)
 		(property "Value" "10μF"
-			(at 52.07 116.84 0)
+			(at 49.53 117.602 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6032,7 +6020,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 49.53 116.84 0)
+			(at 46.99 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6043,7 +6031,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 49.53 116.84 0)
+			(at 46.99 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6054,7 +6042,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 49.53 116.84 0)
+			(at 46.99 116.84 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -6073,7 +6061,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.10")
+					(reference "C8")
 					(unit 1)
 				)
 			)
@@ -6700,9 +6688,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c7355321-8696-435c-bf4a-643af5ca1f97")
-		(property "Reference" "R4"
-			(at 209.5499 53.34 0)
-			(hide yes)
+		(property "Reference" "R3"
+			(at 211.836 53.34 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6764,7 +6751,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "R4")
+					(reference "R3")
 					(unit 1)
 				)
 			)
@@ -6781,9 +6768,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "c8ab386e-91f0-460f-b6bb-3eefc6e36f09")
-		(property "Reference" "R3"
-			(at 209.5499 43.18 0)
-			(hide yes)
+		(property "Reference" "R4"
+			(at 212.09 48.006 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6845,7 +6831,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "R3")
+					(reference "R4")
 					(unit 1)
 				)
 			)
@@ -6939,11 +6925,9 @@
 		(on_board yes)
 		(in_pos_files yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "e8f65839-d5e5-4b08-9c8a-1329b7c2012c")
 		(property "Reference" "R2"
-			(at 195.58 48.2599 0)
-			(hide yes)
+			(at 195.072 49.022 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -6954,7 +6938,7 @@
 			)
 		)
 		(property "Value" "8.2k"
-			(at 195.58 49.5299 0)
+			(at 195.072 50.8 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7023,9 +7007,8 @@
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "f45dc019-c0ad-4b66-b9b0-154a456a45d8")
-		(property "Reference" "4.5"
-			(at 185.42 31.7562 0)
-			(hide yes)
+		(property "Reference" "C2"
+			(at 185.674 32.766 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7036,7 +7019,7 @@
 			)
 		)
 		(property "Value" "10μF"
-			(at 185.42 33.02 0)
+			(at 185.166 34.544 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -7088,7 +7071,7 @@
 		(instances
 			(project "123-pcb-design"
 				(path "/59495f75-6f35-499b-95d0-e7e9548b242d"
-					(reference "4.5")
+					(reference "C2")
 					(unit 1)
 				)
 			)
