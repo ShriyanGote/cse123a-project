@@ -52,3 +52,57 @@ The mobile app monitors its own group devices for low-water conditions and surfa
     \item \textbf{\texttt{groupLowWaterAlerts}} Computes the current water-level percentage and compares it against the low-water threshold of 20 percent. It tracks per-group alert state so that a single sub-threshold transition produces one notification, rather than firing repeatedly while the level stays low. State is cleared once the level returns at or above threshold (or on sign-out).
     \item \textbf{Mobile Notifications} When a fresh low-water transition is detected, the app schedules a local notification carrying \texttt{\{ type: "low\_water", groupId, groupName \}} in its data payload. Tapping the notification redirects the user to the corresponding Group screen.
 \end{itemize}
+
+\subsection{Summary of Prototype Implemented Features}
+
+\begin{itemize}
+
+\item \textbf{Smart Base}
+
+\begin{itemize}
+    \item \textbf{Implementation:}
+    \begin{itemize}
+        \item ESP32-C3
+        \item 900 mAh Li-ion battery
+        \item 3D printed container
+        \item Load cell, HX711 amplifier
+    \end{itemize}
+
+    \item \textbf{Implemented features:}
+    \begin{itemize}
+        \item Setup and connection with mobile application
+        \item Send weight through HTTPS
+    \end{itemize}
+
+    \item \textbf{Missing features:}
+    \begin{itemize}
+        \item Reset button
+        \item Humidity proofing
+    \end{itemize}
+\end{itemize}
+
+\item \textbf{Mobile App and Server}
+
+\begin{itemize}
+    \item \textbf{Implementation:}
+    \begin{itemize}
+        \item React Native on Expo iOS
+        \item Vercel hosting, Supabase database
+    \end{itemize}
+
+    \item \textbf{Implemented features:}
+    \begin{itemize}
+        \item Setup/add/calibrate devices
+        \item Create/join/manage groups
+        \item View live water level
+        \item Receive notifications
+    \end{itemize}
+
+    \item \textbf{Missing features:}
+    \begin{itemize}
+        \item Customize water level threshold to notify
+        \item Full notification capabilities (locked by Apple paywall)
+    \end{itemize}
+\end{itemize}
+
+\end{itemize}
