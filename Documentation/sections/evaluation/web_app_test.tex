@@ -1,30 +1,30 @@
 \subsection{Web Application Testing}
 
-The web app test file is designed to check the main user-facing behavior of the React application in a clear and controlled way. The tests render 
-the app with mock data so we can verify behavior without needing live hardware or external services. The test file is organized under the test directory within the source directory,
-along with the file \texttt{sampleWaterValues.js} that contains mock data. The test file uses the React Testing Library to render components and simulate user interactions,
-and Vitest for mocks, assertions, and test organization.
+The web application testing plan verifies both the user-facing interface and the backend API that the web app, mobile app, and microcontroller share. 
+Tests run locally with mocked authentication, database responses, and network calls so behavior can be checked without live hardware or a production database. 
+Frontend tests use a component test library to render pages and simulate user actions. The backend tests invoke API handlers directly and assert on status codes, response bodies, and error handling. 
+All automated tests live under the \texttt{test/} directory in the web-server source tree and are executed with a single test runner command.
 
-\subsubsection{Basic UI Rendering}
+\subsubsection{Frontend and User Interface}
 
-This section verifies that the interface renders correctly in both empty and normal states. It checks the message shown when no reading exists, 
-then confirms that water-level data, weight, and battery metadata are displayed when readings are available. It also checks that the displayed 
-percentage matches the expected calculation.
+Frontend tests focus on the two panels: the Account Settings page and the Setup Guide page. These tests confirm that the application shell renders both sections, 
+that unauthenticated users see a sign-in form, and that authenticated users see account information loaded from the API.
+For the Settings page, tests cover the full signed-out and signed-in flows. When no session exists, the page shows a loading state and then the sign-in form.
+Invalid credentials display an error message from the authentication service. After a successful sign-in, the page lists the user's groups and devices, 
+handles API load failures gracefully, and updates when the session changes. Users can sign out, which clears displayed account data. 
+Security actions are also verified: account deletion requires confirmation and only proceeds when the user accepts, and cancellation leaves the session intact.
+The Setup Guide page is tested at the layout level: both the Account and Setup Guide headings appear together so users can read setup instructions alongside account management. 
+Because the guide is largely static content, testing emphasizes correct rendering rather than dynamic data flows.
 
-\subsubsection{Calibration Actions and Edge Cases}
+\subsubsection{Backend API and Authentication}
 
-This section tests user interaction with calibration controls. The test suite clicks the calibrate empty, calibrate full, and reset buttons, 
-then verifies that the expected calibration upsert operations are made. This section verifies calibration logic for both standard and edge 
-conditions. The tests confirm that custom empty/full calibration values are used, and that percentage output is clamped correctly. Readings 
-below empty are shown as 0\%, readings above full are shown as 100\%, and invalid ranges where full is less than or equal to empty also resolve to 0\%.
-
-\subsubsection{Push Notification Behavior}
-
-This section tests notification flows with mocked browser APIs. It includes unsupported-browser behavior, denied permission behavior, and successful 
-permission behavior. In the successful case, the test verifies service worker registration and push subscription setup.
-
-\subsubsection{API-Related Checks}
-
-This section covers API behavior that is directly tested. Specifically, when notifications are enabled successfully, the app is verified to send a 
-POST request to the token registration endpoint. Supabase reads and calibration writes are mocked so request behavior and state changes can be 
-checked without live backend dependencies.
+The web server also hosts REST endpoints used by the mobile app and the microcontroller. A separate set of tests validates server-side logic in isolation. 
+Each test calls an API handler with a mock request and inspects the HTTP response, using stand-in database and auth clients so tests do not depend on external services.
+Authentication tests verify that user requests without a valid Bearer token are rejected, that device ingestion requests require valid device credentials, 
+and that invalid or replayed tokens are not accepted. These checks protect endpoints that read or write user and device data.
+Group-management tests cover listing, creating, joining, renaming, and deleting groups, as well as updating calibration values and managing members (including role changes and removal). 
+Tests include both successful paths and failure cases such as invalid invite codes, duplicate membership, missing permissions, and database errors.
+Device tests verify listing a user's registered devices and the BLE registration flow used during mobile provisioning, including linking a new device to an existing group and handling missing or invalid input.
+The sensor ingestion endpoint is tested for correct handling of POST requests, device authentication, weight-to-level conversion using calibration data, storage of readings, 
+and optional low-water push notifications. Profile endpoints are tested for reading and updating user information, signing out all active sessions, and deleting an account.
+Supporting utility modules, such as push-notification delivery and shared group logic, are also tested so edge cases (empty inputs, network failures, malformed responses) do not propagate into production handlers.
