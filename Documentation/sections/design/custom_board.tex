@@ -12,6 +12,8 @@ The pins we use are the GPIO 4 and 5 pins. On this specific chip they are the AD
 
 The power supply for the chip is provided through the 3.3v pin. We selected a power method that was capable of powering both the amplifier board and the ESP chip. Both can be powered with 3.3 volts. For most of their operational time, the ESP chip will be in standby mode which consumes very little power. The most power intensive time is when transmitting via WiFi as that has a tendency to spike the power consumption. In order to handle this, a power management circuit is required to prevent spikes in current. 
 
+Using a voltage divider to GPIO pin 2, a rough estimate of battery charge can be included in software. The board is set up to make this possible with the proper software implementation. By dividing down the voltage from the battery input, measurements can be made occasionally to determine the voltage output from the battery. This can be used with the knowledge that Lithium Ion batteries have a range in voltage output depending on their store of charge. The lower the output the lower the charge. 
+
 \subsubsection{Power Components}
 
 For this design we provide the MCP73871 as an example chip selection. This is a power management IC that is capable of switching between a USB or AC/DC power source, and a lithium ion battery. When the USB or AC/DC source is providing power, it will power the circuit load and charge the lithium ion battery. This chip selection includes a lot more features than our design takes advantage of, meaning room for expansion of features if desired. 

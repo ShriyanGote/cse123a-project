@@ -19,24 +19,28 @@ reliably connect to a wireless network for communication with external devices.\
     \begin{itemize}
         \item \textbf{Procedure:} Power on the device in provisioning mode and use the setup interface to enter WiFi SSID and password.
         \item \textbf{Expected Result:} The device stores the credentials and connects to the specified network.
+        \item \textbf{Prototype Result:} Pass
     \end{itemize}
 
     \item \textbf{Automatic Reconnection Test}
     \begin{itemize}
         \item \textbf{Procedure:} Power cycle the device after provisioning has been completed.
         \item \textbf{Expected Result:} The device reconnects automatically to the saved WiFi network without requiring reconfiguration.
+        \item \textbf{Prototype Result:} Pass
     \end{itemize}
 
     \item \textbf{Invalid Credential Handling}
     \begin{itemize}
         \item \textbf{Procedure:} Attempt provisioning using an incorrect WiFi password.
         \item \textbf{Expected Result:} The device fails to connect and indicates a connection error or returns to provisioning mode.
+        \item \textbf{Prototype Result:} Pass
     \end{itemize}
 
     \item \textbf{Network Loss Recovery}
     \begin{itemize}
         \item \textbf{Procedure:} Disconnect the router or move the device out of range, then restore the network.
         \item \textbf{Expected Result:} The device automatically reconnects once the network becomes available.
+        \item \textbf{Prototype Result:} Pass
     \end{itemize}
 
 
@@ -64,36 +68,42 @@ Verify that users can join and leave a group associated with a specific Smart Wa
 \begin{itemize}
 \item \textbf{Procedure:} A user enters the group code or selects the filter in the application to join its group.
 \item \textbf{Expected Result:} The user is successfully added to the group and gains access to the filter’s information.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Leave Group Test}
 \begin{itemize}
 \item \textbf{Procedure:} A user selects the option to leave the group in the application.
 \item \textbf{Expected Result:} The user is removed from the group and no longer sees the filter’s data.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Multiple User Membership Test}
 \begin{itemize}
 \item \textbf{Procedure:} Multiple users join the same filter group from different devices.
 \item \textbf{Expected Result:} All users are successfully added and can view the same filter information.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Invalid Group Handling}
 \begin{itemize}
 \item \textbf{Procedure:} Attempt to join a group using an invalid or non-existent group code.
 \item \textbf{Expected Result:} The application rejects the request and displays an error message.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Rename Group Test}
 \begin{itemize}
 \item \textbf{Procedure:} Attempt to rename a group.
 \item \textbf{Expected Result:} The group name is updated correctly for all users.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Delete Group Test}
 \begin{itemize}
 \item \textbf{Procedure:} Attempt to delete a group.
 \item \textbf{Expected Result:} The group is removed for all users.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \end{itemize}
@@ -120,24 +130,35 @@ Verify that the Smart Water Pitcher Base accurately measures the water level and
 \begin{itemize}
 \item \textbf{Procedure:} Empty the container and select the “Empty” calibration option in the application. Then fill the container to the maximum level and select the “Full” calibration option.
 \item \textbf{Expected Result:} The system stores the calibration values and uses them to correctly scale future sensor readings to the displayed water level.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Water Level Accuracy Test}
 \begin{itemize}
 \item \textbf{Procedure:} Fill the container to several known levels and record the value reported by the Smart Water Pitcher Base.
 \item \textbf{Expected Result:} The reported level closely matches the actual water level within an acceptable error range.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Empty and Full Level Test}
 \begin{itemize}
 \item \textbf{Procedure:} Test the system with the container completely empty and completely full.
 \item \textbf{Expected Result:} The application correctly displays the minimum and maximum water levels.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Data Transmission Test}
 \begin{itemize}
 \item \textbf{Procedure:} Verify that sensor readings are transmitted from the Smart Water Filter Base to the application over WiFi.
 \item \textbf{Expected Result:} The application consistently displays the most recent water level data.
+\item \textbf{Prototype Result:} Pass
+\end{itemize}
+
+\item \textbf{Transmission Speed Test}
+\begin{itemize}
+\item \textbf{Procedure:} Verify that sensor readings are transmitted from the Smart Water Filter Base to the application within 5 seconds.
+\item \textbf{Expected Result:} The application consistently reports water level data within 5 seconds of a physical change.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \end{itemize}
@@ -164,18 +185,21 @@ Verify that the system generates and delivers notifications to users when specif
 \begin{itemize}
 \item \textbf{Procedure:} Reduce the water level below the defined threshold.
 \item \textbf{Expected Result:} A notification is generated and displayed to users indicating that the water level is low.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \item \textbf{Notification Delivery Test}
 \begin{itemize}
 \item \textbf{Procedure:} Trigger a notification event and verify that it appears in the application interface.
 \item \textbf{Expected Result:} The notification is delivered and visible to the user.
+\item \textbf{Prototype Result:} Partial pass (Apple Developer Kit prevents full notification access without payment)
 \end{itemize}
 
 \item \textbf{Multiple User Notification Test}
 \begin{itemize}
 \item \textbf{Procedure:} Trigger a notification event while multiple users are members of the same group.
 \item \textbf{Expected Result:} All users in the group receive the notification.
+\item \textbf{Prototype Result:} Pass
 \end{itemize}
 
 \end{itemize}
@@ -199,12 +223,21 @@ Notifications are reliably generated and delivered to all relevant users when sy
 \begin{itemize}
 \item \textbf{Procedure:} Place the Smart Water Pitcher Base in an environment with known humidity levels similar to a typical indoor refrigerator.
 \item \textbf{Expected Result:} The smart base continues to function correctly over long periods of use.
+\item \textbf{Prototype Result:} Untested, prototype is not humidity proof
 \end{itemize}
 
 \item \textbf{Battery and Power Test}
 \begin{itemize}
 \item \textbf{Procedure:} Drain the smart base's battery and recharge it.
 \item \textbf{Expected Result:} The smart base resumes functionality after being recharged.
+\item \textbf{Prototype Result:} Pass
+\end{itemize}
+
+\item \textbf{Battery Duration Test}
+\begin{itemize}
+\item \textbf{Procedure:} Measure how long the battery lasts under normal usage conditions.
+\item \textbf{Expected Result:} The smart base remains powered for 3 months without recharge.
+\item \textbf{Prototype Result:} Fail, prototype's MCU uses much more power than the actual design's custom PCB
 \end{itemize}
 
 \end{itemize}

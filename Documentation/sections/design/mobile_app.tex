@@ -4,17 +4,15 @@ The mobile application is the primary user-facing interface for the Smart Water 
 It is the client that displays live water-level readings for shared groups, handles device provisioning over Bluetooth Low Energy, 
 manages device groups, and displays low-water notifications on the user's phone. The web application is limited to 
 account management and the setup guide while the mobile app is where day-to-day interaction with the system happens.
-
-The mobile app is built with React Native using the Expo framework, and it shares its backend database with the web application. 
-The same email/password account works in both applications, allowing users to manage their account and devices from both the web and mobile interfaces.
+The mobile app shares its backend database with the web application. The same email/password account works in both applications, allowing users to manage their account and devices from both the web and mobile interfaces.
 
 \subsubsection{System Architecture}
 The mobile app interacts with the rest of the system in three ways:
 
 \begin{itemize}
-    \item \textbf{Database Authentication} Used for sign-in, sign-up, and live profile state. The same database authentication system is used for the web application and the mobile app.
-    \item \textbf{Authenticated REST calls} Sent to the server-hosted API endpoints (e.g. \texttt{/api/groups}, \texttt{/api/devices}, \texttt{/api/profile}, \texttt{/api/app-state}, \texttt{/api/devices/ble-register}, \texttt{/api/groups/\{id\}/calibration}) using the database access token as a Bearer credential.
-    \item \textbf{Bluetooth Low Energy (BLE)} for the initial device-provisioning handshake with a Smart Base. The BLE path is currently gated to iOS only.
+    \item \textbf{Database Authentication} --- Used for sign-in, sign-up, and live profile state. The same database authentication system is used for the web application and the mobile app.
+    \item \textbf{Authenticated REST calls} --- Sent to the backend server to fetch and update account, group, device, and calibration data, using the database access token as a Bearer credential.
+    \item \textbf{Bluetooth Low Energy (BLE)} --- For the initial device-provisioning handshake with a Smart Base. The BLE path is currently gated to iOS only.
 \end{itemize}
 
 \noindent Low-water notifications are scheduled by the mobile app itself and pushed directly to the user's phone.
@@ -23,20 +21,20 @@ The mobile app interacts with the rest of the system in three ways:
 The mobile app is organized as a stack navigator with the following screens:
 
 \begin{itemize}
-    \item \textbf{Intro Screen.} Shown on first launch. Introduces the product before the user can sign up and sign into the app.
-    \item \textbf{Auth Screen.} Email/password sign-in and sign-up, backed by the database authentication system. Sign-up optionally captures a display name. After account creation, the user receives a confirmation email and is required to verify their email before they can sign in.
-    \item \textbf{Dashboard Screen.} The home screen lists the user's groups and devices, lets the user create a new group, join an existing group by invite code, open the device-provisioning flow, and sign out.
-    \item \textbf{Provision Device Screen.} Walks the user through pairing a new base: scan the QR code on the base, enter Wi-Fi credentials, then transmit them to the base over BLE.
-    \item \textbf{Group Screen.} Detailed view for a single group. Displays the latest reading for the group's associated device, includes calibration controls for empty and full water levels, and is the destination opened when the user taps a low-water notification. Calibration is stored per group rather than as a single global record.
+    \item \textbf{Intro Screen} --- Shown on first launch. Introduces the product before the user can sign up and sign into the app.
+    \item \textbf{Auth Screen} --- Email/password sign-in and sign-up, backed by the database authentication system. Sign-up optionally captures a display name. After account creation, the user receives a confirmation email and is required to verify their email before they can sign in.
+    \item \textbf{Dashboard Screen} --- The home screen lists the user's groups and devices, lets the user create a new group, join an existing group by invite code, open the device-provisioning flow, and sign out.
+    \item \textbf{Provision Device Screen} --- Walks the user through pairing a new base: scan the QR code on the base, enter Wi-Fi credentials, then transmit them to the base over BLE.
+    \item \textbf{Group Screen} --- Detailed view for a single group. Displays the latest reading for the group's associated device, includes calibration controls for empty and full water levels, and is the destination opened when the user taps a low-water notification. Calibration is stored per group rather than as a single global record.
 \end{itemize}
 
 \subsubsection{Device Provisioning}
 The Provision Device flow is the bridge between an out-of-the-box Smart Base and a cloud-connected device tied to the user's account. The flow proceeds in three stages:
 
 \begin{enumerate}
-    \item \textbf{Scan QR.} The user taps ``Scan ESP QR'', which opens the user's camera and decodes a QR sticker provided on the physical base. The screen accepts QR payloads as raw JSON, as URL query parameters (e.g. \texttt{espprov://...?device\_name=...}), or as base64-encoded JSON. Recognized fields include \texttt{device\_name}, \texttt{device\_id}, the BLE \texttt{service\_uuid} and characteristic UUIDs (\texttt{auth\_char\_uuid}, \texttt{wifi\_char\_uuid}, \texttt{status\_char\_uuid}), and metadata such as \texttt{pop}, \texttt{transport}, and \texttt{ver}. If UUID fields are omitted, fallback UUIDs hard-coded to match the \texttt{custom\_ble\_prov} firmware are used.
-    \item \textbf{Register on the server.} A one-time \texttt{auth\_token} is generated on-device with a UUIDv4. When the user taps ``Send Token + Wi-Fi over BLE'', the app first calls \texttt{POST /api/devices/ble-register} with the \texttt{device\_id}, \texttt{auth\_token}, and chosen \texttt{device\_name}, so the backend will recognize the device in the posted water weight readings.
-    \item \textbf{Transmit over BLE.} The app then uses bluetooth low energy to scan for and connect to the smart base, discover services and characteristics, request a 512-byte MTU, and write the payload in two parts: the \texttt{auth\_token} (base64-encoded UTF-8) to the auth characteristic, and the Wi-Fi credentials encoded as \texttt{ssid:password} (base64-encoded UTF-8) to the Wi-Fi characteristic. If a status characteristic UUID is provided, the app reads it back and displays the decoded value. After the writes, the app polls \texttt{/api/devices} for up to 30 seconds, waiting for the new \texttt{device\_id} to become visible from the server, then returns the user to the Dashboard.
+    \item \textbf{Scan QR} --- The user scans a QR code on the physical base with the device camera. The app decodes the provisioning payload and pre-fills device identity and Bluetooth connection parameters for the next steps.
+    \item \textbf{Register on the server} --- The app generates a one-time authentication token and registers the device with the backend so future sensor readings can be attributed to the user's account.
+    \item \textbf{Transmit over BLE} --- The app connects to the base over Bluetooth Low Energy, sends the authentication token and Wi-Fi credentials, optionally reads a status response from the base, then polls the server until the newly registered device appears before returning the user to the Dashboard.
 \end{enumerate}
 
 \subsubsection{Groups and Sharing}
@@ -48,7 +46,61 @@ The Group screen also allows groups owners to calibrate empty and full reference
 The mobile app monitors its own group devices for low-water conditions and surfaces local notifications when the level drops below threshold. Three pieces work together:
 
 \begin{itemize}
-    \item \textbf{\texttt{useLowWaterMonitor}} A hook that runs while the user is signed in, the database is configured, and the account is active. It polls on an 8-second interval whenever the app is in the active state, then fetches the id for each group that has a device attached and forwards the latest reading to the alerting helper.
-    \item \textbf{\texttt{groupLowWaterAlerts}} Computes the current water-level percentage and compares it against the low-water threshold of 20 percent. It tracks per-group alert state so that a single sub-threshold transition produces one notification, rather than firing repeatedly while the level stays low. State is cleared once the level returns at or above threshold (or on sign-out).
-    \item \textbf{Mobile Notifications} When a fresh low-water transition is detected, the app schedules a local notification carrying \texttt{\{ type: "low\_water", groupId, groupName \}} in its data payload. Tapping the notification redirects the user to the corresponding Group screen.
+    \item \textbf{Background monitoring} --- While the user is signed in and the app is active, a background process periodically fetches the latest reading for each group that has an attached device.
+    \item \textbf{Threshold detection} --- The app computes each group's water-level percentage and compares it against a fixed low-water threshold. Per-group state ensures one notification per low-water event rather than repeated alerts while the level stays low.
+    \item \textbf{Local notifications} --- When a group crosses below threshold, the app schedules a local notification. Tapping it opens the corresponding Group screen.
+\end{itemize}
+
+\subsection{Summary of Prototype Implemented Features}
+
+\begin{itemize}
+
+\item \textbf{Smart Base}
+
+\begin{itemize}
+    \item \textbf{Implementation:}
+    \begin{itemize}
+        \item ESP32-C3
+        \item 900 mAh Li-ion battery
+        \item 3D printed container
+        \item Load cell, HX711 amplifier
+    \end{itemize}
+
+    \item \textbf{Implemented features:}
+    \begin{itemize}
+        \item Setup and connection with mobile application
+        \item Send weight through HTTPS
+    \end{itemize}
+
+    \item \textbf{Missing features:}
+    \begin{itemize}
+        \item Reset button
+        \item Humidity proofing
+    \end{itemize}
+\end{itemize}
+
+\item \textbf{Mobile App and Server}
+
+\begin{itemize}
+    \item \textbf{Implementation:}
+    \begin{itemize}
+        \item React Native on Expo iOS
+        \item Vercel hosting, Supabase database
+    \end{itemize}
+
+    \item \textbf{Implemented features:}
+    \begin{itemize}
+        \item Setup, add, and calibrate devices
+        \item Create/join/manage groups
+        \item View live water level
+        \item Receive low-water notifications
+    \end{itemize}
+
+    \item \textbf{Missing features:}
+    \begin{itemize}
+        \item Customize water level threshold to notify
+        \item Full push notifications capabilities (locked by Apple paywall)
+    \end{itemize}
+\end{itemize}
+
 \end{itemize}

@@ -55,15 +55,16 @@ If building to a physical iPhone:
 3. In Xcode, select the app target on the left (`mobileapp`) -> **Signing & Capabilities**:
    - Set your **Team**.
    - Keep **Automatically manage signing** enabled.
-4. Click on the run button (sideways triangle symbol) on the top right corner of the left tab to build the project.
+4. Click on the run button (sideways triangle symbol) on the top right corner of the left tab to download any necessary packages and build the project.
+
 
 ## 3) Create local environment file
 
 Create `mobile-app/.env` with at least:
 
 ```env
-EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+EXPO_PUBLIC_SUPABASE_URL=https://nyrlotplnpxahjqgvjfd.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55cmxvdHBsbnB4YWhqcWd2amZkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MTMwNTE4MSwiZXhwIjoyMDg2ODgxMTgxfQ.PUxfXaTnxOLPnwrLlUCwTSbFthzu18hNRTiMuqTF7zs
 ```
 
 ## 4) Start the app
@@ -79,6 +80,13 @@ Start with native build cache cleared:
 ```bash
 npx expo run:ios --device --no-build-cache
 ```
+
+When building the app for the first time, you will receive an **Untrusted Developer** message:
+
+1. Go to **Settings** -> **General** -> **VPN & Device Management**
+2. Press on your email under the **Developer App** section
+3. Press **Trust** and **Allow** when prompted for the mobile app that should appear under that screen
+4. Run the command **npx expo run:ios --device** again
 
 ## 5) Common issues
 
