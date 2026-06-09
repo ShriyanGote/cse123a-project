@@ -49,14 +49,18 @@ The Guide page is a static, step-by-step walkthrough for first-time setup of a S
 
 \noindent The Guide page deliberately mirrors the mobile-app provisioning flow so users have a reference while completing setup on their phone.
 
-\subsubsection{Backend Services}
-The backend server exposes services used by the web application, the mobile app, and the microcontroller:
+\subsubsection{REST API}
+The backend server exposes a small REST API shared by the web app, the mobile app, and the microcontroller. User-facing requests carry the database access token as a Bearer credential; sensor uploads use a per-device credential established during provisioning.
 
 \begin{itemize}
-    \item \textbf{App configuration} --- Supplies the content and layout for the Settings and Guide panels.
-    \item \textbf{Device registry} --- Returns devices registered by the signed-in user. Used by both the Settings page and the mobile app.
-    \item \textbf{Group membership} --- Returns the groups the signed-in user belongs to. Used by both the Settings page and the mobile app.
-    \item \textbf{Sensor ingestion} --- Receives weight readings from the microcontroller and stores them in the database.
+    \item \textbf{Authentication} --- Handles email/password sign-in, sign-up, and email verification, and issues access tokens for authenticated sessions. The web Settings sign-in form and the mobile Auth screen obtain tokens through the shared database authentication service; all other user-facing REST endpoints require a valid Bearer token before returning account, group, or device data.
+    \item \textbf{Account and profile} --- Read the signed-in user's profile, update display name, sign out all active sessions, and permanently delete the account. Used by the Settings page Security actions.
+    \item \textbf{App state} --- Returns aggregated state the clients need on load, including recent reading context for the signed-in user. Used by the Settings page and the Guide page. 
+    \item \textbf{Device registry} --- List devices owned by the user and register a new device during mobile BLE provisioning (hardware identity plus one-time credential). Listing is used by the Settings page and mobile dashboard; registration is used by the mobile provisioning flow.
+    \item \textbf{Group membership} --- List the user's groups, create a new group, join an existing group by invite code, and fetch detailed group data including members and the latest reading. Listing is used by the Settings page and mobile dashboard; create, join, and detail are used primarily by the mobile app.
+    \item \textbf{Group management} --- Rename or delete a group, transfer ownership, and update member roles or remove members. Used by the mobile app.
+    \item \textbf{Group calibration} --- Set empty and full reference weights for a group's associated device. Used by the mobile Group screen.
+    \item \textbf{Sensor ingestion} --- Accept weight readings from the microcontroller over HTTPS, store them, derive water level from calibration data, and optionally trigger low-water push notifications. Used by the Smart Base firmware.
 \end{itemize}
 
 \subsubsection{Data Model}
